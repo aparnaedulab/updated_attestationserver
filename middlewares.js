@@ -79,37 +79,17 @@ module.exports = {
         models.Applied_For_Details.find({
             where:{
                 user_id : req.user_id,
-                app_id : null,
-                source : 'guattestation'
+                app_id : null
             }
         }).then(function(User){
             if(User){
-                if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){  
-                    req.userEducational = 6;
+                if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange == true){  
+                    req.userEducational = 7;
                         next();
-                }else if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 5;
+                }else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter)  || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true &&User.LetterforNameChange) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange ) || (User.educationalDetails == true  && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.CompetencyLetter == true && User.LetterforNameChange)  || (User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange)  || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange)){
+                    req.userEducational = 6;
                     next();
-                }else if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.LetterforNameChange == true){
-                    req.userEducational = 5;
-                    next();
-                }else if(User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true && User.LetterforNameChange == true){
-                    req.userEducational = 5;
-                    next();
-                }else if(User.educationalDetails == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 5;
-                    next();
-                }else if(User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 5;
-                    next();
-                }else if(User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true && User.educationalDetails == true){
-                    req.userEducational = 5;
-                    next();
-                }else if(User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true && User.educationalDetails == true && User.instructionalField == true){
-                    req.userEducational = 5;
-                    next();
-                }
-                else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true)){
+                }else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true)){
                      req.userEducational = 5;
                     next();
                 }else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.LetterforNameChange == true ) || (User.educationalDetails == true  && User.instructionalField == true && User.curriculum == true && User.affiliation == true && User.CompetencyLetter == true ) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.CompetencyLetter == true && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true) || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.CompetencyLetter == true && User.LetterforNameChange == true) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true && User.LetterforNameChange == true) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.CompetencyLetter == true) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true && User.LetterforNameChange == true) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true && User.CompetencyLetter == true && User.LetterforNameChange == true)){
@@ -127,51 +107,8 @@ module.exports = {
                    console.log('in 5th')
                     req.userEducational =5;
                     next();
-            
-                }else if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true){
-                    req.userEducational = 4;
-                    next();
-                }
-            
-                else if(User.educationalDetails == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.educationalDetails == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.instructionalField == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.instructionalField == true && User.affiliation == true && User.LetterforNameChange == true && User.educationalDetails == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.instructionalField == true && User.LetterforNameChange == true && User.educationalDetails == true && User.instructionalField == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.curriculum == true && User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.curriculum == true && User.affiliation == true && User.LetterforNameChange == true && User.educationalDetails == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.curriculum == true && User.LetterforNameChange == true && User.educationalDetails == true && User.instructionalField == true){
-                    req.userEducational = 4;
-                    next();
-                }
-                else if(User.curriculum == true && User.LetterforNameChange == true && User.educationalDetails == true && User.curriculum == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.curriculum == true && User.LetterforNameChange == true && User.educationalDetails == true && User.gradToPer == true){
-                    req.userEducational = 4;
-                    next();
-                }else if(User.curriculum == true && User.LetterforNameChange == true && User.educationalDetails == true && User.affiliation == true){
-                    req.userEducational = 4;
-                    next();
-                }
-                else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true ) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.affiliation == true ) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.CompetencyLetter == true ) || (User.educationalDetails == true  && User.instructionalField == true && User.curriculum == true && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true && User.affiliation == true )  || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.CompetencyLetter == true ) || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true ) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true && User.CompetencyLetter == true ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.CompetencyLetter == true && User.LetterforNameChange == true ) || (User.curriculum == true && User.gradToPer == true  && User.affiliation == true && User.CompetencyLetter == true) || (User.curriculum == true && User.gradToPer == true  && User.affiliation == true && User.LetterforNameChange == true) || (User.curriculum == true && User.affiliation == true  && User.CompetencyLetter == true && User.LetterforNameChange == true)){
+
+                }else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.gradToPer == true ) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.affiliation == true ) || (User.educationalDetails == true && User.instructionalField == true && User.curriculum == true && User.CompetencyLetter == true ) || (User.educationalDetails == true  && User.instructionalField == true && User.curriculum == true && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true && User.affiliation == true )  || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.CompetencyLetter == true ) || (User.educationalDetails == true && User.instructionalField == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true ) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.curriculum == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.affiliation == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.CompetencyLetter == true ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true && User.CompetencyLetter == true ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true && User.LetterforNameChange == true ) || (User.instructionalField == true && User.curriculum == true  && User.CompetencyLetter == true && User.LetterforNameChange == true ) || (User.curriculum == true && User.gradToPer == true  && User.affiliation == true && User.CompetencyLetter == true) || (User.curriculum == true && User.gradToPer == true  && User.affiliation == true && User.LetterforNameChange == true) || (User.curriculum == true && User.affiliation == true  && User.CompetencyLetter == true && User.LetterforNameChange == true)){
                     req.userEducational = 4;
                     next();
                 }else if((User.CompetencyLetter == true && User.affiliation == true && User.gradToPer == true && User.curriculum == true )|| (User.CompetencyLetter == true && User.affiliation == true && User.gradToPer == true && User.instructionalField == true ) || (User.CompetencyLetter == true && User.affiliation == true &&  User.gradToPer == true && User.educationalDetails == true) || (User.affiliation == true && User.gradToPer == true && User.curriculum == true && User.instructionalField == true && User.educationalDetails == true ) || (User.gradToPer == true && User.curriculum == true && User.instructionalField == true  && User.CompetencyLetter == true)|| (User.curriculum == true && User.instructionalField == true && User.educationalDetails == true && User.CompetencyLetter == true)|| (User.curriculum == true && User.instructionalField == true && User.educationalDetails == true && User.affiliation == true) || (User.curriculum == true && User.instructionalField == true && User.educationalDetails == true && User.gradToPer == true)|| (User.instructionalField == true && User.educationalDetails == true && User.CompetencyLetter == true && User.affiliation == true)|| (User.instructionalField == true && User.educationalDetails == true && User.affiliation == true && User.gradToPer == true) || (User.educationalDetails == true && User.curriculum == true && User.gradToPer == true && User.CompetencyLetter == true) || (User.CompetencyLetter == true && User.instructionalField == true && User.affiliation == true &&  User.gradToPer == true ) || (User.CompetencyLetter == true && User.educationalDetails == true && User.curriculum == true && User.affiliation == true) || (User.CompetencyLetter == true && User.instructionalField == true && User.gradToPer == true && User.curriculum == true))
@@ -193,49 +130,7 @@ module.exports = {
                 }else if(User.instructionalField == true && User.curriculum == true && User.gradToPer == true && User.affiliation == true){
                     req.userEducational = 4;
                     next();
-                }
-                else if(User.educationalDetails == true && User.instructionalField == true && User.curriculum == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                
-                else if(User.educationalDetails == true && User.curriculum == true && User.gradToPer == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.educationalDetails == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.educationalDetails == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.instructionalField == true && User.curriculum == true && User.gradToPer == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.instructionalField == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.instructionalField == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.curriculum == true && User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.curriculum == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if(User.gradToPer == true && User.affiliation == true && User.LetterforNameChange == true){
-                    req.userEducational = 3;
-                    next();
-                }
-                else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true) || (User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true) || (User.educationalDetails == true && User.instructionalField == true && User.affiliation == true) || (User.educationalDetails == true  && User.instructionalField == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.instructionalField == true && User.LetterforNameChange == true )  || (User.educationalDetails == true && User.gradToPer == true  && User.curriculum == true  ) || (User.educationalDetails == true && User.curriculum == true  && User.affiliation == true ) || (User.educationalDetails == true && User.curriculum == true  && User.CompetencyLetter == true  ) || (User.educationalDetails == true && User.curriculum == true  && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.gradToPer == true  && User.affiliation == true  ) || (User.educationalDetails == true && User.gradToPer == true  && User.CompetencyLetter == true  ) || (User.educationalDetails == true && User.gradToPer == true  && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.affiliation == true  && User.CompetencyLetter == true ) || (User.educationalDetails == true && User.affiliation == true  && User.LetterforNameChange == true  ) || (User.affiliation == true && User.CompetencyLetter == true  && User.LetterforNameChange == true  ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true  ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true ) || (User.instructionalField == true && User.curriculum == true  && User.CompetencyLetter == true ) || (User.instructionalField == true && User.CompetencyLetter == true  && User.LetterforNameChange == true) || (User.instructionalField == true && User.gradToPer == true  && User.affiliation == true) || (User.instructionalField == true && User.gradToPer == true  && User.CompetencyLetter == true) || (User.instructionalField == true && User.gradToPer == true  && User.LetterforNameChange == true) || (User.instructionalField == true && User.affiliation == true  && User.CompetencyLetter == true) || (User.instructionalField == true && User.affiliation == true  && User.LetterforNameChange == true) ){
+                }else if((User.educationalDetails == true && User.instructionalField == true && User.curriculum == true) || (User.educationalDetails == true && User.instructionalField == true && User.gradToPer == true) || (User.educationalDetails == true && User.instructionalField == true && User.affiliation == true) || (User.educationalDetails == true  && User.instructionalField == true && User.CompetencyLetter == true) || (User.educationalDetails == true && User.instructionalField == true && User.LetterforNameChange == true )  || (User.educationalDetails == true && User.gradToPer == true  && User.curriculum == true  ) || (User.educationalDetails == true && User.curriculum == true  && User.affiliation == true ) || (User.educationalDetails == true && User.curriculum == true  && User.CompetencyLetter == true  ) || (User.educationalDetails == true && User.curriculum == true  && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.gradToPer == true  && User.affiliation == true  ) || (User.educationalDetails == true && User.gradToPer == true  && User.CompetencyLetter == true  ) || (User.educationalDetails == true && User.gradToPer == true  && User.LetterforNameChange == true ) || (User.educationalDetails == true && User.affiliation == true  && User.CompetencyLetter == true ) || (User.educationalDetails == true && User.affiliation == true  && User.LetterforNameChange == true  ) || (User.affiliation == true && User.CompetencyLetter == true  && User.LetterforNameChange == true  ) || (User.instructionalField == true && User.curriculum == true  && User.gradToPer == true  ) || (User.instructionalField == true && User.curriculum == true  && User.affiliation == true ) || (User.instructionalField == true && User.curriculum == true  && User.CompetencyLetter == true ) || (User.instructionalField == true && User.CompetencyLetter == true  && User.LetterforNameChange == true) || (User.instructionalField == true && User.gradToPer == true  && User.affiliation == true) || (User.instructionalField == true && User.gradToPer == true  && User.CompetencyLetter == true) || (User.instructionalField == true && User.gradToPer == true  && User.LetterforNameChange == true) || (User.instructionalField == true && User.affiliation == true  && User.CompetencyLetter == true) || (User.instructionalField == true && User.affiliation == true  && User.LetterforNameChange == true) ){
                     req.userEducational = 3;
                     next();
                 }else if((User.instructionalField == true && User.CompetencyLetter == true  && User.LetterforNameChange == true) || (User.curriculum == true && User.gradToPer == true  && User.affiliation == true) || (User.curriculum == true && User.gradToPer == true  && User.CompetencyLetter == true) || (User.curriculum == true && User.gradToPer == true  && User.LetterforNameChange == true) || (User.gradToPer == true && User.affiliation == true  && User.CompetencyLetter == true) || (User.gradToPer == true && User.affiliation == true  && User.LetterforNameChange == true) || (User.affiliation == true && User.CompetencyLetter == true  && User.LetterforNameChange == true)){
@@ -312,72 +207,28 @@ module.exports = {
                 }else if(User.instructionalField == true && User.affiliation == true){
                     req.userEducational = 2;
                     next();
-                }else if(User.educationalDetails == true && User.instructionalField == true){
-                    req.userEducational = 2;
-                    next();
-                }
-              
-                else if(User.educationalDetails == true && User.curriculum == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.educationalDetails == true && User.gradToPer == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.educationalDetails == true && User.affiliation == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.educationalDetails == true && User.LetterforNameChange == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.instructionalField == true && User.curriculum == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.instructionalField == true && User.gradToPer == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.instructionalField == true && User.affiliation == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.instructionalField == true && User.LetterforNameChange == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.curriculum == true && User.gradToPer == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.gradToPer == true && User.affiliation == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.curriculum == true && User.affiliation == true){
-                    req.userEducational = 2;
-                    next();
-                }
-                else if(User.educationalDetails == true){
+                }else if(User.curriculum == true){
                     req.userEducational = 1;
                     next();
-                }
-                else if(User.instructionalField == true){
+                }else if(User.instructionalField == true){
                     req.userEducational = 1;
                     next();
-                } else if(User.curriculum == true){
+                }else if(User.gradToPer == true){
                     req.userEducational = 1;
                     next();
-                } else if(User.gradToPer == true){
+                }else if(User.affiliation == true){
                     req.userEducational = 1;
                     next();
-                } else if(User.affiliation == true){
+                }else if(User.CompetencyLetter == true){
+                  console.log('iiiiii')
                     req.userEducational = 1;
                     next();
-                } else if(User.LetterforNameChange == true){
+                }else if(User.educationalDetails == true){
+                    console.log("educational")
+                    req.userEducational = 1;
+                    next();
+                }else if(User.LetterforNameChange == true){
+                    console.log("LetterforNameChange")
                     req.userEducational = 1;
                     next();
                 }
@@ -386,479 +237,124 @@ module.exports = {
                 req.userEducational = 0;
                 next();
             }
-            }
+        }
         });
     },
 
 
     getTranscriptDetails: function(req, res, next){
+        console.log("getTranscriptDetails");
+        var option;
         if(req.query.editFlag == 'true'){
             models.Applied_For_Details.find({
                 where:{
                     user_id : req.user_id,
-                    app_id : req.query.app_id,
-                    source : 'guattestation'
+                    app_id : req.query.app_id
                 }
             }).then(function(user_data){
-                if(user_data){
-                    if(user_data.attestedfor != null){
-                        if(user_data.attestedfor.includes('transcript')){
-                            models.User_Transcript.findAll({
-                                where:{
-                                    user_id : req.user_id,
-                                    app_id : {
-                                        [Op.ne] : null
-                                    },source : 'guattestation' 
+                models.User_Transcript.findAll({
+                    where:{
+                        user_id : req.user_id,
+                        app_id : {
+                            [Op.ne] : null
+                        }
+                    }
+                }).then(function(user_Transcripts){
+                    var userTranscripts = [];
+                    if( user_Transcripts.length > 0){
+                        user_Transcripts.forEach(transcript=>{
+                            var app_idArr = transcript.app_id.split(",");
+                            app_idArr.forEach(app_id=>{
+                                if(app_id == req.query.app_id){
+                                    userTranscripts.push(transcript);
                                 }
-                            }).then(function(user_Transcripts){
-                                
-                                var userTranscripts = [];
-                                if( user_Transcripts.length > 0){
-                                    user_Transcripts.forEach(transcript=>{
-                                        var app_idArr = transcript.app_id.split(",");
-                                        app_idArr.forEach(app_id=>{
-                                            if(app_id == req.query.app_id){
-                                                userTranscripts.push(transcript);
-                                            }
-                                        })
-                                    })
-                                    if(userTranscripts.length > 0){
-                                        var i = 0;
-                                        if(user_data.applying_for == 'Bachelors'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userTranscript = true;
-                                                next();
-                                            }else{
-                                                req.userTranscript = false;
-                                                next();
-                                            }
-                                        }
-                                        else if(user_data.applying_for == 'Masters,Bachelors'){
-                                            var mastbach;
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                mastbach = userTranscript.type + mastbach ;
-                                            })
-                                               if (mastbach.includes('Bachelors_transcripts') && mastbach.includes('Masters_transcripts')) {
-                                                            i += 1;
-                                                    }
-                                            if(i>0){
-                                                req.userTranscript = true;
-                                                next();
-                                            }else{
-                                                req.userTranscript = false;
-                                                next();
-                                            }
-                                        }
-                                        else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Phd_transcripts' || userTranscript.type == 'Phd_degree') {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userTranscript = true;
-                                                next();
-                                            }else{
-                                                req.userTranscript = false;
-                                                next();
-                                            }
-                                        }else if(user_data.applying_for == 'Masters'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userTranscript = true;
-                                                next();
-                                            }else{
-                                                req.userTranscript = false;
-                                                next();
-                                            }
-                                        }else if(user_data.applying_for == 'Phd'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Masters_degree' && userTranscript.type == 'Bachelors_degree' && userTranscript.type == 'Phd_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userDegree = true;
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }
-                                    }else{
-                                        req.userTranscript = false;
-                                        next();
+                            })
+                        })
+                        if(userTranscripts.length > 0){
+                            var i = 0;
+                            if(user_data.applying_for == 'Bachelors'){
+                                userTranscripts.forEach(function (userTranscript) {
+                                    if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                        i += 1;
                                     }
+                                })
+                                if(i>0){
+                                    req.userTranscript = true;
+                                    next();
                                 }else{
                                     req.userTranscript = false;
-                                    next(); 
+                                    next();
                                 }
-                               
-                            })
-                        }else{
-                            req.userTranscript = true;
-                            next();
-                        }
-                    }else{
-                        req.userTranscript = true;
-                        next();
-                    }
-                   
-                }else{
-                    req.userTranscript = true;
-                    next();
-                }
-              
-              
-            })
-        }else{
-            models.Applied_For_Details.find({
-                where:{
-                    user_id : req.user_id,
-                    app_id : {
-                        [Op.eq] : null
-                    },
-                    source : 'guattestation'
-                }
-            }).then(function(user_data){
-                if(user_data){
-                    if(user_data.attestedfor != null){
-
-                        if(user_data.attestedfor.includes('transcript')){
-                            if(user_data.applying_for != null){
+                            }else if(user_data.applying_for == 'Masters,Bachelors'){
+                                userTranscripts.forEach(function (userTranscript) {
+                                    if ( userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                        if(userTranscript.type == 'Masters_transcripts'){
+                                            i += 1;
+                                        }
+                                       
+                                    }
+                                })
+                                console.log("ii value ======>" + i);
+                                if(i>0){
+                                    req.userTranscript = true;
+                                    next();
+                                }else{
+                                    req.userTranscript = false;
+                                    next();
+                                }
+                            }else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
                                 models.userMarkList.find({
                                     where :{
-                                        user_id : req.user_id,source : 'guattestation'
+                                        type : 'Phd',
+                                        user_id : req.user_id,
+                                        app_id : {
+                                            [Op.ne] : null
+                                        }
                                     }
-                                }).then(function(userMarkList){
-                                    if(userMarkList){
-                                        if(userMarkList.previous_data == true){
-                                            models.User_Transcript.findAll({
-                                                where:{
-                                                    user_id : req.user_id,
-    
-                                                    type : {
-                                                        [Op.like] : '%transcript%'
-                                                    },source : 'guattestation' 
-                                                }
-                                            }).then(function(userTranscripts){
-                                                if(userTranscripts.length > 0){
-                                                    var i = 0;
-                                                    if(user_data.applying_for == 'Bachelors'){
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }else if(user_data.applying_for == 'Masters,Bachelors'){
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            if (userTranscript.type == 'Masters_transcripts' && userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript  Page')) {
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            if (userTranscript.type == 'Phd_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }
-                                                }else{
-                                                    req.userTranscript = false;
-                                                    next();
-                                                }
-                                            })
-                                        }else if(userMarkList.previous_data == false){
-                                            models.User_Transcript.findAll({
-                                                where:{
-                                                    user_id : req.user_id,
-                                                    app_id : {
-                                                        [Op.eq] : null
-                                                    },
-                                                    type : {
-                                                        [Op.like] : '%transcript%'
-                                                    },source : 'guattestation' 
-                                                }
-                                            }).then(function(userTranscripts){
-                                                
-                                                console.log("userTranscripts.length>>>" +userTranscripts.length);
-                                                if(userTranscripts.length > 0){
-                                                    console.log("in trueeeee");
-                                                    var i = 0;
-                                                    if(user_data.applying_for == 'Bachelors'){
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }
-                                                    else if(user_data.applying_for == 'Masters,Bachelors'){
-                                                        var mastbach;
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            mastbach = userTranscript.type + mastbach ;
-                                                        })
-                                                           if (mastbach.includes('Bachelors_transcripts') && mastbach.includes('Masters_transcripts')) {
-                                                                        i += 1;
-                                                                }
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }
-                                                    else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                                       
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            console.log("userTranscript.type" + userTranscript.type);
-                                                            console.log("userTranscript.name" + userTranscript.name);
-                                                            if (userTranscript.type == 'Phd_transcripts' || userTranscript.type == 'Phd_degree') {
-                                                                console.log("insideeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            console.log("trueeee value");
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }else if(user_data.applying_for == 'Masters'){
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            if (userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page')) {
-                                                                i += 1;
-                                                            }
-                                                        })
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                    }
-                                                    else if(user_data.applying_for == 'Phd'){
-                                                        var phddata;
-                                                        userTranscripts.forEach(function (userTranscript) {
-                                                            phddata = userTranscript.type + phddata ;
-                                                        })
-                                                        console.log('phddataphddataphddataphddata' + phddata)
-                                                           if (phddata.includes('Phd_transcripts') && phddata.includes('Masters_transcripts') && phddata.includes('Bachelors_transcripts')) {
-                                                                        i += 1;
-                                                                }
-                                                        if(i>0){
-                                                            req.userTranscript = true;
-                                                            next();
-                                                        }else{
-                                                            req.userTranscript = false;
-                                                            next();
-                                                        }
-                                                        console.log("req.userTranscript" + req.userTranscript);
-                                                    }
-                                                }else{
-                                                    req.userTranscript = false;
-                                                    next();
-                                                }
-                                            })
+                                }).then(function(userMarklist){
+                                    if(userMarklist){
+                                        var str = 'Phd_' + userMarklist.faculty
+                                        userTranscripts.forEach(function (userTranscript) {
+                                            if (userTranscript.type == 'Phd_transcripts' && userTranscript.name.includes(str)) {
+                                                i += 1;
+                                            }
+                                        })
+                                        if(i>0){
+                                            req.userTranscript = true;
+                                            next();
+                                        }else{
+                                            req.userTranscript = false;
+                                            next();
                                         }
                                     }else{
                                         req.userTranscript = false;
                                         next();
                                     }
                                 })
-                            }else{
-                                req.userTranscript = false;
-                                next();
+                            }else if(user_data.applying_for == 'Masters'){
+                                userTranscripts.forEach(function (userTranscript) {
+                                    if (userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                        i += 1;
+                                    }
+                                })
+                                if(i>0){
+                                    req.userTranscript = true;
+                                    next();
+                                }else{
+                                    req.userTranscript = false;
+                                    next();
+                                }
                             }
                         }else{
-    
-                            req.userTranscript = true;
+                            req.userTranscript = false;
                             next();
                         }
                     }else{
-                        req.userTranscript = true;
-                        next();
+                        req.userTranscript = false;
+                        next(); 
                     }
-                }else{
-                    req.userTranscript = false;
-                    next();
-                }   
-            })
-        }
-    },
-
-    getDegreeDetails: function(req, res, next){
-        console.log("getDegreeDetails");
-        if(req.query.editFlag == 'true'){
-            models.Applied_For_Details.find({
-                where:{
-                    user_id : req.user_id,
-                    app_id : req.query.app_id,
-                    source : 'guattestation'
-                }
-            }).then(function(user_data){
-                if(user_data){
-                    if(user_data.attestedfor != null){
-                        if(user_data.attestedfor.includes('degree')){
-                            models.User_Transcript.findAll({
-                                where:{
-                                    user_id : req.user_id,
-                                    app_id : {
-                                        [Op.ne] : null
-                                    },
-                                    type : {
-                                        [Op.like] : '%degree%'
-                                    },source : 'guattestation' 
-                                }
-                            }).then(function(user_Transcripts){
-                                
-                                var userTranscripts = [];
-                                if( user_Transcripts.length > 0){
-                                    user_Transcripts.forEach(transcript=>{
-                                        var app_idArr = transcript.app_id.split(",");
-                                        app_idArr.forEach(app_id=>{
-                                            if(app_id == req.query.app_id){
-                                                userTranscripts.push(transcript);
-                                            }
-                                        })
-                                    })
-                                    if(userTranscripts.length > 0){
-                                        var i = 0;
-                                        if(user_data.applying_for == 'Bachelors'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Bachelors_degree'  && userTranscript.name.includes('_Degree Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userDegree = true;
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }
-                                        else if(user_data.applying_for == 'Masters,Bachelors'){
-                                            var mastbach;
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                mastbach = userTranscript.type + mastbach ;
-                                            })
-                                               if (mastbach.includes('Bachelors_degree') && mastbach.includes('Masters_degree')) {
-                                                            i += 1;
-                                                    }
-                                            if(i>0){
-                                                req.userDegree = true;
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }
-                                        else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Phd_degree' || userTranscript.type == 'Phd_transcript') {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userDegree = true
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }else if(user_data.applying_for == 'Masters'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Masters_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userDegree = true;
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }else if(user_data.applying_for == 'Phd'){
-                                            userTranscripts.forEach(function (userTranscript) {
-                                                if (userTranscript.type == 'Masters_degree' && userTranscript.type == 'Bachelors_degree' && userTranscript.type == 'Phd_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                    i += 1;
-                                                }
-                                            })
-                                            if(i>0){
-                                                req.userDegree = true;
-                                                next();
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
-                                            }
-                                        }
-                                    }else{
-                                        req.userDegree = false;
-                                        next();
-                                    }
-                                }else{
-                                    req.userDegree = false;
-                                    next(); 
-                                }
-                               
-                            })
-                        }else{
-                            req.userDegree = true;
-                            next();
-                        }
-                    }else{
-                        req.userDegree = true;
-                        next();
-                    }
-                }else{
-                    req.userDegree = true;
-                    next();
-                }
-               
-               
-              
+                   
+                })
             })
         }else{
             models.Applied_For_Details.find({
@@ -866,211 +362,277 @@ module.exports = {
                     user_id : req.user_id,
                     app_id : {
                         [Op.eq] : null
-                    },
-                    source : 'guattestation'
+                    }
                 }
             }).then(function(user_data){
                 if(user_data){
-                    if(user_data.attestedfor != null){
-                        if(user_data.attestedfor.includes('degree')){
-                           
-                                // if(user_data.instructionalField == true){
-                                //     models.User_Transcript.findAll({
-                                //         where:{
-                                //             user_id : req.user_id,
-                                //             name  : 'Bonafied'
-                                //         }
-                                //     }).then(function(userBonfied){
-                                //             if(userBonfied.length > 0){
-                                //                 req.userDegree = true;
-                                //                 next();  
-                                //             }else{
-                                //                 req.userDegree = false;
-                                //                 next();
-                                //             }
-                                //     })
-                                // }
-                                // if(user_data.instructionalField == true ){
-                                    if(user_data.applying_for != null){
-                                        models.userMarkList.find({
-                                            where :{
-                                                user_id : req.user_id,source : 'guattestation'
-                                            }
-                                        }).then(function(userMarkList){
-                                            if(userMarkList){
-                                                if(userMarkList.previous_data == true){
-                                                    models.User_Transcript.findAll({
-                                                        where:{
-                                                            user_id : req.user_id,source : 'guattestation' 
-                                                        }
-                                                    }).then(function(userTranscripts){
-                                                        if(userTranscripts.length > 0){
-                                                            var i = 0;
-                                                            if(user_data.applying_for == 'Bachelors'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Bachelors_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }else if(user_data.applying_for == 'Masters,Bachelors'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Masters_degree' && userTranscript.type == 'Bachelors_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Phd_degree'  && userTranscript.name.includes('_Degree Page')) {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }
-                                                        }else{
-                                                            req.userDegree = false;
-                                                            next();
-                                                        }
-                                                    })
-                                                }else if(userMarkList.previous_data == false){
-                                                    models.User_Transcript.findAll({
-                                                        where:{
-                                                            user_id : req.user_id,
-                                                            app_id : {
-                                                                [Op.eq] : null      
-                                                            },
-                                                            type : {
-                                                                [Op.like] : '%degree%'
-                                                            },source : 'guattestation' 
-                                                        }
-                                                    }).then(function(userTranscripts){
-                                                        if(userTranscripts.length > 0){
-                                                            var i = 0;
-                                                            if(user_data.applying_for == 'Bachelors'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Bachelors_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }
-                                                            else if(user_data.applying_for == 'Masters,Bachelors'){
-                                                                var mastbach;
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    mastbach = userTranscript.type + mastbach ;
-                                                                })
-                                                                   if (mastbach.includes('Bachelors_degree') && mastbach.includes('Masters_degree')) {
-                                                                                i += 1;
-                                                                        }
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }
-                                                            else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Phd_degree' || userTranscript.type == 'Phd_transcript' || userTranscript.type =='PHD_degree')
-                                                                    {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }else if(user_data.applying_for == 'Masters'){
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    if (userTranscript.type == 'Masters_degree' && userTranscript.name.includes('_Degree Page')) {
-                                                                        i += 1;
-                                                                    }
-                                                                })
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }
-                                                            else if(user_data.applying_for == 'Phd'){
-                                                                var phddata;
-                                                                userTranscripts.forEach(function (userTranscript) {
-                                                                    phddata = userTranscript.type + phddata ;
-                                                                })
-                                                                   if (phddata.includes('Phd_degree') && phddata.includes('Masters_degree') && phddata.includes('Bachelors_degree')) {
-                                                                                i += 1;
-                                                                        }
-                                                                if(i>0){
-                                                                    req.userDegree = true;
-                                                                    next();
-                                                                }else{
-                                                                    req.userDegree = false;
-                                                                    next();
-                                                                }
-                                                            }
-                                                        }else{
-                                                            req.userDegree = false;
-                                                            next();
-                                                        }
-                                                    })
+                    if(user_data.applying_for != null){
+                        models.userMarkList.find({
+                            where :{
+                                user_id : req.user_id
+                            }
+                        }).then(function(userMarkList){
+                            if(userMarkList){
+                                if(userMarkList.previous_data == true){
+                                    models.User_Transcript.findAll({
+                                        where:{
+                                            user_id : req.user_id
+                                        }
+                                    }).then(function(userTranscripts){
+                                        if(userTranscripts.length > 0){
+                                            var i = 0;
+                                            if(user_data.applying_for == 'Bachelors'){
+                                                userTranscripts.forEach(function (userTranscript) {
+                                                    if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                                        i += 1;
+                                                    }
+                                                })
+                                                if(i>0){
+                                                    req.userTranscript = true;
+                                                    next();
+                                                }else{
+                                                    req.userTranscript = false;
+                                                    next();
                                                 }
-                                            }else{
-                                                req.userDegree = false;
-                                                next();
+                                            }else if(user_data.applying_for == 'Masters,Bachelors'){
+                                               
+                                                models.User_Transcript.findAll({
+                                                    where:{
+                                                        user_id : req.user_id,
+                                                        type :{
+                                                            [Op.like] : '%Bachelors_transcripts%'
+                                                        }
+                                                    }
+                                                }).then(function(userTranscripts){
+                                                        if(userTranscripts.length > 0){
+                                                            models.User_Transcript.findAll({
+                                                                where:{
+                                                                    user_id : req.user_id,
+                                                                    type :{
+                                                                        [Op.like] : '%Masters_transcripts%'
+                                                                    }
+                                                                }
+                                                            }).then(function(userTranscripts_master){
+                                                                if(userTranscripts_master.length > 0){
+                                                                    req.userTranscript = true;
+                                                                    next();
+                                                                    option = true;
+                                                                }else{
+                                                                    req.userTranscript = false;
+                                                                        next();
+                                                                }
+                                                            })
+                                                        }else{
+                                                            req.userTranscript = false;
+                                                                        next();
+                                                        }
+                                                })
+                                                // userTranscripts.forEach(function (userTranscript) {
+                                                //     if (userTranscript.type == 'Bachelors_transcripts' &&  userTranscript.name.includes('_Transcript Page')) {
+                                                //         if(userTranscript.type == 'Masters_transcripts'){
+                                                //             i += 1;
+                                                //         }
+                                                      
+                                                //     }
+                                                // })
+                                                // if(i>0){
+                                                //     req.userTranscript = true;
+                                                //     next();
+                                                // }else{
+                                                //     req.userTranscript = false;
+                                                //     next();
+                                                // }
+                                            }else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
+                                                models.userMarkList.find({
+                                                    where :{
+                                                        type : 'Phd',
+                                                        user_id : req.user_id,
+                                                        app_id : {
+                                                            [Op.eq] : null
+                                                        }
+                                                    }
+                                                }).then(function(userMarklist){
+                                                    if(userMarklist){
+                                                        var str = 'Phd_' + userMarklist.faculty
+                                                        userTranscripts.forEach(function (userTranscript) {
+                                                            if (userTranscript.name.includes(str)) {
+                                                                i += 1;
+                                                            }
+                                                        })
+                                                        if(i>0){
+                                                            req.userTranscript = true;
+                                                            next();
+                                                        }else{
+                                                            req.userTranscript = false;
+                                                            next();
+                                                        }
+                                                    }else{
+                                                        req.userTranscript = false;
+                                                        next();  
+                                                    }
+                                                })
+                                            }else if(user_data.applying_for == 'Masters'){
+                                                userTranscripts.forEach(function (userTranscript) {
+                                                    if (userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                                        i += 1;
+                                                    }
+                                                })
+                                                if(i>0){
+                                                    req.userTranscript = true;
+                                                    next();
+                                                }else{
+                                                    req.userTranscript = false;
+                                                    next();
+                                                }
                                             }
-                                        })
-                                    }else{
-                                        req.userDegree = false;
-                                        next();
-                                    }
-                                // }
-                            
-                        }else{
-                               req.userDegree = true;
-                            next();
-                        }
+                                        }else{
+                                            req.userTranscript = false;
+                                            next();
+                                        }
+                                    })
+                                }else if(userMarkList.previous_data == false){
+                                    models.User_Transcript.findAll({
+                                        where:{
+                                            user_id : req.user_id,
+                                            app_id : {
+                                                [Op.eq] : null      
+                                            }
+                                        }
+                                    }).then(function(userTranscripts){
+                                        if(userTranscripts.length > 0){
+                                            var i = 0;
+                                            if(user_data.applying_for == 'Bachelors'){
+                                                userTranscripts.forEach(function (userTranscript) {
+                                                    if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                                        i += 1;
+                                                    }
+                                                })
+                                                if(i>0){
+                                                    req.userTranscript = true;
+                                                    next();
+                                                }else{
+                                                    req.userTranscript = false;
+                                                    next();
+                                                }
+                                            }else if(user_data.applying_for == 'Masters,Bachelors'){
+                                                models.User_Transcript.findAll({
+                                                    where:{
+                                                        user_id : req.user_id,
+                                                        app_id : {
+                                                            [Op.eq] : null      
+                                                        },
+                                                        type :{
+                                                            [Op.like] : '%Bachelors_transcripts%'
+                                                        }
+                                                    }
+                                                }).then(function(userTranscripts){
+                                                        if(userTranscripts.length > 0){
+                                                            models.User_Transcript.findAll({
+                                                                where:{
+                                                                    user_id : req.user_id,
+                                                                    app_id : {
+                                                                        [Op.eq] : null      
+                                                                    },
+                                                                    type :{
+                                                                        [Op.like] : '%Masters_transcripts%'
+                                                                    }
+                                                                }
+                                                            }).then(function(userTranscripts_master){
+                                                                if(userTranscripts_master.length > 0){
+                                                                    req.userTranscript = true;
+                                                                    next();
+                                                                    option = true;
+                                                                }else{
+                                                                    req.userTranscript = false;
+                                                                        next();
+                                                                }
+                                                            })
+                                                        }else{
+                                                            req.userTranscript = false;
+                                                                        next();
+                                                        }
+                                                })
+
+                                                // userTranscripts.forEach(function (userTranscript) {
+                                                //     // if (userTranscript.type == 'Bachelors_transcripts' && userTranscript.name.includes('_Transcript Page') ) {
+                                                //     //     console.log("inside first if");
+                                                //     // if(userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page') ) {
+                                                //     //         console.log("inside 2nd if");
+                                                //     //         i += 1;
+                                                //     //     }
+                                                //     // }
+                                                // })
+
+                                                 
+                                                // if(i>0){
+                                                //     req.userTranscript = true;
+                                                //     next();
+                                                // }else{
+                                                //     req.userTranscript = false;
+                                                //     next();
+                                                // }
+                                            }else if(user_data.applying_for == 'Phd,Masters,Bachelors'){
+                                                models.userMarkList.find({
+                                                    where :{
+                                                        type : 'Phd',
+                                                        user_id : req.user_id,
+                                                        app_id : {
+                                                            [Op.eq] : null
+                                                        }
+                                                    }
+                                                }).then(function(userMarklist){
+                                                    if(userMarklist){
+                                                        var str = 'Phd_' + userMarklist.faculty
+                                                        userTranscripts.forEach(function (userTranscript) {
+                                                            if (userTranscript.name.includes(str)) {
+                                                                i += 1;
+                                                            }
+                                                        })
+                                                        if(i>0){
+                                                            req.userTranscript = true;
+                                                            next();
+                                                        }else{
+                                                            req.userTranscript = false;
+                                                            next();
+                                                        }
+                                                    }else{
+                                                        req.userTranscript = false;
+                                                        next();
+                                                    }
+                                                })
+                                            }else  if(user_data.applying_for == 'Masters'){
+                                                userTranscripts.forEach(function (userTranscript) {
+                                                    if (userTranscript.type == 'Masters_transcripts' && userTranscript.name.includes('_Transcript Page')) {
+                                                        i += 1;
+                                                    }
+                                                })
+                                                if(i>0){
+                                                    req.userTranscript = true;
+                                                    next();
+                                                }else{
+                                                    req.userTranscript = false;
+                                                    next();
+                                                }
+                                            }
+                                        }else{
+                                            req.userTranscript = false;
+                                            next();
+                                        }
+                                    })
+                                }
+                            }else{
+                                req.userTranscript = false;
+                                next();
+                            }
+                        })
                     }else{
-                        req.userDegree = true;
+                        req.userTranscript = false;
                         next();
                     }
                 }else{
-                    req.userDegree = true;
+                    req.userTranscript = false;
                     next();
-                }
-               
-               
-                  
+                }   
             })
         }
     }

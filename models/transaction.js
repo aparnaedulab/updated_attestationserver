@@ -54,7 +54,6 @@ module.exports = function(sequelize, DataTypes) {
 		cc_share: DataTypes.TEXT,
 		change_split_payout_status: DataTypes.ENUM('1','-1'),
 		cc_call: DataTypes.TEXT,
-		source : DataTypes.STRING(255)
 	});
 
 	Transaction.getPaymentDetails =  function(tab_type){

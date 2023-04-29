@@ -15,6 +15,88 @@ var Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const fs = require('fs');
 
+  router.post('/login', async (req, res) => { console.log("req.body==>",req.body);
+	 console.log("APIIIII");
+	
+
+    // Correct email and password stored in the backend
+	email = req.body.email, console.log("EMAIL", email);
+	password = req.body.password; console.log("PASSWORD", password);
+   
+   var hashPassword = functions.generateHashPassword(password); console.log("generateHashPassword" + JSON.stringify(hashPassword));
+   models.User.findOne({
+	where: {
+		email: email
+	}
+   }).then(function (userdb) {
+	if(userdb){
+		if (userdb.is_otp_verified == true || userdb.is_otp_verified == 1 || userdb.is_email_verified ){
+				models.User.findOne({
+					where: {
+						password: hashPassword,
+					}
+				}).then(function (password) {
+					if(password){
+						if (userdb.email == email && userdb.password == hashPassword) {
+							var user = {};
+
+							if (userdb.is_otp_verified == true || userdb.is_email_verified == true) {
+								models.Applied_For_Details.findOne({
+									where :{
+										user_id : userdb.id
+									}
+								}).then(function(appliedDetails){ console.log("LOGGED IN------>");
+									user.user_id = userdb.id;
+									user.user_name = userdb.name;
+									user.user_email = userdb.email;
+									user.user_mobile = userdb.mobile;
+									user.user_student_category = userdb.student_category;
+									user.user_address = (userdb.address1) ? userdb.address1 : null;
+									user.user_phone_number = userdb.mobile;
+									user.profileCompleteness = userdb.profile_completeness;
+									user.theme = userdb.theme;
+									user.country_birth = userdb.country_birth;
+									user.applying_for = (appliedDetails) ? appliedDetails.applying_for : null ;
+									user.user_type = userdb.user_type;
+									user.login_count = userdb.login_count;
+									user.source = userdb.source;
+									user.password = userdb.password
+									return res.json({
+										status: 200,
+										data: {
+											message: 'Successfully logged in!',
+											token: tokens.createAccessToken(user),
+											user_type: user.user_type,
+											user_id: user.user_id,
+											user_name: user.user_name,
+										}
+									});
+								})
+							}
+						}
+					}else{ console.log("OOOOO");
+							res.json({
+								status : 400,
+								message  : 'Your password does not exist.'
+							})
+					}
+					})
+		}else{ console.log("LLLLL");
+				res.json({
+					status : 400,
+					message : 'Please verify your account.'
+				})
+		}
+		}else{ console.log("KKKKK");
+			res.json({
+					status:  400,
+					message : email + ' does not exist in our system.'
+			})
+		}		
+     
+	   });
+	})
+
 // router.post('/login', function (req, res) {
 // 	if (req.body.email && req.body.password) {
 // 		var email = req.body.email.toLowerCase();
@@ -48,9 +130,7 @@ const fs = require('fs');
 // 							user.country_birth = userdb.country_birth;
 // 							user.applying_for = (appliedDetails) ? appliedDetails.applying_for : null ;
 // 							user.user_type = userdb.user_type;
-// 							user.login_count = userdb.login_count;
-// 							user.source = userdb.source;
-// 							user.password = userdb.password
+// 							user.login_count = userdb.login_count
 // 							// if (userdb.trudesk_key == null) {
 // 							// request.post(
 // 							// 	constant.trudesk_BASE_URL+'api/v1/public/account/createAPI',
@@ -143,12 +223,13 @@ const fs = require('fs');
 // 					});
 // 				}
 // 			} else {
-// 					return res.json({
-// 						status: 402,
-// 						data: {
-// 							errors: 'No User Found in Database'
-// 						}
-// 					});
+
+// 				return res.json({
+// 					status: 401,
+// 					data: {
+// 						errors: 'Login/password combination is not correct'
+// 					}
+// 				});
 // 			}
 // 		});
 
@@ -161,191 +242,6 @@ const fs = require('fs');
 // 		});
 // 	}
 // });
-
-
-router.post('/login', function (req, res) {
-	console.log('/logim')
-	if (req.body.email && req.body.password) {
-		var email = req.body.email.toLowerCase();
-		var password = req.body.password;
-		var hashPassword = functions.generateHashPassword(password);
-		models.User.find({
-			where: {
-				email: email
-			}
-		}).then(function (userdb) {
-			if(userdb){
-				if (userdb.is_otp_verified == true || userdb.is_otp_verified == 1 || userdb.is_email_verified ){
-					if (userdb) {
-						models.User.find({
-							where: {
-								password: hashPassword,
-								email: email
-							}
-						}).then(function (password) {
-							if(password){
-								if (userdb.email == email && userdb.password == hashPassword) {
-									var user = {};
-				
-									if (userdb.is_otp_verified == true || userdb.is_email_verified == true) {
-										models.Applied_For_Details.find({
-											where :{
-												user_id : userdb.id,
-												source : 'guattestation'
-											}
-										}).then(function(appliedDetails){
-											user.user_id = userdb.id;
-											user.user_name = userdb.name;
-											user.user_email = userdb.email;
-											user.user_mobile = userdb.mobile;
-											user.user_student_category = userdb.student_category;
-											user.user_address = (userdb.address1) ? userdb.address1 : null;
-											user.user_phone_number = userdb.mobile;
-											user.profileCompleteness = userdb.profile_completeness;
-											user.theme = userdb.theme;
-											user.country_birth = userdb.country_birth;
-											user.applying_for = (appliedDetails) ? appliedDetails.applying_for : null ;
-											user.user_type = userdb.user_type;
-											user.login_count = userdb.login_count;
-											user.source = userdb.source;
-											user.password = userdb.password
-											// if (userdb.trudesk_key == null) {
-											// request.post(
-											// 	constant.trudesk_BASE_URL+'api/v1/public/account/createAPI',
-											// 	{json:{"aPass":req.body.password,"aFullname":userdb.name,"aEmail": req.body.email},
-											// 	headers:{'Content-Type':'application/json; charset=utf-8','accesstoken':constant.trudesk_key}},
-											// 	function (error, response, body) {
-											// 		if(error){
-											// 		} 
-											// 		if(userdb.trudesk_key == null){
-											// 			var data;
-											// 			request.get(
-											// 			constant.trudesk_BASE_URL+'api/v1/users/'+userdb.email,
-											// 			{headers:{'Content-Type':'application/json; charset=utf-8','accesstoken':constant.trudesk_key}},
-											// 			function (error, response, body) {
-											// 				if(error){
-											// 				} 
-											// 				data = JSON.parse(body);
-											// 				request.post(
-											// 				constant.trudesk_BASE_URL+'api/v1/users/'+data.user._id+"/generateapikey",
-											// 				{headers:{'Content-Type':'application/json; charset=utf-8','accesstoken':constant.trudesk_key}},
-											// 				function (error, response, body) {
-											// 					var data = JSON.parse(body);
-											// 					if(data){
-											// 						userdb.update({
-											// 							trudesk_key : data.token
-											// 						});
-											// 					}
-											// 				});
-											// 			})
-											// 		}
-											// 	});
-											// }
-											// models.Application.findAll({
-											// 	where :{
-											// 		user_id : userdb.id 
-											// 	}
-											// }).then(function(apps){
-											// 	if(apps.length > 0){
-											// 		var app_id = apps[0].id;
-											// 		if(apps.length > 1){
-											// 			for(var i = 1; i< apps.length; i++){
-											// 				app_id += "," + apps[i].id
-											// 			}
-											// 		}
-											// 		// models.userMarkList.setAppIds(userdb.id,app_id);
-											// 		// models.UserMarklist_Upload.setAppIds(userdb.id,app_id);
-											// 		// models.User_Transcript.setAppIds(userdb.id,app_id);
-											// 		// models.User_Curriculum.setAppIds(userdb.id,app_id);
-											// 		// models.InstructionalDetails.setAppIds(userdb.id,app_id);
-											// 		//next();
-											// 	}
-											// })
-											console.log('tokens.user_type' + tokens.user_type)
-											return res.json({
-												status: 200,
-												data: {
-													message: 'Successfully logged in!',
-													token: tokens.createAccessToken(user),
-													type  : userdb.user_type
-
-												}
-											});
-										})
-									} else {
-										user.user_id = userdb.id;
-										user.user_name = userdb.name;
-										user.user_email = userdb.email;
-										user.user_student_category = userdb.student_category;
-										user.user_address = (userdb.address1) ? userdb.address1 : null;
-										user.user_phone_number = userdb.mobile;
-										user.profileCompleteness = userdb.profile_completeness;
-										user.theme = userdb.theme;
-										user.country_birth = userdb.country_birth;
-										user.mobile_country_code = userdb.mobile_country_code;
-										user.applying_for = userdb.applying_for;
-				
-										return res.json({
-											status: 402,
-											data: {
-												errors: 'verify',
-												user: user
-											}
-										});
-									}
-				
-								} else {
-									return res.json({
-										status: 401,
-										data: {
-											errors: 'Login/password combination is not correct'
-										}
-									});
-								}
-							}else{
-								return res.json({
-									status: 401,
-									data: {
-										errors: 'Login/password combination is not correct'
-									}
-								});
-							}
-						})
-					
-					} else {
-							return res.json({
-								status: 402,
-								data: {
-									errors: 'No User Found in Database'
-								}
-							});
-					}
-				}else{
-								return res.json({
-									status: 401,
-									data: {
-										errors: 'Kindly verify your Email ID'
-									}
-								});
-				}
-			}else{
-				return res.json({
-					status: 402,
-					data: {
-						errors: 'No User Found in Database'
-					}
-				});
-			}	
-		});
-	} else {
-		return res.json({
-			status: 401,
-			data: {
-				errors: 'Email and password both are required !'
-			}
-		});
-	}
-});
 
 router.post('/getclickDetails',function(req, res){
 
@@ -454,163 +350,42 @@ router.post('/checkEmail', function (req, res) {
 	});
 });
 
-
-router.get('/getCourses',function(req, res){
-models.Program_List.findAll({
-    order:[
-       ['course_name','ASC']
-    ],
-    attributes:[    
-        [Sequelize.fn('DISTINCT',Sequelize.col('course_name')),'name'],
-       'duration',
-	   'id',
-	   'course_short_form',
-	   'student_status',
-	   'degree_type',
-	   'new_course_faculty'
-    ]
-}).then(courses=>{
-    res.json({
-        status : 200,
-        data : courses
-    })
-})
-})
-router.get('/getColleges',function(req, res){
-	models.College.findAll({
-		order:[
-		   ['name','ASC']
-		],
-		attributes:[    
-			[Sequelize.fn('DISTINCT',Sequelize.col('name')),'name'],
-		]
-	}).then(courses=>{
-		res.json({
-			status : 200,
-			data : courses
+router.post('/register', function (req, res) { console.log("APPPIII CALLED"); console.log("reqqq",req.body);
+var reqData = req.body.data
+var hashPassword = functions.generateHashPassword(reqData.password);
+var otp = functions.generateRandomString(6, 'numeric');
+		models.User.create({
+			name: reqData.username,
+			surname: reqData.surname,
+			// marksheetName: req.body.fullName,
+			email: reqData.email.toLowerCase(),
+			password: hashPassword,
+			otp : otp,
+			mobile_country_code: reqData.userCountryCode,
+			mobile: reqData.mobile,
+			// id: req.user.id,
+			postal_code: reqData.postal_code ? reqData.postal_code : '',
+			gender: reqData.gender,
+			captcha: reqData.captcha,
+			// aadharNumber: req.body.aadharNumber,
+			// enrollmentNo: req.body.enrollmentNo,
+		}).then(function (user) {
+			console.log("user",user);
+			if (user) {
+				res.json({
+					status: 200,
+					data: user
+				})
+			} else {
+				res.json({
+					status: 400,
+					message: "something went wrong"
+				})
+			}
 		})
-	})
-	})
+	}
+)
 
-router.post('/register', function (req, res) {
-	var reqData = req.body.data;
-
-	var hashPassword = functions.generateHashPassword(reqData.userPassword);
-	models.User.find({
-		where: {
-			email: reqData.userEmail.toLowerCase()
-		}
-	}).then(function (user) {
-		if (user) {
-			res.send({
-				status: 400,
-				message: 'Email already exists.'
-
-			});
-		} else {
-			var emailVerificationToken = require('shortid').generate();
-			var otp = functions.generateRandomString(6, 'numeric');
-			models.User.create({
-				name: reqData.userName,
-				surname: reqData.Surname,
-				email: reqData.userEmail.toLowerCase(),
-				password: hashPassword,
-				mobile_country_code: reqData.userCountryCode,
-				mobile: reqData.userContactNo,
-				gender: (reqData.Gender) ? reqData.Gender : null,
-				otp: otp, //otp,
-				is_otp_verified: 0,
-				email_verification_token: emailVerificationToken,
-				is_email_verified: 0,
-				user_type: "student",
-				dob: null,//reqData.userDob,
-				applying_for: reqData.user_option,
-				created_at: moment(),
-				updated_at: moment(),
-				what_mobile_country_code: reqData.whatsapp_phoneCode,
-				what_mobile: reqData.whatsapp_No,
-				current_location: reqData.current_location,
-				postal_code: reqData.postal_code ? reqData.postal_code : '',
-				fullname : reqData.fullName,
-				marksheetName : reqData.fullName,
-				aadharNumber : reqData.aadhar,
-				enrollmentNo : reqData.enrollmentNo
-				// source : 'attestation'
-			}).then(function (user) {
-				functions.createenrollment(reqData.enrollmentNo,user.id);
-				var desc = user.name+" "+user.surname+" has registered with email id "+user.email;
-                var activity = "Registration";
-                functions.activitylog(user.id, activity, desc, '');
-				var userId = user.id;
-				var attachment = {};
-				var file_location = constant.FILE_LOCATION+"public/images/GU-AttestationManual.pdf";
-			  	var base64String = fs.readFileSync(file_location).toString("base64");
-				attachment = {                             
-					content : base64String,
-					filename: "UoM-AttestationManual.pdf",
-					type: 'application/pdf',
-					disposition : 'attachment',
-					contentId : 'mytext'
-				}
-
-				request.post(constant.BASE_URL_SENDGRID + 'sendgrid_guAttestation', {
-					json: {
-						mobile: user.mobile,
-						mobile_country_code: user.mobile_country_code,
-						userName: user.name,
-						email: user.email,
-						email_verification_token: user.email_verification_token,
-						password: reqData.userPassword,
-						otp: user.otp,
-						to: user.email,
-						toName: user.name,
-						attachment : attachment,
-						source : 'gu'
-					}
-				}, function (error, response, body) {
-					//
-					if (error) {
-
-					}
-					// request.post(
-					// 	constant.trudesk_BASE_URL+'api/v1/public/account/createAPI',
-					// 	{json:{"aPass":reqData.userPassword,"aFullname":user.name,"aEmail": user.email},
-					// 	headers:{'Content-Type':'application/json; charset=utf-8','accesstoken':constant.trudesk_key}},
-					// 	function (error, response, body) {
-
-					// 		if(error){
-
-					// 		}
-					// 		if(body.success == true){
-					// 			request.post(
-					// 			constant.trudesk_BASE_URL+'api/v1/users/'+body.userData.user._id+"/generateapikey",
-					// 			{headers:{'Content-Type':'application/json; charset=utf-8','accesstoken':constant.trudesk_key}},
-					// 			function (error, response, body) {
-
-					// 				var data = JSON.parse(body);
-					// 				if(data){
-					// 					user.update({
-					// 						trudesk_key : data.token
-					// 					});
-					// 				}
-					// 			})
-					// 		}
-
-					// 	res.send({
-					// 		status: 200,
-					// 		data: userId
-					// 	});
-					// });
-					res.send({
-						status: 200,
-						data: userId
-					});
-				});
-			});
-		}
-	});
-
-});
 
 router.post('/verify-otp-reg', function (req, res) {
 
@@ -708,7 +483,6 @@ router.post('/resend-otp', function (req, res) {
 								mobile: updated_user.mobile,
 								mobile_country_code: updated_user.mobile_country_code,
 								otp: otp,
-								source : 'gu'
 		
 							}
 						}, function (error, response, body) {
@@ -720,7 +494,7 @@ router.post('/resend-otp', function (req, res) {
 			
 					// var smsOptions = {
 					// 	contact_number: updated_user.mobile_country_code + updated_user.mobile,
-					// 	message: otp + ' is your one time password for verifying your mobile number for Gujarat University.'
+					// 	message: otp + ' is your one time password for verifying your mobile number for Mumbai University.'
 					// };
 					// functions.sendSMS(smsOptions, function (err) {
 					// 	if (err && err.status == 400) {
@@ -767,7 +541,6 @@ router.post('/resend-otp', function (req, res) {
 								mobile: updated_user.mobile,
 								mobile_country_code: updated_user.mobile_country_code,
 								otp: otp,
-								source : 'gu'
 							}
 						}, function (error, response, body) {
 							if (error) {}
@@ -830,11 +603,11 @@ router.post('/forgot-password', function (req, res) {
 		if (user) {
 			var attachment = {};
 			var attachment = {};
-			var file_location = constant.FILE_LOCATION+"public/images/GU-AttestationManual.pdf";
+			var file_location = constant.FILE_LOCATION+"public/images/RevisedManualAttestation.pdf";
 			  var base64String = fs.readFileSync(file_location).toString("base64");
 			attachment = {                             
 				content: base64String,
-				filename: "GU-AttestationManual.pdf",
+				filename: "RevisedManualAttestation.pdf",
 				type: 'application/pdf',
 				disposition: 'attachment',
 				contentId: 'mytext'
@@ -849,8 +622,7 @@ router.post('/forgot-password', function (req, res) {
 					to: user.email,
 					toName: user.name,
 					user_type: user.user_type,
-					attachment : attachment,
-					source : 'gu'
+					attachment : attachment
 
 				}
 			}, function (error, response, body) {
@@ -901,7 +673,6 @@ router.post('/resetpassword', function (req, res) {
 });
 
 router.get('/verify-email', function (req, res) {
-	console.log("verify-emailverify-email");
 	models.User.find({
 		where: {
 			email_verification_token: req.query.token
@@ -913,36 +684,30 @@ router.get('/verify-email', function (req, res) {
 				is_email_verified: 1,
 				is_otp_verified: 1
 			}).then(function (updated_user) {
-				if(updated_user){
-					res.redirect("https://guattestation.studentscenter.in/app/#/auth/login?verify=true");
-					this.router.navigate(['auth/login'],{queryParams:{verify : 'true'}});
-				}else{
-
+				var studentData = {
+					userName: user.name,
+					email: user.email,
+					phone: '+' + user.mobile_country_code + ' ' + user.mobile
 				}
-				// var studentData = {
-				// 	userName: user.name,
-				// 	email: user.email,
-				// 	phone: '+' + user.mobile_country_code + ' ' + user.mobile
-				// }
-				// var stuEmailOptions = {
-				// 	to: user.email,
-				// 	toName: user.name,
-				// 	subject: 'Welcome Email',
-				// 	template: 'emailTemplates/welcome',
-				// 	data: studentData
-				// }
-				// // emailSending(stuEmailOptions);
-				// var view_data = {
-				// 	baseUrl: constant.BASE_URL,
-				// 	userName: user.name,
-				// 	email: user.email,
-				// 	phone: '+' + user.mobile_country_code + ' ' + user.mobile,
-				// 	link: 'http://guattestation.studentscenter.in/app/#/auth/login',
-				// 	//personalURL:constant.BASE_URL+'?pageRedirect=STU'+user.id+'/profile/personal',
-				// 	generalURL: constant.BASE_URL + '?pageRedirect=' + encodeURIComponent('message-board#general-info'),
-				// 	message: 'Your email has been verified successfully. You can now use your credentials to login into the system.'
-				// }
-				// res.render(constant.VIEW_VERIFY_EMAIL, view_data);
+				var stuEmailOptions = {
+					to: user.email,
+					toName: user.name,
+					subject: 'Welcome Email',
+					template: 'emailTemplates/welcome',
+					data: studentData
+				}
+				// emailSending(stuEmailOptions);
+				var view_data = {
+					baseUrl: constant.BASE_URL,
+					userName: user.name,
+					email: user.email,
+					phone: '+' + user.mobile_country_code + ' ' + user.mobile,
+					link: 'http://mu.etranscript.in/app/#/auth/login',
+					//personalURL:constant.BASE_URL+'?pageRedirect=STU'+user.id+'/profile/personal',
+					generalURL: constant.BASE_URL + '?pageRedirect=' + encodeURIComponent('message-board#general-info'),
+					message: 'Your email has been verified successfully. You can now use your credentials to login into the system.'
+				}
+				res.render(constant.VIEW_VERIFY_EMAIL, view_data);
 			});
 		} //else {
 		// 	res.render(constant.VIEW_CUSTOM_ERROR, {
@@ -970,13 +735,7 @@ router.get('/downloadStructureFile', function (req, res) {
 	 var app_id = req.query.app_id;
 	 models.Application.find({
 		where:{
-		  id:app_id,
-		  [Op.or]:[{
-			source_from:'guattestation',
-		 },
-		 {
-			source_from:'gumoi',
-		 }]
+		  id:app_id
 		}
 	  }).then(data =>{
 		var user_id=data.user_id;
@@ -1069,6 +828,5 @@ router.get('/getUserDataByEmail',(req,res)=>{
 		})
 	})
 })
-
 
 module.exports = router;

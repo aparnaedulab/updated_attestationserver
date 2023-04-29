@@ -14,7 +14,6 @@ module.exports = function(sequelize, DataTypes) {
         gradToPer_id :  DataTypes.TEXT,
         competency_id :  DataTypes.TEXT,
         namechange_id :  DataTypes.TEXT,
-        previous_AppId : DataTypes.STRING()
     });
 
     EmailedDocs.associate = (models) => {

@@ -1,12 +1,10 @@
 const moment = require('moment');
 const jwt = require('jwt-simple');
 const cfg = require('./config.js');
-const functions = require('../utils/function');
+
 module.exports.permanentRefreshToken = 'eb4e15840117437cbfd7343f257c4aae';
 
 module.exports.createAccessToken = function(user) {
-  var pass = user.password
-  var hashPassword = functions.generateHashPassword(pass);
 
   var payload = {
         sub: user.user_id,
@@ -23,14 +21,11 @@ module.exports.createAccessToken = function(user) {
         theme : user.theme,
         user_type: user.user_type,
         login_count: user.login_count,
-        applying_for : user.applying_for,
-        source : user.source,
-        password : hashPassword
+        applying_for : user.applying_for
       };
       var token = jwt.encode(payload, cfg.jwtSecret);
       return token;
 }
-
 
 module.exports.createRefreshToken = function(user) {
   var refreshPayload = {
@@ -40,7 +35,6 @@ module.exports.createRefreshToken = function(user) {
     id: user.id,
     email: user.email,
     role: 'REFRESH_TOKEN',
-    source : user.source
   };
   var refreshToken = jwt.encode(refreshPayload, cfg.jwtSecret);
   return refreshToken;

@@ -12,7 +12,7 @@ module.exports = function(sequelize, DataTypes) {
     is_otp_verified: DataTypes.BOOLEAN(),
     email_verification_token: DataTypes.STRING(20),
     is_email_verified: DataTypes.BOOLEAN(),
-    user_type: DataTypes.ENUM('admin', 'sub-admin', 'student','superAdmin','agent'),
+    user_type: DataTypes.ENUM('admin', 'sub-admin', 'student'),
     applying_for: DataTypes.TEXT,
     city  :  DataTypes.STRING(100),
     dob: DataTypes.DATEONLY, 
@@ -28,7 +28,6 @@ module.exports = function(sequelize, DataTypes) {
     trudesk_key : DataTypes.TEXT,
     what_mobile_country_code : DataTypes.STRING(5),
     what_mobile : DataTypes.STRING(17), 
-    source : DataTypes.STRING(17), 
     current_location:DataTypes.STRING(17),
     board_id : DataTypes.INTEGER(11),
     login_count : DataTypes.INTEGER(10),
@@ -37,11 +36,7 @@ module.exports = function(sequelize, DataTypes) {
     instructionalField : DataTypes.BOOLEAN(),
     curriculum : DataTypes.BOOLEAN(),
     educationalDetails : DataTypes.BOOLEAN(),
-    // gradToPer : DataTypes.BOOLEAN(),
-    aadharNumber : DataTypes.STRING(30),
-    enrollmentNo : DataTypes.JSON,
-    fullname : DataTypes.STRING(100),
-    marksheetName : DataTypes.STRING(100)
+    gradToPer : DataTypes.BOOLEAN(),
 });
 
 User.associate = (models) => {
@@ -122,8 +117,11 @@ User.getAllUsersInfo = function(filters,limit,offset) {
   if (limit != null && offset != null) {
     limitOffset = ' LIMIT ' + limit + ' OFFSET ' + offset;
   }
-  var query = "SELECT DISTINCT user.email,CONCAT (user.name,' ',user.surname) as name,user.id,user.user_type, user.city, user.is_email_verified,user.created_at,user.user_status, "
-  query+=' user.current_location, user.created_at,user.profile_completeness FROM User user '
+  var query = "SELECT DISTINCT user.email,CONCAT (user.name,' ',user.surname) as name,user.id,user.user_type, user.city, user.country_id, user.is_email_verified,user.created_at,user.user_status,con1.name AS country,"
+  query+='app.applying_for, user.current_location, user.created_at,user.profile_completeness FROM User user '
+  query+='LEFT JOIN Country AS con1 ON con1.id = user.country_id '
+  //query+='LEFT JOIN Country AS con2 ON con2.id = user.country_birth '
+  query += " LEFT JOIN Applied_For_Details as app ON app.user_id = user.id ";
   query += " WHERE user.user_type = 'student'";
   query += where_application_id;
   query += where_application_email;

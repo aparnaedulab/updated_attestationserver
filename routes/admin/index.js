@@ -22,8 +22,7 @@ var self_pdf = require(root_path+'/utils/self_letters');
 var converter = require('number-to-words');
 const cron = require("node-cron");
 const { lodash } = require('consolidate');
-var fn=require(root_path+'/routes/signpdf/signfn')
-var promises = require('promise');
+var pdfreader = require('pdfreader');
 
 router.get('/generateHrdLetter',middlewares.getUserInfo,function(req,res){
     console.log("/generateHrdLetter");
@@ -32,8 +31,7 @@ router.get('/generateHrdLetter',middlewares.getUserInfo,function(req,res){
         if(MaxReferenceNo[0].maxNumber == null){
             reference_no = 1001;
         }else{
-            // reference_no = MaxReferenceNo[0].maxNumber + 1;
-            reference_no=100000 + parseInt(app_id)
+            reference_no = MaxReferenceNo[0].maxNumber + 1;
         }
 
         models.Hrd_details.update(
@@ -613,13 +611,7 @@ router.get('/adminDashboard/totalforfinance', function (req, res) {
 
                 models.Orders.find({
                     where : {
-                        application_id :  student.id,
-                        [Op.or]:[{
-                            source:'guattestation',
-                         },
-                         {
-                            source:'gumoi',
-                         }]
+                        application_id :  student.id
                     }
                 }).then(function (order_details){
                                 if(order_details){
@@ -1411,7 +1403,7 @@ router.get('/adminDashboard/signed', function (req, res) {
                     pdfexist = true;
                     filepath = constant.FILE_LOCATION+"public/signedpdf/"+signeduser.user_id+"/"+signeduser.id+"_Merge.pdf";
                 }
-                models.Institution_details.getAllInstitutionType_signed(signeduser.id).then(function(types){ 
+                models.Institution_details.getAllInstitutionType(signeduser.id).then(function(types){ 
                     var purpose = [];
                     types.forEach(detail=>{
                         if(detail.type == 'study'){
@@ -2024,6 +2016,42 @@ router.get('/adminDashboard/emailed', function (req, res) {
     });
 });
 
+router.get('/adminDashboard/getWesFormValues', middlewares.getUserInfo,function (req, res) {
+    console.log("getWesFormValues");
+    wesform_Values =[];
+    models.Wes_Form.findAll({
+        where :{ 
+            user_id : req.User.id
+        }
+    }).then(function (wesform ) {
+        if(wesform){
+            wesform_Values.push({
+                "currentaddress" :  wesform[0].currentaddress,
+                "state" :  wesform[0].state,
+                "city" :  wesform[0].city,
+                "postal_code" :  wesform[0].postal_code,
+                "dob" :  wesform[0].dob,
+                "institute_name" :  wesform[0].institute_name,
+                "datefrom" :  wesform[0].datefrom,
+                "dateto" :  wesform[0].dateto,
+                "degree" :  wesform[0].degree,
+                "yearaward" :  wesform[0].yearaward,
+                "major" : wesform[0].major,
+                "sturolno" :  wesform[0].sturolno,
+                "file_name" :  wesform[0].file_name,
+                "type"  : wesform[0].file_name.split('.').pop()
+            })
+            res.json({
+                status : '200',
+                data : wesform_Values
+            })
+        }else{
+            res.json({
+                status : '400'
+            })
+        }
+    })
+});
 router.get('/adminDashboard/signed_namrata', function (req, res) {
  
     client.setApiKey(constant.SENDGRID_API_KEY);
@@ -2354,7 +2382,6 @@ router.get('/adminDashboard/unsigned', middlewares.getUserInfo,function (req, re
     var id = req.query.id ? req.query.id : '';
     var name = req.query.name ? req.query.name : '';
     var email = req.query.email ? req.query.email : '';
-    var status = req.query.status ? req.query.status : '';
     var tab = req.query.tab;
     var limit = 10;
     var offset = (page - 1) * limit;
@@ -2407,9 +2434,9 @@ router.get('/adminDashboard/unsigned', middlewares.getUserInfo,function (req, re
 
    
 
-    models.Application.getUnsignedUserApplications_new(filters,null,null,tab,status).then(data1 => {
+    models.Application.getUnsignedUserApplications_new(filters,null,null,tab).then(data1 => {
         countObjects.totalLength = data1.length;
-        models.Application.getUnsignedUserApplications_new(filters,limit,offset,tab,status).then(data => {
+        models.Application.getUnsignedUserApplications_new(filters,limit,offset,tab).then(data => {
             countObjects.filteredLength = data.length;
     
             // models.Application.getUnsignedUserApplications().then(data => {
@@ -2469,7 +2496,7 @@ router.get('/adminDashboard/unsigned', middlewares.getUserInfo,function (req, re
                     models.User_Transcript.findAll({
                         where :{
                             user_id : student.user_id,
-                            upload_step : 'changed',source : 'guattestation' 
+                            upload_step : 'changed'
                         }
                     }).then(function(user_transcripts){
                         if(user_transcripts.length > 0){
@@ -2754,6 +2781,60 @@ router.get('/adminDashboard/unsigned', middlewares.getUserInfo,function (req, re
                     })
                 });
             }
+            // if(student.affiliation == true){
+            //     models.Affilation_Letter.getCollegeName(student.user_id).then(function(instructionColleges){
+            //         var colleges = [];
+            //             instructionColleges.forEach(transcriptCollege=>{
+                        
+            //             if(transcriptCollege.app_id != null){
+            //                 var app_ids = transcriptCollege.app_id.split(",");
+            //                 app_ids.forEach(app_id =>{
+            //                     if(app_id == student.id){
+            //                         colleges.push(transcriptCollege);
+            //                     }
+            //                 })
+            //             }
+            //         });
+            //             if(colleges.length > 0){
+            //             if(collegesData.length > 0){
+            //                 colleges.forEach(college=>{
+            //                     var flag = false;
+            //                     collegesData.forEach(singleCollege=>{
+            //                         if(singleCollege.name == college.name){
+            //                             flag = true;
+            //                         }
+            //                     })
+            //                     if(flag == false){
+            //                         if(student.notes != null){	
+            //                             if(student.notes.includes(college.name + " Confirmation Ok.")){	
+            //                                 college.checked = true;	
+            //                             }else{	
+            //                                 college.checked = false;	
+            //                             }	
+            //                         }else{	
+            //                             college.checked = false;	
+            //                         }
+            //                         collegesData.push(college);
+            //                     }
+            //                 })
+            //             }else{
+            //                 colleges.forEach(college=>{	
+            //                     if(student.notes != null){	
+            //                         if(student.notes.includes(college.name + " Confirmation Ok.")){	
+            //                             college.checked = true;	
+            //                         }else{	
+            //                             college.checked = false;	
+            //                         }	
+            //                     }else{	
+            //                         college.checked = false;	
+            //                     }	
+            //                 })
+            //                 collegesData = colleges
+            //             }
+            //         }
+                    
+            //     });
+            // }
             
             // models.User_Transcript.getCollegeIDs(student.user_id).then(function(colleges){
            
@@ -2794,7 +2875,7 @@ router.get('/adminDashboard/unsigned', middlewares.getUserInfo,function (req, re
                 models.UserMarklist_Upload.findAll({
                     where :{
                         user_id : student.user_id,
-                        upload_step : 'changed',source : 'guattestation'
+                        upload_step : 'changed'
                     }
                 }).then(function(user_marksheets){
                     if(user_marksheets.length > 0){
@@ -2999,23 +3080,17 @@ router.get('/adminDashboard/getRejectedApplication', function (req, res) {
 });
 
 router.post('/adminDashboard/rejectApplication',function(req,res){
-   console.log('rejectApplication');
-   models.User.findOne({
+   //var io = req.io;
+   models.User.find({
        where:{
            id : req.body.user_id
        }
    }).then(function(user){
        if(user){
-           models.Application.findOne({
+           models.Application.find({
                where:{
                    user_id : req.body.user_id,
-                   id : req.body.app_id,
-                   [Op.or]:[{
-                    source_from:'guattestation',
-                 },
-                 {
-                    source_from:'gumoi',
-                 }]
+                   id : req.body.app_id
                }
            }).then(function(uca){
                if(uca){
@@ -3035,15 +3110,10 @@ router.post('/adminDashboard/rejectApplication',function(req,res){
                                     toName: user.name,
                                     user_type: user.user_type,
                                     app_id:uca_updated.id,
-                                    type : req.body.fromTab,
-                                    source : 'gu'
+                                    type : req.body.fromTab
                                 }
                             }, function (error, response, body) {
                                 if (error) {
-                            var desc = user.name +"'s ( "+user.email+" ) application rejected by "+req.body.email_admin+".";
-                            var activity = "Application Rejected";
-                            var applicationId = req.body.app_id;
-                            functions.activitylog(userdata.id, activity, desc, applicationId);
                                     res.json({
                                         status:400,
                                         message:'message not sent!!!..'
@@ -3078,159 +3148,49 @@ router.post('/adminDashboard/rejectApplication',function(req,res){
    });
 });
 
-router.post('/adminDashboard/pending/verifiedBy', function (req, res) {
+router.post('/adminDashboard/pending/verifiedBy', middlewares.getUserInfo, function (req, res) {
     models.Application.update({
-        approved_by: req.body.email_admin,
-        tracker: 'verified',
-        status:'accept',
-        outward :  req.body.outward,
-        verified_date : moment(new Date()).format('YYYY-MM-DD')
+        approved_by: req.body.email,
+        tracker: 'verified'
     }, {
         where: {
-            id: req.body.id,
-            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id: req.body.id
         }
     }).then(function (result) {
-        models.Application.findOne({
+        models.Application.find({
             where:{
-                id : req.body.id,
-                [Op.or]:[{
-                    source_from:'guattestation',
-                 },
-                 {
-                    source_from:'gumoi',
-                 }]
+                id : req.body.id
             }
         }).then(function(application){
-            models.User.findOne({
+            models.User.find({
                 where:{
                     id : application.user_id
                 }
             }).then(function(userdata){
-                self_pdf.generateQRCode(application.user_id,application.id,function(err){
-                        if(err) {
-                            res.json({ 
-                                status: 400
-                            })
-                        }else{
-                            var desc = userdata.name+"'s ( "+userdata.email+" ) application approved by "+req.body.email_admin+".";
-                            var activity = "Application Verified";
-                            var applicationId = req.body.id;
-                            functions.activitylog(userdata.id, activity, desc, applicationId);
-                            request.post(constant.BASE_URL_SENDGRID + 'applicationStatus', {
-                                json: {
-                                    email : userdata.email,
-                                    name : userdata.name + ' ' + userdata.surname,
-                                    app_id : applicationId,
-                                    statusType : 'verified',
-                                    mobile : userdata.mobile,
-                                    mobile_country_code : userdata.mobile_country_code,
-                                    source : 'gu'
-                                }
-                            }, function (error, response, body) {
-                                return res.json({
-                                    status: 200,
-                                    items: result
-                                });  
-                            })
-
-                        }
-                    })
+                var desc = userdata.name+"'s ( "+userdata.email+" ) application approved by "+req.User.email+".";
+                var activity = "Application Verified";
+                var applicationId = req.body.id;
+                functions.activitylog(userdata.id, activity, desc, applicationId);
+                request.post(constant.BASE_URL_SENDGRID + 'applicationStatus', {
+                    json: {
+                        email : userdata.email,
+                        name : userdata.name + ' ' + userdata.surname,
+                        app_id : applicationId,
+                        statusType : 'verified',
+                        mobile : userdata.mobile,
+                        mobile_country_code : userdata.mobile_country_code
+                    }
+                }, function (error, response, body) {
+                    return res.json({
+                        status: 200,
+                        items: result
+                    });  
+                })
             })
         });
     });
 });
-router.post('/adminDashboard/pending/verifiedBy_new', function (req, res) {
-    var moutward=req.body.moutward
-    var toutward=req.body.toutward
-    var doutward=req.body.doutward
-    var moioutward=req.body.moioutward
-   
-   
-    models.Application.update({
-        approved_by: req.body.email_admin,
-        tracker: 'verified',
-        status:'accept',
-    }, {
-        where: {
-            id: req.body.id,
-            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-        }
-    }).then(function (result) {
-        
 
-        models.Application.findOne({
-            where:{
-                id : req.body.id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-            }
-        }).then(async function(application){
-            if(moutward != null){
-                var createoutward =  await functions.createoutward(moutward,'marksheet',req.body.id ,application.user_id );
-            }
-            if(toutward != null){
-                var createoutward =  await functions.createoutward(moutward,'transcript',req.body.id ,application.user_id );
-            }
-            if(doutward != null){
-                var createoutward =  await functions.createoutward(moutward,'degree',req.body.id ,application.user_id );
-            }
-            if(moioutward != null){
-                var createoutward =  await functions.createoutward(moutward,'moi',req.body.id ,application.user_id );
-            }
-            models.User.findOne({
-                where:{
-                    id : application.user_id
-                }
-            }).then(function(userdata){
-                self_pdf.generateQRCode(application.user_id,application.id,function(err){
-                        if(err) {
-                            res.json({ 
-                                status: 400
-                            })
-                        }else{
-                            var desc = userdata.name+"'s ( "+userdata.email+" ) application approved by "+req.body.email_admin+".";
-                            var activity = "Application Verified";
-                            var applicationId = req.body.id;
-                            functions.activitylog(userdata.id, activity, desc, applicationId);
-                            request.post(constant.BASE_URL_SENDGRID + 'applicationStatus', {
-                                json: {
-                                    email : userdata.email,
-                                    name : userdata.name + ' ' + userdata.surname,
-                                    app_id : applicationId,
-                                    statusType : 'verified',
-                                    mobile : userdata.mobile,
-                                    mobile_country_code : userdata.mobile_country_code,
-                                    source : 'gu'
-                                }
-                            }, function (error, response, body) {
-                                return res.json({
-                                    status: 200,
-                                    items: result
-                                });  
-                            })
-
-                        }
-                    })
-            })
-        });
-    });
-
-});
 router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
 
 
@@ -3243,7 +3203,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
     }
     models.User_Transcript.findAll({
         where: {
-            user_id: req.query.user_id,source : 'guattestation' 
+            user_id: req.query.user_id
         }
     }).then(function (transcripts) {
         if (transcripts.length > 0) {
@@ -3252,7 +3212,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
                     var file_ext = transcript.file_name.split('.').pop();
                     view_data.ssc.push({
                         type: 'SSC',
-                        file_name: constant.BASE_URL + 'upload/documents/' + req.query.user_id + '/' + transcript.file_name,
+                        file_name: constant.BASE_URL + 'upload/transcript/' + req.query.user_id + '/' + transcript.file_name,
                         file_ext: file_ext.toLowerCase()
                     });
                 }
@@ -3261,7 +3221,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
                     var file_ext = transcript.file_name.split('.').pop();
                     view_data.hsc.push({
                         type: 'HSC',
-                        file_name: constant.BASE_URL + 'upload/documents/' + req.query.user_id + '/' + transcript.file_name,
+                        file_name: constant.BASE_URL + 'upload/transcript/' + req.query.user_id + '/' + transcript.file_name,
                         file_ext: file_ext.toLowerCase()
                     });
                 }
@@ -3270,7 +3230,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
                     var file_ext = transcript.file_name.split('.').pop();
                     view_data.degree.push({
                         type: 'Graduation',
-                        file_name: constant.BASE_URL + 'upload/documents/' + req.query.user_id + '/' + transcript.file_name,
+                        file_name: constant.BASE_URL + 'upload/transcript/' + req.query.user_id + '/' + transcript.file_name,
                         file_ext: file_ext.toLowerCase()
                     });
                 }
@@ -3279,7 +3239,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
                     var file_ext = transcript.file_name.split('.').pop();
                     view_data.master.push({
                         type: 'Master',
-                        file_name: constant.BASE_URL + 'upload/documents/' + req.query.user_id + '/' + transcript.file_name,
+                        file_name: constant.BASE_URL + 'upload/transcript/' + req.query.user_id + '/' + transcript.file_name,
                         file_ext: file_ext.toLowerCase()
                     });
                 }
@@ -3288,7 +3248,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
                     var file_ext = transcript.file_name.split('.').pop();
                     view_data.phd.push({
                         type: 'Ph.D',
-                        file_name: constant.BASE_URL + 'upload/documents/' + req.query.user_id + '/' + transcript.file_name,
+                        file_name: constant.BASE_URL + 'upload/transcript/' + req.query.user_id + '/' + transcript.file_name,
                         file_ext: file_ext.toLowerCase()
                     });
                 }
@@ -3311,7 +3271,7 @@ router.get('/adminDashboard/getTranscriptDetails', function (req, res) {
 router.get('/adminDashboard/download', function (req, res) {
     var file_name = req.query.file_name;
     var userId = req.query.user_id;
-    const downloadData = constant.FILE_LOCATION + "public/upload/documents/" + userId + "/" + file_name;
+    const downloadData = constant.FILE_LOCATION + "public/upload/transcript/" + userId + "/" + file_name;
     res.download(downloadData);
 });
 
@@ -3330,11 +3290,11 @@ router.get('/adminDashboard/get_otp', middlewares.getUserInfo, function (req, re
 
             smsOptions = {
                 contact_number: adminData.mobile_country_code + adminData.mobile,
-                message: adminData.otp + ' is your one time password for verifying your mobile number for Gujarat University.',
+                message: adminData.otp + ' is your one time password for verifying your mobile number for Mumbai University.',
             };
             if(adminData.id != 2){
 
-                request.post(constant.BASE_URL_SENDGRID + 'Email/Sms_AttestationAdmin',{
+                request.post(constant.BASE_URL_SENDGRID + 'Email/Sms',{
                 json: {
                     mobile: adminData.mobile,
                     mobile_country_code: adminData.mobile_country_code,
@@ -3342,8 +3302,7 @@ router.get('/adminDashboard/get_otp', middlewares.getUserInfo, function (req, re
                     email_verification_token: adminData.email_verification_token,
                     otp: adminData.otp,
                     to: adminData.email,
-                    toName: adminData.name,
-                    source : 'gu'
+                    toName: adminData.name
                 }
                 }, function (error, response, body) {
                     if(response != undefined){
@@ -3418,13 +3377,7 @@ router.post('/adminDashboard/sendNotification', function (req, res) {
     setTimeout(()=>{
         models.Application.find({
             where: {
-                id: App_id,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                id: App_id
             }
         }).then((Application) => {
             var user_id = Application.user_id;
@@ -3601,7 +3554,6 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
     var studentObj = {
         userMarkLists:[],
         userTranscripts: [],
-        userDegree: [],
         userCurriculums:[],
         userExtraDocument :[],
         letters:[],
@@ -3634,12 +3586,12 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
             }).then(function(competency){
             models.User_Transcript.findAll({
                 where:  {
-                    user_id : userId,source : 'guattestation' 
+                    user_id : userId
                 }
             }).then(function(userTranscripts) {
                 models.userMarkList.findAll({
                     where:{
-                        user_id : userId,source : 'guattestation'
+                        user_id : userId
                     }
                 }).then(function(userMarkLists){
                     userMarkLists.forEach((usermarklist)=>{
@@ -3656,9 +3608,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                     //userMarklistId: usermarks.id,
                                     name: usermarklist.name,
                                     user_id: usermarklist.user_id ,
-                                    image: constant.BASE_URL+"/upload/documents/"+userId+'/'+usermarklist.file_name ,
+                                    image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+usermarklist.file_name ,
                                     file_name: usermarklist.file_name ,
-                                    file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+usermarklist.file_name ,
+                                    file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+usermarklist.file_name ,
                                     timestamp: moment(new Date(usermarklist.created_at)).format("DD-MM-YYYY hh:mm a"),
                                     transcript_lock: usermarklist.lock_marklist ,
                                     education_type:usermarklist.type ,
@@ -3701,9 +3653,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                     //userMarklistId: usermarks.id,
                                                     name: allMarklistData.name,
                                                     user_id: allMarklistData.user_id ,
-                                                    image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                    image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                     file_name: allMarklistData.file_name ,
-                                                    file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                    file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                     timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                     updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                     transcript_lock: allMarklistData.lock_transcript ,
@@ -3718,9 +3670,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                     //userMarklistId: usermarks.id,
                                                     name: allMarklistData.usermarklist_name,
                                                     user_id: allMarklistData.usermarklist_user_id ,
-                                                    image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                    image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                     file_name: allMarklistData.usermarklist_file_name ,
-                                                    file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                    file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                    
                                                     transcript_lock: allMarklistData.user_lock_marklist ,
@@ -3735,9 +3687,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                     //userMarklistId: usermarks.id,
                                                     name: allMarklistData.name,
                                                     user_id: allMarklistData.user_id ,
-                                                    image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                    image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                     file_name: allMarklistData.file_name ,
-                                                    file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                    file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                     timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                     updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                     transcript_lock: allMarklistData.lock_transcript ,
@@ -3752,9 +3704,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                 //     //userMarklistId: usermarks.id,
                                                 //     name: allMarklistData.usermarklist_name,
                                                 //     user_id: allMarklistData.usermarklist_user_id ,
-                                                //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                //     image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                 //     file_name: allMarklistData.usermarklist_file_name ,
-                                                //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                //     file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                 //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                 //     transcript_lock: allMarklistData.user_lock_marklist ,
                                                 //     education_type:allMarklistData.type ,
@@ -3772,9 +3724,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                 name: allMarklistData.name,
                                             // userMarklistId: userMarks.id,
                                                 user_id: allMarklistData.user_id,
-                                                image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name,
+                                                image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name,
                                                 file_name: allMarklistData.file_name,
-                                                file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name,
+                                                file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name,
                                                 timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                 updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                 transcript_lock: allMarklistData.lock_transcript,
@@ -3789,9 +3741,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                 //userMarklistId: usermarks.id,
                                                 name: allMarklistData.usermarklist_name,
                                                 user_id: allMarklistData.usermarklist_user_id ,
-                                                image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                 file_name: allMarklistData.usermarklist_file_name ,
-                                                file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                 timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                 transcript_lock: allMarklistData.user_lock_marklist ,
                                                 education_type:allMarklistData.type ,
@@ -3806,9 +3758,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                                 //userMarklistId: usermarks.id,
                                                 name: allMarklistData.name,
                                                 user_id: allMarklistData.user_id ,
-                                                image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                 file_name: allMarklistData.file_name ,
-                                                file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                 timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                 updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                 transcript_lock: allMarklistData.lock_transcript ,
@@ -3823,9 +3775,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                             //     //userMarklistId: usermarks.id,
                                             //     name: allMarklistData.usermarklist_name,
                                             //     user_id: allMarklistData.usermarklist_user_id ,
-                                            //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                            //     image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                             //     file_name: allMarklistData.usermarklist_file_name ,
-                                            //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                            //     file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                             //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                             //     transcript_lock: allMarklistData.user_lock_marklist ,
                                             //     education_type:allMarklistData.type ,
@@ -3853,9 +3805,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
 	                                            id: userTranscript.id,
 	                                            name: userTranscript.name,
 	                                            user_id: userTranscript.user_id,
-	                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+	                                            image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
 	                                            file_name: userTranscript.file_name,
-	                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+	                                            file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
 	                                            timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
 	                                            updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                 transcript_lock: userTranscript.lock_transcript,
@@ -3869,9 +3821,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
 	                                        id: userTranscript.id,
 	                                        name: userTranscript.name,
 	                                        user_id: userTranscript.user_id,
-	                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+	                                        image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
 	                                        file_name: userTranscript.file_name,
-	                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+	                                        file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
 	                                        timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
 	                                        updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                             transcript_lock: userTranscript.lock_transcript,
@@ -3885,66 +3837,9 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                                         id: userTranscript.id,
                                         name: userTranscript.name,
                                         user_id: userTranscript.user_id,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                        image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                         file_name: userTranscript.file_name,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                        timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: userTranscript.lock_transcript,
-                                        extension :extension,
-                                        email : user.email
-                                    });
-	                            }
-                            });
-                            userTranscripts.forEach(function(userTranscript) {
-                            	if(userTranscript.type.includes('degree')){
-	                                var imgArr = userTranscript.file_name.split('.');
-	                                var extension = imgArr[imgArr.length - 1].trim();
-	                                if(userTranscript.collegeId != 0 && userTranscript.collegeId != null){
-	                                    models.College.find({
-	                                        where:{
-	                                            id : userTranscript.collegeId
-	                                        }
-	                                    }).then(function(college){
-	                                        studentObj.userDegree.push({
-	                                            id: userTranscript.id,
-	                                            name: userTranscript.name,
-	                                            user_id: userTranscript.user_id,
-	                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-	                                            file_name: userTranscript.file_name,
-	                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-	                                            timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-	                                            updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                                transcript_lock: userTranscript.lock_transcript,
-	                                            extension :extension,
-	                                            email : user.email,
-	                                            collegeName : college.name
-	                                        });
-	                                    });
-	                                }else{
-	                                    studentObj.userDegree.push({
-	                                        id: userTranscript.id,
-	                                        name: userTranscript.name,
-	                                        user_id: userTranscript.user_id,
-	                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-	                                        file_name: userTranscript.file_name,
-	                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-	                                        timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-	                                        updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                            transcript_lock: userTranscript.lock_transcript,
-	                                        extension :extension,
-	                                        email : user.email,
-	                                        collegeName : ''
-	                                    });
-	                                }
-	                            }else{
-	                            	studentObj.userExtraDocument.push({
-                                        id: userTranscript.id,
-                                        name: userTranscript.name,
-                                        user_id: userTranscript.user_id,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                        file_name: userTranscript.file_name,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                        file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                         timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
                                         updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                         transcript_lock: userTranscript.lock_transcript,
@@ -4094,13 +3989,7 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
                             if(req.query.app_id != null && req.query.app_id != '' && req.query.app_id != undefined && req.query.app_id != 'null' && req.query.app_id != 'undefined'){
                                 models.Application.find({
                                     where : {
-                                        id : req.query.app_id,
-                                            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                        id : req.query.app_id
                                     }
                                 }).then(function(app){
                                     
@@ -4137,7 +4026,6 @@ router.get('/adminDashboard/transcript_lock', function(req, res) {
 });
 
 router.post('/adminDashboard/updateErrataTranscript',function(req,res){
-    console.log("updateErrataTranscript" + JSON.stringify(req.body))
     var io = req.io;
     var errataTranscript = req.body.errataTranscript;
     var errataMarksheet = req.body.errataMarksheet;
@@ -4147,7 +4035,7 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
         models.UserMarklist_Upload.find({
             where:{
                 id: data.id,
-                user_id: data.userId,source : 'guattestation'
+                user_id: data.userId
             }
         }).then(function(marksheet_data){
             if(marksheet_data!='null' && marksheet_data!=null){
@@ -4158,19 +4046,9 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                     }, {
                         where: {
                             id: data.id,
-                            user_id: data.userId,source : 'guattestation'
+                            user_id: data.userId
                         }
                     }).then(x=>{
-                        models.Application.update({
-                            status :  'requested'
-                    }, {
-                        where: {
-                            id: req.body.app_id
-                        }
-                    }).then(z =>{
-
-                    
-                    })
                     })
                 }else if(data.errataCheck == false) {
                     models.UserMarklist_Upload.update({
@@ -4179,26 +4057,16 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                     }, {
                         where: {
                             id: data.id,
-                            user_id: data.userId,source : 'guattestation'
+                            user_id: data.userId
                         }
                     }).then(z =>{
-                        models.Application.update({
-                            status :  'changed'
-                    }, {
-                        where: {
-                            id: req.body.app_id
-                        }
-                    }).then(z =>{
-                        
-                    })
-                        
                     })
                 }
             }else{
                 models.userMarkList.find({
                     where:{
                         id: data.id,
-                        user_id: data.userId,source : 'guattestation'
+                        user_id: data.userId
                     }
                 }).then(function(marksheetData){
                     if(marksheetData!='null' && marksheetData!=null){
@@ -4209,18 +4077,9 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                             }, {
                                 where: {
                                     id: data.id,
-                                    user_id: data.userId,source : 'guattestation'
+                                    user_id: data.userId
                                 }
                             }).then(x=>{
-                                models.Application.update({
-                                    status :  'requested'
-                            }, {
-                                where: {
-                                    id: req.body.app_id
-                                }
-                            }).then(z =>{
-                                
-                            })
                             })
                         }else if(data.errataCheck == false) {
                             models.userMarkList.update({
@@ -4229,18 +4088,9 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                             }, {
                                 where: {
                                     id: data.id,
-                                    user_id: data.userId,source : 'guattestation'
+                                    user_id: data.userId
                                 }
                             }).then(z =>{
-                                models.Application.update({
-                                    status :  'changed'
-                            }, {
-                                where: {
-                                    id: req.body.app_id
-                                }
-                            }).then(z =>{
-                                
-                            })
                             })
                         }
 
@@ -4255,7 +4105,7 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
     errataTranscript.forEach(function(data){
         models.User_Transcript.find({
             where:{
-                id: data.id,source : 'guattestation' 
+                id: data.id
             }
         }).then(function(transcript_data){
             if(transcript_data){
@@ -4265,18 +4115,9 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                         upload_step : "requested"
                     }, {
                         where: {
-                            id: data.id,source : 'guattestation' 
+                            id: data.id
                         }
                     }).then(x=>{
-                        models.Application.update({
-                            status :  'requested'
-                    }, {
-                        where: {
-                            id: req.body.app_id
-                        }
-                    }).then(z =>{
-                        
-                    })
                     })
                 }else if(data.errataCheck == false) {
                     models.User_Transcript.update({
@@ -4284,24 +4125,78 @@ router.post('/adminDashboard/updateErrataTranscript',function(req,res){
                         upload_step : "changed"
                     }, {
                         where: {
-                            id: data.id,source : 'guattestation' 
+                            id: data.id
                         }
                     }).then(z =>{
-                        models.Application.update({
-                            status :  'changed'
-                    }, {
-                        where: {
-                            id: req.body.app_id
-                        }
-                    }).then(z =>{
-                        
-                    })
                     })
                 }
             }
         })
     })
 
+    errataCurriculum.forEach(function(data){
+        models.User_Curriculum.find({
+            where:{
+                id: data.id
+            }
+        }).then(function(transcript_data){
+            if(transcript_data){
+                if(data.errataCheck == true){
+                    models.User_Curriculum.update({
+                        lock_transcript : data.errataCheck,
+                        upload_step : "requested"
+                    }, {
+                        where: {
+                            id: data.id
+                        }
+                    }).then(x=>{
+                    })
+                }else if(data.errataCheck == false) {
+                    models.User_Curriculum.update({
+                        lock_transcript : data.errataCheck,
+                        upload_step : "changed"
+                    }, {
+                        where: {
+                            id: data.id
+                        }
+                    }).then(z =>{
+                    })
+                }
+            }
+        })
+    })
+
+    errataLetter.forEach(function(data){
+        models.GradeToPercentageLetter.find({
+            where:{
+                id: data.id
+            }
+        }).then(function(letter_data){
+            if(letter_data){
+                if(data.errataCheck == true){
+                    models.GradeToPercentageLetter.update({
+                        lock_transcript : data.errataCheck,
+                        upload_step : "requested"
+                    }, {
+                        where: {
+                            id: data.id
+                        }
+                    }).then(x=>{
+                    })
+                }else if(data.errataCheck == false) {
+                    models.GradeToPercentageLetter.update({
+                        lock_transcript : data.errataCheck,
+                        upload_step : "changed"
+                    }, {
+                        where: {
+                            id: data.id
+                        }
+                    }).then(z =>{
+                    })
+                }
+            }
+        })
+    })
     res.json({
         status:200,
         message: "Successfully done changes!"
@@ -4318,427 +4213,43 @@ router.get('/adminDashboard/downloadTranscript', function (req, res) {
  * @author:priyanka Khandagale
  * @description:to send notification if transcript is blur or password protected.
 */
-router.post('/adminDashboard/trans_sendmessage',async function(req,res){
-    var app_id = req.body.app_id
-    var user_id = req.body.user_id
-    var usermarklist_id = req.body.usermarklist_id
-    var message = req.body.message
-    var type = req.body.type
-    var errataType = req.body.errataType
-    var oldnotes = await functions.getnotes(app_id);
-    if(errataType == 'overall'){
-      
-        if(type=='marksheet'){
-            models.Application.update({
-                status :  'requested',
-                notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Marksheets Not Uploaded'
-        }, {
-            where: {
-                id: app_id
-            }
-        }).then(z =>{
-            request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                json: {	
-                    email : userdetails.email,	
-                    studentName : userdetails.name + " " + userdetails.surname,	
-                    app_id : app_id,
-                    note : message,	
-                    type : type,
-                    source : 'gu'
-                }	
-            }, function (error, response, body) {	
-                // if(!error){
-                        res.json({
-                            status : 200
-                        })
-                // }
-            })
-        
-        })
-
-}
-        if(type == 'transcript'){
-
-                models.Application.update({
-                    status :  'requested',
-                    notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Transcript Not Uploaded'
-            }, {
-                where: {
-                    id: app_id
-                }
-            }).then(z =>{
-                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                    json: {	
-                        email : userdetails.email,	
-                        studentName : userdetails.name + " " + userdetails.surname,	
-                        app_id : app_id,
-                        note : message,	
-                        type : type,
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    // if(!error){
-                        res.json({
-                            status : 200
-                        })
-                // }
-                })
-            
-            })
-
-
-
-        }
-        if(type == 'degree'){
-
-        models.Application.update({
-        status :  'requested',
-        notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Degree Not Uploaded'
-        }, {
-        where: {
-        id: app_id
-        }
-        }).then(z =>{
-        request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-        json: {	
-        email : userdetails.email,	
-        studentName : userdetails.name + " " + userdetails.surname,	
-        app_id : app_id,
-        note : message,	
-        type : type,
-        source : 'gu'
-        }	
-        }, function (error, response, body) {	
-        // if(!error){
-        res.json({
-            status : 200
-        })
-        // }
-        })
-
-        })
-
-
-
-        }
-        if(type == 'instructional'){
-
-                models.Application.update({
-                    status :  'requested',
-                    notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Instructional Details Not Filled'
-            }, {
-                where: {
-                    id: app_id
-                }
-            }).then(z =>{
-                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                    json: {	
-                        email : userdetails.email,	
-                        studentName : userdetails.name + " " + userdetails.surname,	
-                        app_id : app_id,
-                        note : message,	
-                        type : type,
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    // if(!error){
-                        res.json({
-                            status : 200
-                        })
-                // }
-                })
-            
-            })
-
-
-
-
-        }
-        if(type == 'bonafied'){
-
-                models.Application.update({
-                    status :  'requested',
-                    notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Bonafied Not Uploaded'
-            }, {
-                where: {
-                    id: app_id
-                }
-            }).then(z =>{
-                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                    json: {	
-                        email : userdetails.email,	
-                        studentName : userdetails.name + " " + userdetails.surname,	
-                        app_id : app_id,
-                        note : message,	
-                        type : type,
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    // if(!error){
-                        res.json({
-                            status : 200
-                        })
-                // }
-                })
-            
-            })
-
-        }
-    }else{
-        var userdetails = await functions.getuserdetail(user_id);
-        if(type=='marksheet'){
-              models.UserMarklist_Upload.findOne({
-                    where:{
-                        id: usermarklist_id,
-                        user_id: user_id,source : 'guattestation'
-                    }
-                }).then(function(marksheet_data){
-                            models.UserMarklist_Upload.update({
-                                lock_transcript : 1,
-                                upload_step : "requested"
-                            }, {
-                                where: {
-                                    id: usermarklist_id,
-                                    user_id: user_id,source : 'guattestation'
-                                }
-                            }).then(x=>{
-                                models.Application.update({
-                                    status :  'requested',
-                                    notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Marksheets Not Uploaded'
-                            }, {
-                                where: {
-                                    id: app_id
-                                }
-                            }).then(z =>{
-                                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                                    json: {	
-                                        email : userdetails.email,	
-                                        studentName : userdetails.name + " " + userdetails.surname,	
-                                        app_id : app_id,
-                                        note : message,	
-                                        type : type,
-                                        source : 'gu'
-                                    }	
-                                }, function (error, response, body) {	
-                                    console.log("responseeeeeeeeee>>>>>>>>>>>>>>>>" + response);
-                                    // if(!error){
-                                            res.json({
-                                                status : 200
-                                            })
-                                    // }
-                                })
-                            
-                            })
-                            })
-                        
-                   
-                })
-            
-        }
-        if(type == 'transcript'){
-            models.User_Transcript.findOne({
-                where:{
-                    id: usermarklist_id,
-                    user_id: user_id,source : 'guattestation' 
-                }
-            }).then(function(marksheet_data){
-                        models.User_Transcript.update({
-                            lock_transcript : 1,
-                            upload_step : "requested"
-                        }, {
-                            where: {
-                                id: usermarklist_id,
-                                user_id: user_id,source : 'guattestation' 
-                            }
-                        }).then(x=>{
-                            models.Application.update({
-                                status :  'requested',
-                                notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Transcript Not Uploaded'
-                        }, {
-                            where: {
-                                id: app_id
-                            }
-                        }).then(z =>{
-                            request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                                json: {	
-                                    email : userdetails.email,	
-                                    studentName : userdetails.name + " " + userdetails.surname,	
-                                    app_id : app_id,
-                                    note : message,	
-                                    type : type,
-                                    source : 'gu'
-                                }	
-                            }, function (error, response, body) {	
-                                // if(!error){
-                                    res.json({
-                                        status : 200
-                                    })
-                            // }
-                            })
-                        
-                        })
-                        })
-                    
-               
-            })
-        }
-        if(type == 'degree'){
-            models.User_Transcript.findOne({
-                where:{
-                    id: usermarklist_id,
-                    user_id: user_id,source : 'guattestation' 
-                }
-            }).then(function(marksheet_data){
-                        models.User_Transcript.update({
-                            lock_transcript : 1,
-                            upload_step : "requested"
-                        }, {
-                            where: {
-                                id: usermarklist_id,
-                                user_id: user_id,source : 'guattestation' 
-                            }
-                        }).then(x=>{
-                            models.Application.update({
-                                status :  'requested',
-                                notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Degree Not Uploaded'
-                        }, {
-                            where: {
-                                id: app_id
-                            }
-                        }).then(z =>{
-                            request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                                json: {	
-                                    email : userdetails.email,	
-                                    studentName : userdetails.name + " " + userdetails.surname,	
-                                    app_id : app_id,
-                                    note : message,	
-                                    type : type,
-                                    source : 'gu'
-                                }	
-                            }, function (error, response, body) {	
-                                // if(!error){
-                                    res.json({
-                                        status : 200
-                                    })
-                            // }
-                            })
-                        
-                        })
-                        })
-                    
-               
-            })
-        }
-        if(type == 'instructional'){
-            models.InstructionalDetails.findOne({
-                where:{
-                    id: usermarklist_id,
-                    userId: user_id
-                }
-            }).then(function(marksheet_data){
-                        models.InstructionalDetails.update({
-                            lock_transcript : 1,
-                        }, {
-                            where: {
-                                id: usermarklist_id,
-                                userId: user_id
-                            }
-                        }).then(x=>{
-                            models.Application.update({
-                                status :  'requested',
-                                notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Instructional Details Incomplete'
-                        }, {
-                            where: {
-                                id: app_id
-                            }
-                        }).then(z =>{
-                            request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                                json: {	
-                                    email : userdetails.email,	
-                                    studentName : userdetails.name + " " + userdetails.surname,	
-                                    app_id : app_id,
-                                    note : message,	
-                                    type : type,
-                                    source : 'gu'
-                                }	
-                            }, function (error, response, body) {	
-                                // if(!error){
-                                    res.json({
-                                        status : 200
-                                    })
-                            // }
-                            })
-                        
-                        })
-                        })
-                    
-               
-            })
-        }
-        console.log('typetypetypetypetypetype' + app_id)
-        console.log('oldnotesoldnotes' + oldnotes)
-        if(type == 'bonafied'){
-            models.Applicant_Marksheet.findOne({
-                where:{
-                    id: usermarklist_id,
-                    user_id: user_id
-                }
-            }).then(function(marksheet_data){
-                        models.Applicant_Marksheet.update({
-                            lock_transcript : 1,
-                        }, {
-                            where: {
-                                id: usermarklist_id,
-                                user_id: user_id
-                            }
-                        }).then(x=>{
-                            models.Application.update({
-                                status :  'requested',
-                                notes : oldnotes.notes ? oldnotes.notes : '' + ' ' + 'Instructional Details Incomplete'
-                        }, {
-                            where: {
-                                id: app_id
-                            }
-                        }).then(z =>{
-                            request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail_updated', {
-                                json: {	
-                                    email : userdetails.email,	
-                                    studentName : userdetails.name + " " + userdetails.surname,	
-                                    app_id : app_id,
-                                    note : message,	
-                                    type : type,
-                                    source : 'gu'
-                                }	
-                            }, function (error, response, body) {	
-                                // if(!error){
-                                    res.json({
-                                        status : 200
-                                    })
-                            // }
-                            })
-                        
-                        })
-                        })
-                    
-               
-            })
-        }
-
-    }
-
- 
+router.post('/adminDashboard/trans_sendmessage',function(req,res){
+    var msg= req.body.msg.message
+    var user_id=req.body.msg.userId
+    var Remark = "Uploaded transcript is incorrect, please reupload it. Message from admin:"+msg ;
+    promise1 = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            var created_at = functions.socketnotification('Transcript locked',Remark,user_id,'student');
+            resolve(created_at);
+         }, 2000)
+         
+     })
+     Promise.all([promise1]).then(result => {
+      var created_at=result;
+       setTimeout(() => {
+        if(created_at === undefined) { res.json({
+                     status:400,
+                     message: "problem in inserting notification data in notification table."
+                 })
+             }
+             else{
+                 //req.io.sockets.emit('new_msg',{notification_data: Remark,created_at : created_at});
+                 res.json({
+                     status:200,
+                     message: "Successfully received!"
+                 })
+             }
+        },2000);
+     })
 })
 
 router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
-    console.log('adminDashboard/getSignedPdfDetailsadminDashboard/getSignedPdfDetails' + req.query.appl_id)
     var appl_id=req.query.appl_id;
     var user_id=req.query.user_id;
     var count = 0;
     var filecount = 0;
     var transcriptData = [];
-    let marksheetData = [];
-    var degreeData = [];
-    var thesisData = [];
+    var marksheetData = [];
     var curriculumData = [];
     var mergeData = [];
     var gradeToPerData = [];
@@ -4767,10 +4278,9 @@ router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
     models.Emailed_Docs.findAll({
         where :{
            app_id : appl_id,
-           category : "Marklist"
+           category : "Marksheet"
         }
     }).then((files)=>{
-        console.log("filesfilesfiles" + files);
         filecount = filecount + files.length;
         if(files.length > 0){
             files.forEach((filedata)=>{
@@ -4779,44 +4289,6 @@ router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
                     file_path : constant.FILE_LOCATION+'public/signedpdf/'+user_id+"/" + filedata.filename ,
                 }    
                 marksheetData.push(data);
-                count++;
-            }) 
-       }
-    })
-    x
-    console.log("marksheetDatamarksheetData" + JSON.stringify(marksheetData));
-    models.Emailed_Docs.findAll({
-        where :{
-           app_id : appl_id,
-           category : "Thesis"
-        }
-    }).then((files)=>{
-        filecount = filecount + files.length;
-        if(files.length > 0){
-            files.forEach((filedata)=>{
-                data={
-                    file_name:   filedata.filename ,                    
-                    file_path : constant.FILE_LOCATION+'public/signedpdf/'+user_id+"/" + filedata.filename ,
-                }    
-                thesisData.push(data);
-                count++;
-            }) 
-       }
-    })
-    models.Emailed_Docs.findAll({
-        where :{
-           app_id : appl_id,
-           category : "Degree"
-        }
-    }).then((files)=>{
-        filecount = filecount + files.length;
-        if(files.length > 0){
-            files.forEach((filedata)=>{
-                data={
-                    file_name:   filedata.filename ,                    
-                    file_path : constant.FILE_LOCATION+'public/signedpdf/'+user_id+"/" + filedata.filename ,
-                }    
-                degreeData.push(data);
                 count++;
             }) 
        }
@@ -4917,23 +4389,23 @@ router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
                     count++;
                 }) 
             }
-        //    if(filecount == count){
-        //         res.json({
-        //             status: 200,
-        //             transcriptData : transcriptData,
-        //             usermarksheetdata : marksheetData,
-        //             curriculumdata : curriculumData,
-        //             gradeToPerData : gradeToPerData,
-        //             mergeData : mergeData,
-        //             instructionalLetter : instructionalLetter,
-        //             affiliationLetter : affiliationLetter,
-        //             HrdLetter  : HrdLetter
-        //         })
-        //     }else{
-        //         res.json({
-        //             status: 400,
-        //         })
-        //     } 
+           if(filecount == count){
+                res.json({
+                    status: 200,
+                    transcriptData : transcriptData,
+                    usermarksheetdata : marksheetData,
+                    curriculumdata : curriculumData,
+                    gradeToPerData : gradeToPerData,
+                    mergeData : mergeData,
+                    instructionalLetter : instructionalLetter,
+                    affiliationLetter : affiliationLetter,
+                    HrdLetter  : HrdLetter
+                })
+            }else{
+                res.json({
+                    status: 400,
+                })
+            } 
         })
         
         models.Emailed_Docs.findAll({
@@ -4953,22 +4425,22 @@ router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
                     count++;
                 }) 
             }
-        //    if(filecount == count){
-        //         res.json({
-        //             status: 200,
-        //             transcriptData : transcriptData,
-        //             usermarksheetdata : marksheetData,
-        //             curriculumdata : curriculumData,
-        //             gradeToPerData : gradeToPerData,
-        //             mergeData : mergeData,
-        //             instructionalLetter : instructionalLetter,
-        //             affiliationLetter : affiliationLetter
-        //         })
-        //     }else{
-        //         res.json({
-        //             status: 400,
-        //         })
-        //     } 
+           if(filecount == count){
+                res.json({
+                    status: 200,
+                    transcriptData : transcriptData,
+                    usermarksheetdata : marksheetData,
+                    curriculumdata : curriculumData,
+                    gradeToPerData : gradeToPerData,
+                    mergeData : mergeData,
+                    instructionalLetter : instructionalLetter,
+                    affiliationLetter : affiliationLetter
+                })
+            }else{
+                res.json({
+                    status: 400,
+                })
+            } 
         })
 
         
@@ -4990,47 +4462,28 @@ router.get('/adminDashboard/getSignedPdfDetails', function (req, res) {
                 count++;
             }) 
         }
-    //    if(filecount == count){
-    //         res.json({
-    //             status: 200,
-    //             transcriptData : transcriptData,
-    //             usermarksheetdata : marksheetData,
-    //             curriculumdata : curriculumData,
-    //             gradeToPerData : gradeToPerData,
-    //             mergeData : mergeData,
-    //             instructionalLetter : instructionalLetter,
-    //             affiliationLetter : affiliationLetter,
-    //             HrdLetter  : HrdLetter,
-    //             letterForNameChange : letterForNameChange
-    //         })
-    //     }else{
-    //         res.json({
-    //             status: 400,
-    //         })
-    //     } 
+       if(filecount == count){
+            res.json({
+                status: 200,
+                transcriptData : transcriptData,
+                usermarksheetdata : marksheetData,
+                curriculumdata : curriculumData,
+                gradeToPerData : gradeToPerData,
+                mergeData : mergeData,
+                instructionalLetter : instructionalLetter,
+                affiliationLetter : affiliationLetter,
+                HrdLetter  : HrdLetter,
+                letterForNameChange : letterForNameChange
+            })
+        }else{
+            res.json({
+                status: 400,
+            })
+        } 
     })
-
-
-
     }, 3000);
 
-    console.log('marksheetDatamarksheetDatamarksheetData' + JSON.stringify(marksheetData));
-          if(filecount == count){
-                res.json({
-                    status: 200,
-                    transcriptData : transcriptData,
-                    usermarksheetdata : marksheetData,
-                    curriculumdata : curriculumData,
-                    gradeToPerData : gradeToPerData,
-                    mergeData : mergeData,
-                    instructionalLetter : instructionalLetter,
-                    affiliationLetter : affiliationLetter
-                })
-            }else{
-                res.json({
-                    status: 400,
-                })
-            } 
+    
 
 });
 
@@ -5046,7 +4499,7 @@ router.get('/adminDashboard/getAppTransStatus', function (req, res) {
 
     models.User_Transcript.findAll({
         where : {
-            user_id : user_id,source : 'guattestation' 
+            user_id : user_id
         }
     }).then((data)=>{
         data.forEach((transcript)=>{
@@ -5298,8 +4751,7 @@ router.get('/adminDashboard/my_applications',function(req,res){
     }).then(function(user){
         models.Applied_For_Details.find({
             where:{
-                user_id: user_id,
-                source : 'guattestation'
+                user_id: user_id
             }
         }).then(function(user_data){
             if(user_data){
@@ -5388,20 +4840,14 @@ router.get('/adminDashboard/my_applications',function(req,res){
                 }
                 models.Application.findAll({
                     where :{
-                        user_id : user_id,
-                            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                        user_id : user_id
                     }
                 }).then(function(applications){
                     applications.forEach(application=>{
                         models.Institution_details.findAll({
                             where:{
                                 user_id : user_id,
-                                app_id : application.id,source : 'guattestation'
+                                app_id : application.id
                             }
                         }).then(function(institutes){
                             var instituteData = [];
@@ -5517,8 +4963,7 @@ router.get('/adminDashboard/getApplWisePayments', function (req, res) {
         {
             user_id : userId,
             status : '1',
-            application_id : appl_id,
-            source : 'guattestation'
+            application_id : appl_id
         }
     }).then(function(orders){
         if(orders){
@@ -5557,12 +5002,7 @@ router.get('/adminDashboard/getApplWisePayments', function (req, res) {
 router.get('/adminDashboard/downloadPaymentReceipt',function(req,res){
 	var appl_id = req.query.appl_id;
 	var user_id = req.query.user_id;
-	var filePath=constant.FILE_LOCATION+"public/upload/documents/"+user_id+'/'+appl_id+"_Attestation_Payment_Challan.pdf"
-	res.download(filePath);
-})
-router.get('/adminDashboard/downloadapplication', middlewares.getUserInfo,function(req,res){
-	var appl_id = req.query.appl_id;
-	var filePath=constants.FILE_LOCATION+'public/upload/documents/'+req.User.id + '/' + appl_id + '_Attestation_Payment_Challan.pdf'
+	var filePath=constant.FILE_LOCATION+"public/upload/transcript/"+user_id+'/'+appl_id+"_Attestation_Payment_Challan.pdf"
 	res.download(filePath);
 })
 
@@ -5662,7 +5102,7 @@ router.get('/adminDashboard/downloadExcel',function(req,res){
                         models.Institution_details.findAll({
                             where :{
                                 user_id : data.user_id,
-                                app_id : data.id,source : 'guattestation'
+                                app_id : data.id
                             }
                         }).then(function(purposeDetails){
                             var purposeData = '';
@@ -5737,8 +5177,7 @@ router.get('/adminDashboard/downloadExcel',function(req,res){
                                     'colleges' : college_names,
                                     'application_date' : moment(data.created_at).format("DD-MM-YYYY")
                                 });
-                            }
-                            else if(type == 'emailedApplications'){
+                            }else if(type == 'emailedApplications'){
                                 TotalAppdata.push({
                                     'Application Id' : data.id,           
                                     'Student Name' : data.Name,
@@ -5751,21 +5190,7 @@ router.get('/adminDashboard/downloadExcel',function(req,res){
                                     'application_date' : moment(data.created_at).format("DD-MM-YYYY")
                                 });
                             }
-                            else if(type == 'printApplications'){
-                                TotalAppdata.push({
-                                    'Application Id' : data.id,           
-                                    'Student Name' : data.Name,
-                                    'Student Email' : data.email,
-                                    'Applied for': applied_for,
-                                    'purpose' : purposeData,
-                                    'Approved by' : data.approved_by,
-                                    'Emailed Date' : data.updated_at,
-                                    'colleges' : college_names,
-                                    'application_date' : moment(data.created_at).format("DD-MM-YYYY")
-
-                                    
-                                });
-                            }
+                        
                             callback();	
                         })
                     })
@@ -5804,7 +5229,7 @@ router.get('/adminDashboard/downloadExcel_datewise',function(req,res){
     if(type != undefined){
         models.Application.downloadExcel_datewise(type,startDate,endDate).then((data)=>{
            	if(data != null || data != undefined){
-           		
+                
                 require('async').each(data, function(data, callback) {
                 	var college_names = '';
                 	var course_name = '';
@@ -5816,7 +5241,7 @@ router.get('/adminDashboard/downloadExcel_datewise',function(req,res){
                         models.Institution_details.findAll({
                             where :{
                                 user_id : data.user_id,
-                                app_id : data.id,source : 'guattestation'
+                                app_id : data.id
                             }
                         }).then(function(purposeDetails){
                             var purposeData = '';
@@ -5905,19 +5330,8 @@ router.get('/adminDashboard/downloadExcel_datewise',function(req,res){
                                     'colleges' : college_names,
                                     'application_date' : moment(data.created_at).format("DD-MM-YYYY")
                                 });
-                            }else if(type == 'totalApplications_finance'){
-                                models.Orders.find({
-                                    where  : {
-                                        application_id  : data.id,
-                                        source : 'guattestation'
-                                    }
-                                }).then(function (orderdata){
-                                    if(orderdata){
-                                        models.Transaction.find({
-                                            where  : {
-                                                order_id  : orderdata.id
-                                            }
-                                        }).then(function (transdata){
+                            }
+                            else if(type == 'totalApplications_finance'){
                                             TotalAppdata.push({
                                                  'Application Id' : data.id, 
                                                  'Student Name' : data.Name,
@@ -5927,36 +5341,17 @@ router.get('/adminDashboard/downloadExcel_datewise',function(req,res){
                                                  'Approved by' : data.approved_by,
                                                  'colleges' : college_names,
                                                  'Application_date' : moment(data.created_at).format("DD-MM-YYYY"),
-                                                 "OrderId"  : orderdata.id,
-                                                 "Transaction id" : transdata.tracking_id,
-                                                "Split Status" :  transdata.split_status,
-                                                "OrderId"  : orderdata.id,
-                                                "Amount Payable" : orderdata.amount,
-                                                "CCAvenue Refernce No/Transaction id" : transdata.tracking_id,
+                                                 "OrderId"  : data.orderId,
+                                                 "Transaction id" : data.tracking_id,
+                                                "Split Status" :  data.split_status,
+                                                "Amount Payable" : data.amount,
+                                                "CCAvenue Refernce No/Transaction id" : data.tracking_id,
                                                 'courses' : course_name,
                                                 'application_date' : moment(data.created_at).format("DD-MM-YYYY"),                                                
                                                 
                                             });
-                                        })
-                                    }
-                                })
-                            }else if(type == 'printApplications'){
-                                // TotalAppdata.push({
-                                //     'Barcode': '',
-                                //     'Ref': 'MUMC : ' + data.enrollment_no,
-                                //     'Weight': '20',
-                                //     'Application_Id' : data.id,           
-                                //     'Student_Name' : data.Name,
-                                //     'Student_Email' : data.email,
-                                //     'Student_Address' : data.address_id,
-                                //     'application_date' : moment(data.created_at).format("DD-MM-YYYY"),
-                                //     'ADDRMOBILE': data.mobile_country_code +' - ' + data.mobile,
-
-                                // });
-                               
-                               
-                           
-                            }
+                                    
+                                    }                        
                             callback();	
                         })
                     })
@@ -5986,76 +5381,10 @@ router.get('/adminDashboard/downloadExcel_datewise',function(req,res){
     }
 })
 
-router.get('/adminDashboard/downloadExcel_date_finance',function(req,res){
-    console.log("downloadExcel_datewise");
-    var type = req.query.type;
-    var TotalAppdata = [];
-    var startDate = req.query.startDate;
-    var endDate = moment(req.query.endDate).add(1, 'days').format('YYYY-MM-DD');
 
-    if(type != undefined){
-        models.Application.downloadExcel_finance(type,startDate,endDate).then((data)=>{
-            require('async').each(data, function(data, callback) {
-                TotalAppdata.push({
-                    'Application Id' : data.id, 
-                    'Student Name' : data.Name,
-                    'Student Email' : data.email,
-                    'Application_date': data.application_date,
-                    'order_id': data.order_id,
-                    'transactionid': data.transactionid,
-                    'split_status': data.split_status,
-                    'ord_amount': data.ord_amount,
-                    'referenceNo': data.referenceNo,
-                    'bank_ref_no': data.bank_ref_no,
-                    'serviceType': data.serviceType,                                           
-                    'Mobile No': data.mobile,                                           
-               });callback();
-              },
-              function(error, results) {
-                // console.log("TotalAppdata"+ TotalAppdata);  
-                var xls = json2xls(TotalAppdata);
-                  var file_location = constant.FILE_LOCATION+"public/Excel/"+type+".xlsx";
-                  fs.writeFileSync(file_location, xls, 'binary');
-                  var filepath= constant.FILE_LOCATION+"/public/Excel/"+type+".xlsx";
-                 
-              res.json({
-                        status: 200,
-                       data: filepath
-                  });  
-               
-               });
-     
-     })
-}
-})         
 router.get('/adminDashboard/downloadfile', middlewares.getUserInfo,function (req, res) {
     const downloadData = req.query.file_path; 
     res.download(downloadData);
-});
-router.post('/adminDashboard/sendnotificationto_student', middlewares.getUserInfo,async function (req, res) {
-    var app_id = req.body.app_id
-    var user_id  = req.body.user_id;
-    let userdetails =  await  functions.getuserdetail(user_id);
-    request.post(constant.BASE_URL_SENDGRID + 'sendnotificationto_student', {
-        json: {
-            email  : userdetails.email,
-            name  : userdetails.fullname,
-            source : 'gu'
-        }
-    }, function (error, response, body) {
-        if(error){
-            res.json({
-                status : 400
-            })
-        }else{
-            res.json({
-                status : 200
-            })
-        }
-      
-          
-    })
-
 });
 
 router.get('/role_management/getMenuRole',middlewares.getUserInfo,function(req,res) {
@@ -6481,7 +5810,7 @@ router.post('/getapplWiseTracker',function(req,res){
         var request = {};
         request.method = 'GET';
         if(req.body.app_id == '126'){
-            request.url = '/v3/messages?limit=5000&query=subject%3D%22Sending%20attested%20Document%20From%20Gujarat%20University%20for%20application%20'+req.body.app_id+'%22';
+            request.url = '/v3/messages?limit=5000&query=subject%3D%22Sending%20attested%20Document%20From%20Mumbai%20University%20for%20application%20'+req.body.app_id+'%22';
         }
         else{
             request.url = '/v3/messages?limit=5000&query=subject%3D%22Official%20Record%20of%20%20'+ user.name + '%20' + user.surname + '%22';
@@ -6539,13 +5868,7 @@ router.post('/getclickDetails',function(req, res){
         if(result){
             models.Application.find({
                 where :{
-                    id :req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id :req.body.app_id
                 }  
             }).then(function(application){
                 var file = constant.FILE_LOCATION + "public/signedpdf/"+application.user_id+"/"+req.body.fileName;
@@ -6626,7 +5949,7 @@ router.post('/getclickDetails',function(req, res){
 router.get('/adminDashboard/getPurposeDetails', function(req,res){
     models.Institution_details.findAll({
         where:{
-            user_id : req.query.userId,source : 'guattestation'
+            user_id : req.query.userId
         }
     }).then(function(institutionDetails){
         res.json({
@@ -6652,8 +5975,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
     models.Applied_For_Details.find({
         where : {
             user_id : user_id,
-            app_id : app_id,
-            source : 'guattestation'
+            app_id : app_id
         }
     }).then(function(user){
         models.College.find({
@@ -6665,7 +5987,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                 models.User_Transcript.findAll({
                     where : {
                         user_id : user_id,
-                        collegeId : college.id,source : 'guattestation' 
+                        collegeId : college.id
                     }
                 }).then(function(userTranscripts){
                     var singleCollege = {
@@ -6690,24 +6012,24 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                     singleCollege.collegeEmail = college.emailId;
                     singleCollege.alternateEmail = college.alternateEmailId;
                     userTranscripts.forEach(userTranscript=>{
-                        singleCollege.user_transcript.push({'fileName':userTranscript.file_name,'transcript':'upload/documents/'+ user_id + "/" + urlencode(userTranscript.file_name)});
+                        singleCollege.user_transcript.push({'fileName':userTranscript.file_name,'transcript':'upload/transcript/'+ user_id + "/" + urlencode(userTranscript.file_name)});
                     });
                     models.userMarkList.find({
                         where:{
                             user_id : user_id,
-                            collegeId : college_id,source : 'guattestation'
+                            collegeId : college_id
                         }
                     }).then(function(userMarkListsData){
                     	if(userMarkListsData){
 	                    	models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
 		                        userMarkLists.forEach(userMarkList=>{
 		                            if((userMarkList.file_name !='null' && userMarkList.file_name!=null)&& (userMarkList.usermarklist_file_name==null)){
-		                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.file_name)});
+		                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.file_name)});
 		                            }else if((userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null) && (userMarkList.file_name ==null)){
-		                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
+		                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
 		                            }else if(userMarkList.file_name !='null' && userMarkList.file_name!=null && userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null){
-		                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.file_name)});
-		                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
+		                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.file_name)});
+		                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
 
 		                            }
 		                        });
@@ -6716,8 +6038,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
 					 	setTimeout(function(){
 					 		request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                             	json: {
-                                	singleCollege : singleCollege,
-                                    source : 'gu'
+                                	singleCollege : singleCollege
                             	}
                         	}, function (error, response, body) {
                             	if(body.notSent.length > 0){
@@ -6757,7 +6078,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                     models.userMarkList.find({
                         where :{
                             user_id : user_id,
-                            collegeId : college_id,source : 'guattestation'
+                            collegeId : college_id
                         }
                     }).then(function(userMarkListsData){
                         models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
@@ -6771,12 +6092,12 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                         singleCollege.alternateEmail = college.alternateEmailId;
                         userMarkLists.forEach(markList=>{
                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
 
                             }
                         });
@@ -6784,8 +6105,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                         setTimeout(function(){
                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                 json: {
-                                    singleCollege : singleCollege,
-                                    source : 'gu'
+                                    singleCollege : singleCollege
                                 }
                             }, function (error, response, body) {
                                 if(body.notSent.length > 0){
@@ -6820,13 +6140,13 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                 }
                 models.Affiliation_Letter.findOne({
                     where :{
-                        userId : user_id
+                        user_id : user_id
                     }
                 }).then(function(affiliation){
                     models.userMarkList.find({
                         where :{
                             user_id : user_id,
-                            collegeId : college_id,source : 'guattestation'
+                            collegeId : college_id
                         }
                     }).then(function(userMarkListsData){
                         models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
@@ -6840,12 +6160,12 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                         singleCollege.alternateEmail = college.alternateEmailId;
                         userMarkLists.forEach(markList=>{
                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
 
                             }
                         });
@@ -6853,8 +6173,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                         setTimeout(function(){
                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                 json: {
-                                    singleCollege : singleCollege,
-                                    source : 'gu'
+                                    singleCollege : singleCollege
                                 }
                             }, function (error, response, body) {
                                 if(body.notSent.length > 0){
@@ -6906,18 +6225,18 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                     models.userMarkList.find({
                         where : {
                             user_id : user_id,
-                            collegeId : college_id,source : 'guattestation'
+                            collegeId : college_id
                         }
                     }).then(function(userMarkListsData){
                         models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){      
                         userMarkLists.forEach(markList=>{
                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
 
                             }
                         });
@@ -6925,8 +6244,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                         setTimeout(function(){
                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                 json: {
-                                    singleCollege : singleCollege,
-                                    source : 'gu'
+                                    singleCollege : singleCollege
                                 }
                             }, function (error, response, body) {
                                 if(body.notSent.length > 0){
@@ -6978,19 +6296,19 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
                     models.userMarkList.find({
                         where:{
                             user_id : user_id,
-                            collegeId : college_id,source : 'guattestation'
+                            collegeId : college_id
                         }
                     }).then(function(userMarkListsData){
                     	if(userMarkListsData){
 	                    	 models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
 		                        userMarkLists.forEach(userMarkList=>{
 		                            if((userMarkList.file_name !='null' && userMarkList.file_name!=null)&& (userMarkList.usermarklist_file_name==null)){
-		                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.file_name)});
+		                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.file_name)});
 		                            }else if((userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null) && (userMarkList.file_name ==null)){
-		                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
+		                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
 		                            }else if(userMarkList.file_name !='null' && userMarkList.file_name!=null && userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null){
-		                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.file_name)});
-		                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
+		                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.file_name)});
+		                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(userMarkList.usermarklist_file_name)});
 
 		                            }
 		                        });
@@ -6999,8 +6317,7 @@ router.post('/sendEmailToCollege',middlewares.getUserInfo,function(req,res){
 					 	setTimeout(function(){
 					 		request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                             	json: {
-                                	singleCollege : singleCollege,
-                                    source : 'gu'
+                                	singleCollege : singleCollege
                             	}
                         	}, function (error, response, body) {
                             	if(body.notSent.length > 0){
@@ -7035,13 +6352,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
     var subject1 = '';
     models.Application.findOne({
         where :{
-            id : application_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id : application_id
         }
     }).then(function(application){
         models.User.find({
@@ -7060,7 +6371,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
             }
             models.userMarkList.find({
                 where :{
-                    user_id : application.user_id,source : 'guattestation'
+                    user_id : application.user_id
                 }
             }).then(function(userMarkList){
                 if(userMarkList.college_stream_type == false){
@@ -7088,7 +6399,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                             var passingClass = instructionalDetails.division;
                             var instruction_medium;
                             if(instructionalDetails.instruction_medium == null || instructionalDetails.instruction_medium == undefined || instructionalDetails.instruction_medium == ''){
-                                instruction_medium = instructionalDetails.instruction_medium;
+                                instruction_medium = "English";
                             }else{
                                 instruction_medium = instructionalDetails.instruction_medium;
                             }
@@ -7097,8 +6408,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                                     if(MaxReferenceNo[0].maxNumber == null){
                                         reference_no = 1001;
                                     }else{
-                                        // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                        reference_no=100000 + parseInt(app_id)
+                                        reference_no = MaxReferenceNo[0].maxNumber + 1;
                                     }
                                     instructionalDetails.update({
                                         reference_no : reference_no
@@ -7149,7 +6459,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                         var passingClass = instructionalDetails[0].division;
                         var instruction_medium;
                         if(instructionalDetails[0].instruction_medium == null || instructionalDetails[0].instruction_medium == undefined || instructionalDetails[0].instruction_medium == ''){
-                            instruction_medium = instructionalDetails[0].instruction_medium;
+                            instruction_medium = "English";
                         }else{
                             instruction_medium = instructionalDetails[0].instruction_medium;
                         }
@@ -7165,9 +6475,9 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                                 
                                 if(college){
                                     if(college.type == 'college'){
-                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + " which is affiliated to Gujarat University.")
+                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + " which is affiliated to Mumbai University.")
                                     }else if(college.type == 'department'){
-                                        collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + ", Gujarat University.")
+                                        collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + ", Mumbai University.")
                                     }
                                 } else{
                                     models.UserMarklist_Upload.find({
@@ -7178,7 +6488,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                                     }).then(function(marklistupload){
                                         models.userMarkList.find({
                                             where :{
-                                                id : marklistupload.user_marklist_id,source : 'guattestation'
+                                                id : marklistupload.user_marklist_id
                                             }
                                         }).then(function(userMarklist){
                                              models.College.find({
@@ -7187,9 +6497,9 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                                                 }
                                             }).then(function(clg){
                                                 if(clg.type == 'college'){
-                                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + " which is affiliated to Gujarat University.")
+                                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + " which is affiliated to Mumbai University.")
                                                 }else if(clg.type == 'department'){
-                                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + ", Gujarat University.")
+                                                    collegeData.push(singleDetail.academicYear + ' from ' + singleDetail.collegeName + ", Mumbai University.")
                                                 }
                                             })
                                         })
@@ -7203,8 +6513,7 @@ router.post('/generateInstrucionalLetter',middlewares.getUserInfo,function(req,r
                                     if(MaxReferenceNo[0].maxNumber == null){
                                         reference_no = 1001;
                                     }else{
-                                        // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                        reference_no=100000 + parseInt(app_id)
+                                        reference_no = MaxReferenceNo[0].maxNumber + 1;
                                     }
                                     models.InstructionalDetails.updateReferenceNumber(application.user_id,reference_no).then(function(updatedDetails){
                                         var ref_no = updatedDetails.reference_no;
@@ -7525,8 +6834,7 @@ router.post('/generateHrdLetter',middlewares.getUserInfo,function(req,res){
         if(MaxReferenceNo[0].maxNumber == null){
             reference_no = 1001;
         }else{
-            // reference_no = MaxReferenceNo[0].maxNumber + 1;
-            reference_no=100000 + parseInt(app_id)
+            reference_no = MaxReferenceNo[0].maxNumber + 1;
         }
         instructionalDetails.update({
             reference_no : reference_no
@@ -7557,13 +6865,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
     var subject1 = '';
     models.Application.findOne({
         where :{
-            id : application_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id : application_id
         }
     }).then(function(application){
      models.User.find({
@@ -7584,15 +6886,14 @@ router.get('/generateInstrucionalLetter1',function(req,res){
             models.Applied_For_Details.find({
                 where :{
                     user_id : application.user_id,
-                    app_id : application_id,
-                    source : 'guattestation'
+                    app_id : application_id
                 }
             }).then(function(appliedDetails){
                 if(appliedDetails.applying_for == 'Masters,Bachelors'){
                     models.userMarkList.findAll({
                         where :{
                             type : "Masters",
-                            user_id : application.user_id,source : 'guattestation'
+                            user_id : application.user_id
                         }
                     }).then(function(master_Details){
                         var masterDetails = [];
@@ -7809,7 +7110,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                 var passingClass = instructional_Details[0].division;
                                                 var instruction_medium;
                                                 if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                                    instruction_medium = instructionalDetails[0].instruction_medium;
+                                                    instruction_medium = "English";
                                                 }else{
                                                     instruction_medium = instructionalDetails[0].instruction_medium;
                                                 }
@@ -7827,9 +7128,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                             }).then(function(college){
                                                                 if(instruction.academicYear.toLowerCase() == singleDetail.name.toLowerCase()){
                                                                     if(college.type == 'college'){
-                                                                        collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Gujarat University.")
+                                                                        collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Mumbai University.")
                                                                     }else if(college.type == 'department'){
-                                                                        collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Gujarat University.")
+                                                                        collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Mumbai University.")
                                                                     }
                                                                 }
                                                             })
@@ -7847,8 +7148,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                 if(MaxReferenceNo[0].maxNumber == null){
                                                                     reference_no = 1001;
                                                                 }else{
-                                                                    // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                                    reference_no=100000 + parseInt(app_id)
+                                                                    reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                                 }
 
                                                                 models.InstructionalDetails.updateReferenceNumber_new(instructionId,reference_no).then(function(updatedDetails){
@@ -7901,8 +7201,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                         var instruction_medium;
 
                                                         if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                                            instruction_medium = instructional_Details[0].instruction_medium;
-                                                            instruction_medium = instructional_Details[0].instruction_medium;
+                                                            instruction_medium = "English";
                                                         }else{
                                                             instruction_medium = instructional_Details[0].instruction_medium;
                                                         }
@@ -7913,8 +7212,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                     if(MaxReferenceNo[0].maxNumber == null){
                                                                         reference_no = 1001;
                                                                     }else{
-                                                                        // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                                        reference_no=100000 + parseInt(app_id)
+                                                                        reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                                     }
                                                                     models.InstructionalDetails.update(
                                                                         {
@@ -7925,9 +7223,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                         }
                                                                     }).then(function(updatedDetails){
                                                                         var ref_no = updatedDetails.reference_no;
-                                                                        self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                                            passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                                    if(err) {
+                                                                        self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                                        passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                                            if(err) {
                                                                                 res.json({ 
                                                                                     status: 400
                                                                                 })
@@ -7939,9 +7237,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                 })
                                                             }else{
                                                                 var ref_no = instructionalDetails[0].reference_no;
-                                                                self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                                    passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                               if(err) {
+                                                                self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                                passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                                    if(err) {
                                                                         res.json({ 
                                                                             status: 400
                                                                         })
@@ -7962,7 +7260,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                 models.userMarkList.findAll({
                                     where :{
                                         type : "Bachelors",
-                                        user_id : application.user_id,source : 'guattestation'
+                                        user_id : application.user_id
                                     }
                                 }).then(function(bachelor_Details){
                                    var facultyData = [];
@@ -8174,7 +7472,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                     var passingClass = instructional_Details[0].division;
                                                     var instruction_medium;
                                                     if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                                        instruction_medium = instructionalDetails[0].instruction_medium;
+                                                        instruction_medium = "English";
                                                     }else{
                                                         instruction_medium = instructionalDetails[0].instruction_medium;
                                                     }
@@ -8192,9 +7490,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                 }).then(function(college){
                                                                     if(instruction.academicYear.toLowerCase() == singleDetail.name.toLowerCase()){
                                                                         if(college.type == 'college'){
-                                                                            collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Gujarat University.")
+                                                                            collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Mumbai University.")
                                                                         }else if(college.type == 'department'){
-                                                                            collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Gujarat University.")
+                                                                            collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Mumbai University.")
                                                                         }
                                                                     }
                                                                 })
@@ -8212,8 +7510,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                     if(MaxReferenceNo[0].maxNumber == null){
                                                                         reference_no = 1001;
                                                                     }else{
-                                                                        // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                                        reference_no=100000 + parseInt(app_id)
+                                                                        reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                                     }
 
                                                                     models.InstructionalDetails.updateReferenceNumber_new(instructionId,reference_no).then(function(updatedDetails){
@@ -8266,7 +7563,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                             var instruction_medium;
 
                                                             if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                                                instruction_medium = instructional_Details[0].instruction_medium;
+                                                                instruction_medium = "English";
                                                             }else{
                                                                 instruction_medium = instructional_Details[0].instruction_medium;
                                                             }
@@ -8277,8 +7574,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                         if(MaxReferenceNo[0].maxNumber == null){
                                                                             reference_no = 1001;
                                                                         }else{
-                                                                            // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                                            reference_no=100000 + parseInt(app_id)
+                                                                            reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                                         }
                                                                         models.InstructionalDetails.update(
                                                                             {
@@ -8289,9 +7585,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                             }
                                                                         }).then(function(updatedDetails){
                                                                             var ref_no = updatedDetails.reference_no;
-                                                                            self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                                                passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                                        if(err) {
+                                                                            self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                                            passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                                                if(err) {
                                                                                     res.json({ 
                                                                                         status: 400
                                                                                     })
@@ -8303,9 +7599,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                     })
                                                                 }else{
                                                                     var ref_no = instructionalDetails[0].reference_no;
-                                                                    self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                                        passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                                if(err) {
+                                                                    self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                                    passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                                        if(err) {
                                                                             res.json({ 
                                                                                 status: 400
                                                                             })
@@ -8330,7 +7626,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                     models.userMarkList.findAll({
                         where :{
                             type : "Bachelors",
-                            user_id : application.user_id,source : 'guattestation'
+                            user_id : application.user_id
                         }
                     }).then(function(bachelor_Details){
                         bachelor_Details.forEach(bachelor =>{
@@ -8535,7 +7831,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                         var passingClass = instructional_Details[0].division;
                                         var instruction_medium;
                                         if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                            instruction_medium = instructionalDetails[0].instruction_medium;
+                                            instruction_medium = "English";
                                         }else{
                                             instruction_medium = instructionalDetails[0].instruction_medium;
                                         }
@@ -8553,9 +7849,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                     }).then(function(college){
                                                         if(instruction.academicYear.toLowerCase() == singleDetail.name.toLowerCase()){
                                                             if(college.type == 'college'){
-                                                                collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Gujarat University.")
+                                                                collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + " which is affiliated to Mumbai University.")
                                                             }else if(college.type == 'department'){
-                                                                collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Gujarat University.")
+                                                                collegeData.push(instruction.academicYear + ' from ' + instruction.collegeName + ", Mumbai University.")
                                                             }
                                                         }
                                                      })
@@ -8573,8 +7869,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                         if(MaxReferenceNo[0].maxNumber == null){
                                                             reference_no = 1001;
                                                         }else{
-                                                            // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                            reference_no=100000 + parseInt(app_id)
+                                                            reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                         }
 
                                                         models.InstructionalDetails.updateReferenceNumber_new(instructionId,reference_no).then(function(updatedDetails){
@@ -8627,7 +7922,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                 var instruction_medium;
 
                                                 if(instructional_Details[0].instruction_medium == null || instructional_Details[0].instruction_medium == undefined || instructional_Details[0].instruction_medium == ''){
-                                                    instruction_medium = instructional_Details[0].instruction_medium;
+                                                    instruction_medium = "English";
                                                 }else{
                                                     instruction_medium = instructional_Details[0].instruction_medium;
                                                 }
@@ -8638,8 +7933,7 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                             if(MaxReferenceNo[0].maxNumber == null){
                                                                 reference_no = 1001;
                                                             }else{
-                                                                // reference_no = MaxReferenceNo[0].maxNumber + 1;
-                                                                reference_no=100000 + parseInt(app_id)
+                                                                reference_no = MaxReferenceNo[0].maxNumber + 1;
                                                             }
                                                             models.InstructionalDetails.update(
                                                                 {
@@ -8650,9 +7944,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                                 }
                                                             }).then(function(updatedDetails){
                                                                 var ref_no = updatedDetails.reference_no;
-                                                                self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                                    passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                            if(err) {
+                                                                self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                                passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                                    if(err) {
                                                                         res.json({ 
                                                                             status: 400
                                                                         })
@@ -8664,9 +7958,9 @@ router.get('/generateInstrucionalLetter1',function(req,res){
                                                         })
                                                     }else{
                                                         var ref_no = instructionalDetails[0].reference_no;
-                                                        self_pdf.instrucationalLetter_one(application.user_id,faculty.patteren,faculty.type,faculty.course_faculty,duration1,application_id,studentName,collegeName,courseName,specialization,
-                                                            passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,'instructionalLetter',yearofenrollment,function(err){
-                                                                    if(err) {
+                                                        self_pdf.instrucationalLetter_one(application.user_id,application_id,studentName,collegeName,courseName,specialization,
+                                                        passingMonthYear,duration,passingClass,instruction_medium,application.created_at,subject,subject1,ref_no,education,function(err){
+                                                            if(err) {
                                                                 res.json({ 
                                                                     status: 400
                                                                 })
@@ -8692,15 +7986,14 @@ router.get('/generateInstrucionalLetter1',function(req,res){
 router.get('/collegeEmailStatusUpdate',middlewares.getUserInfo,function(req,res){
     models.Applied_For_Details.find({
         where :{
-            user_id : req.query.user_id,
-            source : 'guattestation'
+            user_id : req.query.user_id
         }
     }).then(function(user){
         if(user.educationalDetails == true){
             models.User_Transcript.findAll({
                 where:{
                     user_id : req.query.user_id,
-                    collegeId : req.query.college_id,source : 'guattestation' 
+                    collegeId : req.query.college_id
                 }
             }).then(function(user_transcripts){
                 user_transcripts.forEach(transcript=>{
@@ -9002,7 +8295,7 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                             models.User_Transcript.findAll({
                                 where :{
                                     user_id : studentDetail.userid,
-                                    collegeId : college_id,source : 'guattestation' 
+                                    collegeId : college_id
                                 }
                             }).then(function(userTranscripts){
                                 var singleCollege = {
@@ -9027,30 +8320,29 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                 singleCollege.collegeEmail = college.emailId;
                                 singleCollege.alternateEmail = college.alternateEmailId;
                                 userTranscripts.forEach(userTranscript=>{
-                                    singleCollege.user_transcript.push({'fileName':userTranscript.file_name,'transcript':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userTranscript.file_name)});
+                                    singleCollege.user_transcript.push({'fileName':userTranscript.file_name,'transcript':'upload/transcript/'+ studentDetail.userid + "/" + urlencode(userTranscript.file_name)});
                                 });
                                 models.userMarkList.find({
                                     where:{
                                         user_id : studentDetail.userid,
-                                        collegeId : college_id,source : 'guattestation'
+                                        collegeId : college_id
                                     }
                                 }).then(function(userMarkListsData){
                                     models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
                                         userMarkLists.forEach(userMarkList=>{
                                             if((userMarkList.file_name !='null' && userMarkList.file_name!=null)&& (userMarkList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
                                             }else if((userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null) && (userMarkList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                             }else if(userMarkList.file_name !='null' && userMarkList.file_name!=null && userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
-                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                             }
                                         });
                                         setTimeout(function(){
                                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                                 json: {
-                                                    singleCollege : singleCollege,
-                                                    source : 'gu'
+                                                    singleCollege : singleCollege
                                                 }
                                             }, function (error, response, body) {
                                                 if(body.notSent.length > 0){
@@ -9090,7 +8382,7 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                 models.userMarkList.find({
                                     where :{
                                         user_id : studentDetail.userid,
-                                        collegeId : college_id,source : 'guattestation'
+                                        collegeId : college_id
                                     }
                                 }).then(function(userMarkListsData){
                                     models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
@@ -9104,19 +8396,18 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                         singleCollege.alternateEmail = college.alternateEmailId;
                                         userMarkLists.forEach(markList=>{
                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }
                                         });
                                         setTimeout(function(){
                                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                                 json: {
-                                                    singleCollege : singleCollege,
-                                                    source : 'gu'
+                                                    singleCollege : singleCollege
                                                 }
                                             }, function (error, response, body) {
                                                 if(body.notSent.length > 0){
@@ -9150,13 +8441,13 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                             }
                             models.Affiliation_Letter.findOne({
                                 where :{
-                                    userId : studentDetail.userid
+                                    user_id : studentDetail.userid
                                 }
                             }).then(function(instructional){
                                 models.userMarkList.find({
                                     where :{
                                         user_id : studentDetail.userid,
-                                        collegeId : college_id,source : 'guattestation'
+                                        collegeId : college_id
                                     }
                                 }).then(function(userMarkListsData){
                                     models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
@@ -9170,19 +8461,18 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                         singleCollege.alternateEmail = college.alternateEmailId;
                                         userMarkLists.forEach(markList=>{
                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }
                                         });
                                         setTimeout(function(){
                                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                                 json: {
-                                                    singleCollege : singleCollege,
-                                                    source : 'gu'
+                                                    singleCollege : singleCollege
                                                 }
                                             }, function (error, response, body) {
                                                 if(body.notSent.length > 0){
@@ -9233,25 +8523,24 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                 models.userMarkList.find({
                                     where : {
                                         user_id : studentDetail.userid,
-                                        collegeId : college_id,source : 'guattestation'
+                                        collegeId : college_id
                                     }
                                 }).then(function(userMarkListsData){
                                     models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){      
                                         userMarkLists.forEach(markList=>{
                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(markList.usermarklist_file_name)});
                                             }
                                         });
                                         setTimeout(function(){
                                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                                 json: {
-                                                    singleCollege : singleCollege,
-                                                    source : 'gu'
+                                                    singleCollege : singleCollege
                                                 }
                                             }, function (error, response, body) {
                                                 if(body.notSent.length > 0){
@@ -9302,25 +8591,24 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                             models.userMarkList.find({
                                 where:{
                                     user_id : studentDetail.userid,
-                                    collegeId : college_id,source : 'guattestation'
+                                    collegeId : college_id
                                 }
                             }).then(function(userMarkListsData){
                                 models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
                                     userMarkLists.forEach(userMarkList=>{
                                         if((userMarkList.file_name !='null' && userMarkList.file_name!=null)&& (userMarkList.usermarklist_file_name==null)){
-                                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
                                         }else if((userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null) && (userMarkList.file_name ==null)){
-                                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                         }else if(userMarkList.file_name !='null' && userMarkList.file_name!=null && userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null){
-                                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
-                                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                            singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                            singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                         }
                                     });
                                     setTimeout(function(){
                                         request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                             json: {
-                                                singleCollege : singleCollege,
-                                                source : 'gu'
+                                                singleCollege : singleCollege
                                             }
                                         }, function (error, response, body) {
                                             if(body.notSent.length > 0){
@@ -9371,25 +8659,24 @@ router.post('/collegeManagement/sendEmailCollege',middlewares.getUserInfo,functi
                                 models.userMarkList.find({
                                     where:{
                                         user_id : studentDetail.userid,
-                                        collegeId : college_id,source : 'guattestation'
+                                        collegeId : college_id
                                     }
                                 }).then(function(userMarkListsData){
                                     models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){     
                                         userMarkLists.forEach(userMarkList=>{
                                             if((userMarkList.file_name !='null' && userMarkList.file_name!=null)&& (userMarkList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
                                             }else if((userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null) && (userMarkList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                             }else if(userMarkList.file_name !='null' && userMarkList.file_name!=null && userMarkList.usermarklist_file_name !='null' && userMarkList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
-                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/documents/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':userMarkList.usermarklist_file_name,'markList':'upload/marklist/'+ studentDetail.userid + "/" + urlencode(userMarkList.usermarklist_file_name)});
                                             }
                                         });
                                         setTimeout(function(){
                                             request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailResend', {
                                                 json: {
-                                                    singleCollege : singleCollege,
-                                                    source : 'gu'
+                                                    singleCollege : singleCollege
                                                 }
                                             }, function (error, response, body) {
                                                 if(body.notSent.length > 0){
@@ -9518,7 +8805,7 @@ router.get('/getapptrackerdetails',function(req,res){
 	                    models.Institution_details.find({
 	                        where : {
 	                            user_id : user.id,
-	                            email : element.email,source : 'guattestation'
+	                            email : element.email
 	                        }
 	                    }).then(userData1 => {
 	                        fourteenDays.push(userData1)
@@ -9535,7 +8822,7 @@ router.get('/getapptrackerdetails',function(req,res){
 	                    models.Institution_details.find({
 	                        where : {
 	                            user_id : user.id,
-	                            email : element.email,source : 'guattestation'
+	                            email : element.email
 	                        }
 	                    }).then(userData => {
 	                       thirtyDay.push(userData)
@@ -9598,7 +8885,7 @@ router.get('/getapplicationMailsDetails',function(req,res){
 	            models.Institution_details.find({
 	                where : {
 	                    user_id : user.id,
-	                    email : element.email,source : 'guattestation'
+	                    email : element.email
 	                }
 	            }).then(userData2 => {
 	                if(userData2){
@@ -9707,11 +8994,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                         type: 'Transcript',
                         extension: extension,
                         upload_status : Transcript.upload_step,
-                        file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        file_loc : constant.BASE_URL+"/upload/transcript/"+Transcript.user_id+"/"+Transcript.file_name,
                         upload_step : Transcript.upload_step,
                         lock_transcript : Transcript.lock_transcript,
                         file_name : Transcript.file_name,
-                        download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        download_file : constant.FILE_LOCATION+"public/upload/transcript/"+Transcript.user_id+"/"+Transcript.file_name,
                     
                     })
                 }else if(Transcript.upload_step == " changed"){
@@ -9729,11 +9016,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                         type: 'Transcript',
                         extension: extension,
                         upload_status : Transcript.upload_step,
-                        file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        file_loc : constant.BASE_URL+"/upload/transcript/"+Transcript.user_id+"/"+Transcript.file_name,
                         upload_step : Transcript.upload_step,
                         lock_transcript : Transcript.lock_transcript,
                         file_name : Transcript.file_name,
-                        download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        download_file : constant.FILE_LOCATION+"public/upload/transcript/"+Transcript.user_id+"/"+Transcript.file_name,
                     
                     })
                 }
@@ -9785,11 +9072,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                         type: 'Marksheet',
                         extension: extension,
                         upload_status : Transcript.upload_step,
-                        file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        file_loc : constant.BASE_URL+"/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                         upload_step : Transcript.upload_step,
                         lock_transcript : Transcript.lock_marklist,
                         file_name : Transcript.file_name,
-                        download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        download_file : constant.FILE_LOCATION+"public/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                     
                     })
                 }else if(Transcript.upload_step == "changed"){
@@ -9807,11 +9094,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                         type: 'Marksheet',
                         extension: extension,
                         upload_status : Transcript.upload_step,
-                        file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        file_loc : constant.BASE_URL+"/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                         upload_step : Transcript.upload_step,
                         lock_transcript : Transcript.lock_marklist,
                         file_name : Transcript.file_name,
-                        download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                        download_file : constant.FILE_LOCATION+"public/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                     
                     })
                 }
@@ -9866,11 +9153,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                     type: 'Marksheet',
                     extension: extension, 
                     upload_status : Transcript.upload_step,
-                    file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                    file_loc : constant.BASE_URL+"/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                     upload_step : Transcript.upload_step,
                     lock_transcript : Transcript.lock_transcript,
                     file_name : Transcript.file_name,
-                    download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                    download_file : constant.FILE_LOCATION+"public/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                    
                 })
             }else if(Transcript.upload_step == "changed"){
@@ -9889,11 +9176,11 @@ router.get('/adminDashboard/errataDocuments', function (req, res) {
                     type: 'Marksheet',
                     extension: extension, 
                     upload_status : Transcript.upload_step,
-                    file_loc : constant.BASE_URL+"/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                    file_loc : constant.BASE_URL+"/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                     upload_step : Transcript.upload_step,
                     lock_transcript : Transcript.lock_transcript,
                     file_name : Transcript.file_name,
-                    download_file : constant.FILE_LOCATION+"public/upload/documents/"+Transcript.user_id+"/"+Transcript.file_name,
+                    download_file : constant.FILE_LOCATION+"public/upload/marklist/"+Transcript.user_id+"/"+Transcript.file_name,
                    
                 })
             }
@@ -10087,7 +9374,7 @@ router.post('/adminDashboard/lockDocuments',function(req,res){
     if(set == 1){
         models.User_Transcript.find({
             where:{
-                id : doc_id,source : 'guattestation' 
+                id : doc_id
             }
         }).then((transcript)=>{
             if(transcript){
@@ -10119,7 +9406,7 @@ router.post('/adminDashboard/lockDocuments',function(req,res){
     }else if(set == 2){
         models.userMarkList.find({
             where:{
-                id : doc_id,source : 'guattestation'
+                id : doc_id
             }
         }).then((markList)=>{
             if(markList){
@@ -10151,7 +9438,7 @@ router.post('/adminDashboard/lockDocuments',function(req,res){
     }else if(set == 3){
         models.UserMarklist_Upload.find({
             where:{
-                id : doc_id,source : 'guattestation'
+                id : doc_id
             }
         }).then((Marksheet)=>{
             if(Marksheet){
@@ -10250,7 +9537,7 @@ router.post('/adminDashboard/lockDocuments',function(req,res){
 
 router.get('/downloadDocument', function (req, res) {
 	var file_name = req.query.file_name;
-    //	const downloadData = constant.FILE_LOCATION + "public/upload/documents/" + userId + "/" + file_name;
+    //	const downloadData = constant.FILE_LOCATION + "public/upload/marklist/" + userId + "/" + file_name;
 	res.download(file_name);
   });
 
@@ -10260,7 +9547,7 @@ router.get('/downloadDocument', function (req, res) {
     models.Institution_details.find({
         where : {
             user_id : req.body.user_id,
-            app_id : req.body.app_id,source : 'guattestation'
+            app_id : req.body.app_id
         }
     }).then(function(institute){
         if(institute){
@@ -10292,7 +9579,7 @@ router.post('/changeDocumentName',function(req,res){
     if(type == 'marksheet'){
         models.UserMarklist_Upload.find({
             where:{
-                id : id,source : 'guattestation'
+                id : id
             }
         }).then(function(marklist){
             marklist.update({
@@ -10312,7 +9599,7 @@ router.post('/changeDocumentName',function(req,res){
     }else if(type == "transcript"){
         models.User_Transcript.find({
             where : {
-                id : id,source : 'guattestation' 
+                id : id
             }
         }).then(function(transcript){
             transcript.update({
@@ -10375,13 +9662,7 @@ router.post('/changeDocumentName',function(req,res){
 router.post('/saveNotes',middlewares.getUserInfo,function(req,res){
     models.Application.find({
         where :{
-            id : req.body.id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id : req.body.id
         }
     }).then(function(application){
         application.update({
@@ -10472,26 +9753,18 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'addToOnHold',
-                        source : 'gu'
+                        type : 'addToOnHold'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where : {	
                                 id : app_id,	
-                                user_id : user_id	,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                user_id : user_id	
                             }	
                         }).then(function(app){	
                             app.update({	
-                                transcriptRequiredMail : true,
-                                status : 'requested'	
+                                transcriptRequiredMail : true	
                             }).then(function(updatedApp){	
                                 var desc = updatedApp.id + " put on hold by " + req.User.email;	
                                 var activity = "Note Updated";	
@@ -10519,13 +9792,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
             models.Application.find({	
                 where : {	
                     id : app_id,	
-                    user_id : user_id	,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    user_id : user_id	
                 }	
             }).then(function(app){	
                 var date = moment(new Date(app.created_at)).format("YYYY-MM-DD HH:MM:SS")	
@@ -10552,7 +9819,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                             models.User_Transcript.findAll({	
                                 where : {	
                                     user_id : user_id,	
-                                    collegeId : userDoc.collegeId	,source : 'guattestation' 
+                                    collegeId : userDoc.collegeId	
                                 }	
                             }).then(function(userTranscripts){	
                                 models.User.find({	
@@ -10574,12 +9841,12 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                                         app_id : app_id	
                                     }	
                                     userTranscripts.forEach(transcript=>{	
-                                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+ user_id + "/" + urlencode(transcript.file_name)});	
+                                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+ user_id + "/" + urlencode(transcript.file_name)});	
                                     })	
                                     models.userMarkList.findAll({	
                                         where : {	
                                             user_id : user_id,	
-                                            collegeId : userDoc.collegeId	,source : 'guattestation'
+                                            collegeId : userDoc.collegeId	
                                         }	
                                     }).then(function(userMarklists){	
                                         userMarklists.forEach(userMarklist=>{	
@@ -10590,7 +9857,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                                             }).then(function(userMarkSheets){	
                                                 if(userMarkSheets){	
                                                     userMarkSheets.forEach(markList=>{	
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});	
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});	
                                                     })	
                                                 }    	
                                             })	
@@ -10614,8 +9881,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                             if(updatedApp.transcriptRequiredMail == null){	
                                 request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailShweta', {	
                                     json: {	
-                                        collegeData : collegeData,
-                                        source : 'gu'
+                                        collegeData : collegeData	
                                     }	
                                 }, function (error, response, body) {	
                                     if(body.notSent.length > 0){	
@@ -10632,8 +9898,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                                             studentName : userName,	
                                             app_id : app_id,	
                                             collegeData : college_data,	
-                                            type : 'removeFromOnHold',
-                                            source : 'gu'	
+                                            type : 'removeFromOnHold'	
                                         }	
                                     }, function (error, response, body) {	
                                     	
@@ -10670,20 +9935,13 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'oldDocuments',
-                        source : 'gu'
+                        type : 'oldDocuments'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]	
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -10694,8 +9952,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                             }	
                             application.update({	
                                 notes : notes,	
-                                transcriptRequiredMail : true,
-                                status : 'requested'	
+                                transcriptRequiredMail : true	
                             }).then(function(updatedApp){	
                                 var desc = "Note of application " + updatedApp.id + " is updated by " + req.User.email;	
                                 var activity = "Note Updated";	
@@ -10725,13 +9982,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id	,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -10775,20 +10026,13 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'approved',
-                        source : 'gu'
+                        type : 'approved'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]	
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -10828,13 +10072,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id	,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -10870,13 +10108,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
         if(!eventChecked){	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -10885,8 +10117,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
                 }	
                 application.update({	
                     notes : notes,	
-                    transcriptRequiredMail : null,
-                    status : 'requested'		
+                    transcriptRequiredMail : null	
                 }).then(function(updatedApp){	
                     var desc = "Note of application " + updatedApp.id + " is updated by " + req.User.email;	
                     var activity = "Note Updated";	
@@ -10914,7 +10145,7 @@ router.get('/collegeManagement/pendingApplicationList',middlewares.getUserInfo,f
 })
 
 router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
-    console.log('/convocationDecision=============')
+    console.log('/convocationDecision')
     var user_id = req.body.user_id;	
     var app_id = req.body.app_id;	
     var eventChecked = req.body.eventChecked;	
@@ -10934,21 +10165,14 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'convo_notApproved',
-                        source : 'gu'
+                        type : 'convo_notApproved'	
                     }	
                 }, function (error, response, body) {	
                    if(body.status == 200){	
                         models.Application.find({	
                             where : {	
                                 id : app_id,	
-                                user_id : user_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                user_id : user_id	
                             }	
                         }).then(function(app){	
                             var notes;	
@@ -10967,8 +10191,7 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                             }	
                             app.update({
                                 notes: notes,
-                                transcriptRequiredMail : true,
-                                status : 'requested'	
+                                transcriptRequiredMail : true
                             }).then(function(updatedApp){	
                                 if(updatedApp){	
                                     var desc = data + " for application " + updatedApp.id + ". Note updated by " + req.User.email;	
@@ -10996,13 +10219,7 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -11052,21 +10269,14 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'convo_approved',
-                        source : 'gu'
+                        type : 'convo_approved'	
                     }	
                 },
                  function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -11112,13 +10322,7 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]	
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -11166,20 +10370,13 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'degreeCertificate',
-                        source : 'gu'
+                        type : 'degreeCertificate'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -11196,8 +10393,7 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                             }	
                             application.update({	
                                 notes : notes, 
-                                transcriptRequiredMail : true,
-                                status : 'requested'
+                                transcriptRequiredMail : true
                             }).then(function(updatedApp){	
                                 var desc = data + " for application " + updatedApp.id + " and note updated by " + req.User.email;	
                                 var activity = "Note Updated";	
@@ -11225,13 +10421,7 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -11270,127 +10460,10 @@ router.post('/convocationDecision',middlewares.getUserInfo,function(req,res){
                 })	
             })	
         }	
-    }else if(req.body.type == 'phd_notApproved'){	
-        if(eventChecked){	
-            models.User.find({	
-                where:{	
-                    id : user_id	
-                }	
-            }).then(function(user){	
-                request.post(constant.BASE_URL_SENDGRID + 'phd_notApproved', {
-                    json: {	
-                        email : user.email,	
-                        studentName : user.name + " " + user.surname,	
-                        app_id : app_id,	
-                        type : 'phd_notApproved',
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    if(body.status == 200){	
-                        models.Application.find({	
-                            where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-                            }	
-                        }).then(function(application){	
-                            var notes;	
-                            // if(req.body.name != ''){	
-                            //      data = `In place of ${req.body.name} you have uploaded degree certificate.`;	
-                            // }else{	
-                            //     data = `In place of ${req.body.name} you have uploaded degree certificate.`;	
-                            // }	
-                            if(application.notes){	
-                                notes = application.notes + " " +  'Phd Documents are not uploaded';	
-                                notes=data;
-                            }else{	
-                                notes = data;	
-                            }	
-                            application.update({	
-                                notes : notes, 
-                                transcriptRequiredMail : true,
-                                status : 'requested'
-                            }).then(function(updatedApp){	
-                                var desc = data + " for application " + updatedApp.id + " and note updated by " + req.User.email;	
-                                var activity = "Note Updated";	
-                                functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);	
-                                if(updatedApp){	
-                                    res.json({	
-                                        status : 200,	
-                                        degreeCertificate : true,
-                                        notes : updatedApp.notes,	
-                                        message : "Email sent to student"	
-                                    })	
-                                }else{	
-                                    res.json({	
-                                        status : 400,	
-                                        degreeCertificate : false,	
-                                        notes : updatedApp.notes,	
-                                        message : "Something Went Wrong."	
-                                    })	
-                                }	
-                            })	
-                        })	
-                    }	
-                })	
-            })	
-        }else{	
-            models.Application.find({	
-                where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-                }	
-            }).then(function(application){	
-                var notes = application.notes;	
-                if(req.body.name != ''){	
-                    data = `In place of ${req.body.name} you have uploaded degree certificate.`;	
-                        
-                }else{	
-                    data = `In place of ${req.body.name} you have uploaded degree certificate.`;	
-                }	
-                if(notes.includes(data)){	
-                    notes = notes.replace(data, '');	
-                }	
-                application.update({	
-                    notes : notes,
-                    transcriptRequiredMail : null	
-                }).then(function(updatedApp){	
-                    var desc = "Note of application " + updatedApp.id + " is updated by " + req.User.email;	
-                    var activity = "Note Updated";	
-                    functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);	
-                    if(updatedApp){	
-                        
-                        res.json({	
-                            status : 200,	
-                            degreeCertificate : false,	
-                            notes : updatedApp.notes,	
-                            message : "Done"	
-                        })	
-                    }else{	
-                        res.json({	
-                            status : 400,	
-                            degreeCertificate : true,	
-                            notes : updatedApp.notes,	
-                            message : "Something Went Wrong."	
-                        })	
-                    }	
-                })	
-            })	
-        }	
-    }
+    }	
 })	
 
 router.post('/marksheetsRequired',middlewares.getUserInfo,function(req,res){	
-    console.log("marksheetsRequiredmarksheetsRequired");
     var user_id = req.body.user_id;	
     var app_id = req.body.app_id;	
     var eventChecked = req.body.eventChecked;	
@@ -11402,13 +10475,7 @@ router.post('/marksheetsRequired',middlewares.getUserInfo,function(req,res){
         if(!eventChecked){	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -11451,20 +10518,13 @@ router.post('/marksheetsRequired',middlewares.getUserInfo,function(req,res){
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
-                        type : 'marksheet_complete',
-                        source : 'gu'
+                        type : 'marksheet_complete'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -11504,13 +10564,7 @@ router.post('/marksheetsRequired',middlewares.getUserInfo,function(req,res){
         }else{	
             models.Application.find({	
                 where :{	
-                    id : req.body.app_id,
-                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                    id : req.body.app_id	
                 }	
             }).then(function(application){	
                 var notes = application.notes;	
@@ -11543,16 +10597,65 @@ router.post('/marksheetsRequired',middlewares.getUserInfo,function(req,res){
         }	
     }	
 })	
+router.post('/SetAppId',middlewares.getUserInfo,function(req,res){	
+    var user_id = req.body.user_id;	
+    var app_id = req.body.app_id;	
+    var type = req.body.type;
+    if(type == 'NameChangeLetter'){
+        models.Letterfor_NameChange.update({
+                    app_id :  app_id
+        }, {
+            where: {
+                user_id : user_id,
+                app_id :{
+                    [Op.eq] : null
+                }
+            }
+        }).then(function (data) {
+                if(data.length  > 0){
+                        res.json({
+                            status :  200
+                        })
+                }else{
+                    res.json({
+                        status :  400
+                    })
+                }
+        })
+    }else if(type == 'Hrd'){
+        models.Hrd_details.update({
+                    app_id :  app_id,
+                    verification_type : 'Marksheets, Transcripts and Degree Certificate'
+        }, {
+            where: {
+                user_id : user_id,
+                app_id :{
+                    [Op.eq] : null
+                }
+            }
+        }).then(function (data) {
+                if(data.length  > 0){
+                        res.json({
+                            status :  200
+                        })
+                }else{
+                    res.json({
+                        status :  400
+                    })
+                }
+        })
+    }
+   
+})	
 
-router.post('/updateNoteAndApplication',function(req,res){	
-    console.log("updateNoteAndApplication");
+router.post('/updateNoteAndApplication',middlewares.getUserInfo,function(req,res){	
     var user_id = req.body.user_id;	
     var app_id = req.body.app_id;	
     var eventChecked = req.body.eventChecked;	
-    var collegeData = [];
-    var college_data = [];
-    var userName = '';
-    var userEmail = '';
+    var collegeData = [];	
+    var college_data = [];	
+    var userName = '';	
+    var userEmail = '';	
     if(req.body.type == 'marksheet_incomplete'){	
         if(eventChecked){	
             models.User.find({	
@@ -11560,27 +10663,20 @@ router.post('/updateNoteAndApplication',function(req,res){
                     id : user_id	
                 }	
             }).then(function(user){	
-                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail', {
+                request.post(constant.BASE_URL_SENDGRID + 'MarksheetRequiredMail', {	
                     json: {	
                         email : user.email,	
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
                         note : req.body.note,	
-                        type : 'marksheet_incomplete',
-                        source : 'gu'
+                        type : 'marksheet_incomplete'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where : {	
                                 id : app_id,	
-                                user_id : user_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                user_id : user_id	
                             }	
                         }).then(function(app){	
                             var notes;	
@@ -11590,13 +10686,12 @@ router.post('/updateNoteAndApplication',function(req,res){
                                 notes = "Marksheet incomplete " + req.body.note;	
                             }	
                             app.update({	
-                                notes: notes,
-                                status : 'requested'
+                                notes: notes	
                             }).then(function(updatedApp){	
                                 if(updatedApp){	
-                                    var desc = "Marksheets is not approved for application " + updatedApp.id + ". Note updated by "
-                                    var activity = "Note Updated";
-                                    functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);
+                                    var desc = "Marksheets is not approved for application " + updatedApp.id + ". Note updated by " + req.User.email;	
+                                    var activity = "Note Updated";	
+                                    functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);	
                                 	
                                     res.json({	
                                         status : 200,	
@@ -11616,7 +10711,7 @@ router.post('/updateNoteAndApplication',function(req,res){
                         })	
                     }	
                     	
-                })
+                })	
             })	
         }	
     }else if(req.body.type == 'partialApproved'){	
@@ -11632,20 +10727,13 @@ router.post('/updateNoteAndApplication',function(req,res){
                         studentName : user.name + " " + user.surname,	
                         app_id : app_id,	
                         note : req.body.note,	
-                        type : 'partial approved',
-                        source : 'gu'
+                        type : 'partial approved'	
                     }	
                 }, function (error, response, body) {	
                     if(body.status == 200){	
                         models.Application.find({	
                             where :{	
-                                id : req.body.app_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                id : req.body.app_id	
                             }	
                         }).then(function(application){	
                             var notes;	
@@ -11656,7 +10744,7 @@ router.post('/updateNoteAndApplication',function(req,res){
                             }	
                             application.update({	
                                 notes : notes, 	
-                                transcriptRequiredMail : true	,status : 'requested'
+                                transcriptRequiredMail : true	
                             }).then(function(updatedApp){	
                                 var desc = "Partial Transcripts Approved for application " + updatedApp.id + " and note updated by " + req.User.email;	
                                 var activity = "Note Updated";	
@@ -11684,152 +10772,6 @@ router.post('/updateNoteAndApplication',function(req,res){
                 })	
             })	
         }	
-    }else if(req.body.type == 'phd_incomplete'){	
-        if(eventChecked){	
-            models.User.find({	
-                where:{	
-                    id : user_id	
-                }	
-            }).then(function(user){	
-                request.post(constant.BASE_URL_SENDGRID + 'PhdRequiredMail', {
-                    json: {	
-                        email : user.email,	
-                        studentName : user.name + " " + user.surname,	
-                        app_id : app_id,	
-                        note : req.body.note,	
-                        type : 'phd_incomplete',
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    if(body.status == 200){	
-                        models.Application.find({	
-                            where : {	
-                                id : app_id,	
-                                user_id : user_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-                            }	
-                        }).then(function(app){	
-                            var notes;	
-                            if(app.notes){	
-                                notes = app.notes + " Phd Documents Incomplete " + req.body.note
-                            }else{	
-                                notes = "Phd Documents incomplete " + req.body.note;	
-                            }	
-                            app.update({	
-                                notes: notes,
-                                status : 'requested'
-                            }).then(function(updatedApp){	
-                                if(updatedApp){	
-                                    var desc = "Phd Documents is not approved for application " + updatedApp.id + ". Note updated by " + req.User.email;	
-                                    var activity = "Note Updated";	
-                                    functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);	
-                                	
-                                    res.json({	
-                                        status : 200,	
-                                        marksheet_incomplete : true,	
-                                        notes : updatedApp.notes,	
-                                        message : "Email sent to student"	
-                                    })	
-                                }else{	
-                                    res.json({	
-                                        status : 400,	
-                                        marksheet_incomplete : false,	
-                                        notes : updatedApp.notes,	
-                                        message : "Something Went Wrong."	
-                                    })	
-                                }	
-                            })	
-                        })	
-                    }	
-                    	
-                })	
-            })	
-        }	
-    }else if(req.body.type == 'instructional'){	
-        if(eventChecked){	
-            models.User.find({	
-                where:{	
-                    id : user_id	
-                }	
-            }).then(function(user){	
-                request.post(constant.BASE_URL_SENDGRID + 'instructionalRequiredMail', {
-                    json: {	
-                        email : user.email,	
-                        studentName : user.name + " " + user.surname,	
-                        app_id : app_id,	
-                        note : req.body.note,	
-                        type : 'instructional',
-                        source : 'gu'
-                    }	
-                }, function (error, response, body) {	
-                    if(body.status == 200){	
-                    
-                        models.InstructionalDetails.update(
-                            {lock_transcript  : true},
-                            {where:
-                                {app_id  : app_id}
-                            }).then((err,updated)=>{
-                                if(err){
-                                    console.error(err);
-                                }
-                                    
-                               
-                         
-                        models.Application.find({	
-                            where : {	
-                                id : app_id,	
-                                user_id : user_id,
-                                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-                            }	
-                        }).then(function(app){
-                                                        var notes;	
-                            if(app.notes){	
-                                notes = app.notes + " Instructional Details Incomplete " + req.body.note
-                            }else{	
-                                notes = "instructional Details " + req.body.note;
-                            }	
-                            app.update({	
-                                notes: notes,
-                                status : 'requested'
-                            }).then(function(updatedApp){	
-                                if(updatedApp){	
-                                    var desc = "instructional Details is not approved for application " + updatedApp.id + ". Note updated by " + req.User.email;	
-                                    var activity = "Note Updated";	
-                                    functions.activitylog(updatedApp.user_id, activity, desc, updatedApp.id);	
-                                	
-                                    res.json({	
-                                        status : 200,	
-                                        instructional : true,	
-                                        notes : updatedApp.notes,	
-                                        message : "Email sent to student"	
-                                    })	
-                                }else{	
-                                    res.json({	
-                                        status : 400,	
-                                        marksheet_incomplete : false,	
-                                        instructional : false,
-                                        notes : updatedApp.notes,	
-                                        message : "Something Went Wrong."	
-                                    })	
-                                }	
-                            })	
-                        })	
-                    })
-                    }	
-                    	
-                })	
-            })	
-        }	
     }	
 })	
 
@@ -11839,13 +10781,7 @@ router.post('/setCollegeConfirmation',middlewares.getUserInfo,function(req,res){
     if(eventChecked){
         models.Application.find({
             where : {
-                id : app_id,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                id : app_id
             }
         }).then(function(application){
             application.update({
@@ -11867,13 +10803,7 @@ router.post('/setCollegeConfirmation',middlewares.getUserInfo,function(req,res){
     }else{
         models.Application.find({
             where : {
-                id : app_id,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                id : app_id
             }
         }).then(function(application){
             application.update({
@@ -11900,7 +10830,7 @@ router.get('/adminDashboard/getPurposeDetails1', function(req,res){
     if(req.query.app_id == 'null'){
         models.Institution_details.findAll({
             where:{
-                user_id : req.query.userId,source : 'guattestation'
+                user_id : req.query.userId
             }
         }).then(function(institutionDetails){
             institutionDetails.forEach(function(detail){
@@ -11968,7 +10898,7 @@ router.get('/adminDashboard/getPurposeDetails1', function(req,res){
         models.Institution_details.findAll({
             where:{
                 user_id : req.query.userId,
-                app_id : req.query.app_id   ,source : 'guattestation'
+                app_id : req.query.app_id   
             }
         }).then(function(institutionDetails){
              institutionDetails.forEach(function(detail){
@@ -12042,7 +10972,6 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
     var studentObj = {
         userMarkLists:[],
         userTranscripts: [],
-        userDegree: [],
         userCurriculums:[],
         userExtraDocument :[],
         letters :[],
@@ -12072,12 +11001,12 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
             userEmail = user.email;
             models.User_Transcript.findAll({
                 where:  {
-                    user_id : userId,source : 'guattestation' 
+                    user_id : userId
                 }
             }).then(function(userTranscripts) {
                 models.userMarkList.find({
                     where:{
-                        user_id : userId,source : 'guattestation'
+                        user_id : userId
                     }
                 }).then(function(userMarkLists){
                     models.competency_letter.findAll({
@@ -12105,13 +11034,7 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
 
                             models.Application.find({	
                                 where : {	
-                                    id :appID	,
-                                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                                    id :appID	
                                 }	
                             }).then(function(app){
                             if(userMarkLists!=undefined || userMarkLists!='' || userMarkLists!='null' || userMarkLists!=null){
@@ -12153,9 +11076,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             //userMarklistId: usermarks.id,
                                                             name: allMarklistData.name,
                                                             user_id: allMarklistData.user_id ,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             file_name: allMarklistData.file_name ,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.lock_transcript ,
@@ -12170,9 +11093,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             //userMarklistId: usermarks.id,
                                                             name: allMarklistData.usermarklist_name,
                                                             user_id: allMarklistData.usermarklist_user_id ,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                             file_name: allMarklistData.usermarklist_file_name ,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                             timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.user_lock_marklist ,
                                                             education_type:allMarklistData.type ,
@@ -12186,9 +11109,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             //userMarklistId: usermarks.id,
                                                             name: allMarklistData.name,
                                                             user_id: allMarklistData.user_id ,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             file_name: allMarklistData.file_name ,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.lock_transcript ,
@@ -12203,9 +11126,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                         //     //userMarklistId: usermarks.id,
                                                         //     name: allMarklistData.usermarklist_name,
                                                         //     user_id: allMarklistData.usermarklist_user_id ,
-                                                        //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                        //     image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                         //     file_name: allMarklistData.usermarklist_file_name ,
-                                                        //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                        //     file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                         //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                         //     transcript_lock: allMarklistData.user_lock_marklist ,
                                                         //     education_type:allMarklistData.type ,
@@ -12224,9 +11147,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             name: allMarklistData.name,
                                                         // userMarklistId: userMarks.id,
                                                             user_id: allMarklistData.user_id,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name,
                                                             file_name: allMarklistData.file_name,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name,
                                                             timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.lock_transcript,
@@ -12241,9 +11164,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             //userMarklistId: usermarks.id,
                                                             name: allMarklistData.usermarklist_name,
                                                             user_id: allMarklistData.usermarklist_user_id ,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                             file_name: allMarklistData.usermarklist_file_name ,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                             timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.user_lock_marklist ,
@@ -12259,9 +11182,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             //userMarklistId: usermarks.id,
                                                             name: allMarklistData.name,
                                                             user_id: allMarklistData.user_id ,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             file_name: allMarklistData.file_name ,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.file_name ,
                                                             timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: allMarklistData.lock_transcript ,
@@ -12276,9 +11199,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                         //     //userMarklistId: usermarks.id,
                                                         //     name: allMarklistData.usermarklist_name,
                                                         //     user_id: allMarklistData.usermarklist_user_id ,
-                                                        //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                        //     image: constant.BASE_URL+"/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                         //     file_name: allMarklistData.usermarklist_file_name ,
-                                                        //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
+                                                        //     file_path: constant.FILE_LOCATION+"public/upload/marklist/"+userId+'/'+allMarklistData.usermarklist_file_name ,
                                                         //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
                                                         //     transcript_lock: allMarklistData.user_lock_marklist ,
                                                         //     education_type:allMarklistData.type ,
@@ -12310,8 +11233,8 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                 var convo_approved = false;	
                                                 var degreeCertificate = false;	
                                                
-                                                if(app.notes){	    
-                                                    if(app.notes.includes(`In place of ${userTranscript.name} you have uploaded transcript certificate.`)){	
+                                                if(app.notes){	
+                                                    if(app.notes.includes(`In place of ${userTranscript.name} you have uploaded degree certificate.`)){	
                                                         degreeCertificate = true;         	
                                                     }	
                                                     if(app.notes.includes(`${userTranscript.name} is not approved.`)){	
@@ -12334,9 +11257,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                             id: userTranscript.id,
                                                             name: userTranscript.name,
                                                             user_id: userTranscript.user_id,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                                            image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                                             file_name: userTranscript.file_name,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                                            file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                                             timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                             updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                             transcript_lock: userTranscript.lock_transcript,
@@ -12353,9 +11276,9 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                                         id: userTranscript.id,
                                                         name: userTranscript.name,
                                                         user_id: userTranscript.user_id,
-                                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                                        image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                                         file_name: userTranscript.file_name,
-                                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                                        file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                                         timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
                                                         updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                                         transcript_lock: userTranscript.lock_transcript,
@@ -12370,101 +11293,13 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                             }
                                         }
                                     }else{
-                                        if(userTranscript.type.includes('degree')){
-                                            var app_ids= [];
-    
-                                            if(userTranscript.app_id != undefined || userTranscript.app_id != null){
-                                                app_ids  = userTranscript.app_id.split(',');
-                                            }
-                                            for(var i=0;i<app_ids.length;i++){
-                                                if(appID == app_ids[i]){
-                                                    var imgArr = userTranscript.file_name.split('.');
-                                                    var extension = imgArr[imgArr.length - 1].trim();
-                                                    var convo_notApproved = false;	
-                                                    var convo_approved = false;	
-                                                    var degreeCertificate = false;	
-                                                   
-                                                    if(app.notes){	    
-                                                        if(app.notes.includes(`In place of ${userTranscript.name} you have uploaded degree certificate.`)){
-                                                            degreeCertificate = true;         	
-                                                        }	
-                                                        if(app.notes.includes(`${userTranscript.name} is not approved.`)){	
-                                                            convo_notApproved = true;	
-                                                        }	
-                                                        
-                                                            
-                                                        if(app.notes.includes(`${userTranscript.name} is approved.`)){
-                                                            convo_approved = true;	
-                                                        }	
-                                                       
-                                                    }
-                                                    if(userTranscript.collegeId != 0 && userTranscript.collegeId != null){
-                                                        models.College.find({
-                                                            where:{
-                                                                id : userTranscript.collegeId
-                                                            }
-                                                        }).then(function(college){
-                                                            studentObj.userDegree.push({
-                                                                id: userTranscript.id,
-                                                                name: userTranscript.name,
-                                                                user_id: userTranscript.user_id,
-                                                                image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                                file_name: userTranscript.file_name,
-                                                                file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                                timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                                                updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                                                transcript_lock: userTranscript.lock_transcript,
-                                                                extension :extension,
-                                                                email : user.email,
-                                                                collegeName : college.name,	
-                                                                convo_notApproved : convo_notApproved,	
-                                                                convo_approved :convo_approved,	
-                                                                degreeCertificate : degreeCertificate
-                                                            });
-                                                        });
-                                                    }else{
-                                                        studentObj.userDegree.push({
-                                                            id: userTranscript.id,
-                                                            name: userTranscript.name,
-                                                            user_id: userTranscript.user_id,
-                                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                            file_name: userTranscript.file_name,
-                                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                            timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                                            updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                                            transcript_lock: userTranscript.lock_transcript,
-                                                            extension :extension,
-                                                            email : user.email,
-                                                            collegeName : '',	
-                                                            convo_notApproved : convo_notApproved,	
-                                                            convo_approved :convo_approved,	
-                                                            degreeCertificate : degreeCertificate
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                        }else{
-                                            studentObj.userExtraDocument.push({
-                                                id: userTranscript.id,
-                                                name: userTranscript.name,
-                                                user_id: userTranscript.user_id,
-                                                image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                file_name: userTranscript.file_name,
-                                                file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                                timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                                updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                                transcript_lock: userTranscript.lock_transcript,
-                                                extension :extension,
-                                                email : user.email
-                                            });
-                                        }
                                         studentObj.userExtraDocument.push({
                                             id: userTranscript.id,
                                             name: userTranscript.name,
                                             user_id: userTranscript.user_id,
-                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                            image: constant.BASE_URL+"/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                             file_name: userTranscript.file_name,
-                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
+                                            file_path: constant.FILE_LOCATION+"public/upload/transcript/"+userId+'/'+userTranscript.file_name,
                                             timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
                                             updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
                                             transcript_lock: userTranscript.lock_transcript,
@@ -12473,13 +11308,6 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                         });
                                     }
                                 });
-
-                            
-
-
-                                
-                            
-                                
                             }
 
                             if(usercurriculums && usercurriculums.length > 0){
@@ -12754,7 +11582,7 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
                                     if(app.notes.includes("Marksheets Approved.")){	
                                         marksheet_complete = true;	
                                     }	
-                                    if(app.notes.includes("Marksheet incomplete")){	
+                                    if(app.notes.includes("Marksheet incomplete")){
                                         marksheet_incomplete = true;	
                                     }	
                                     if(app.notes.includes("Convocation is not uploded")){	
@@ -12765,19 +11593,19 @@ router.get('/adminDashboard/appWiseDocs', function(req, res) {
 
                             
                                 studentObj.notes_area = app.notes;
-                                studentObj.oldDocuments = oldDocuments;	
-                                studentObj.approved = approved;	
-                                studentObj.partialApproved = partialApproved;	
-                                studentObj.marksheet_complete = marksheet_complete;	
+                                studentObj.oldDocuments = oldDocuments;
+                                studentObj.approved = approved;
+                                studentObj.partialApproved = partialApproved;
+                                studentObj.marksheet_complete = marksheet_complete;
                                 studentObj.marksheet_incomplete = marksheet_incomplete;
                                 studentObj.transcriptRequiredMail = app.transcriptRequiredMail;
                                 studentObj.collegeConfirmation = app.collegeConfirmation;
                                 studentObj.convo_notUploaded = convo_notUpload;
                                 
                             })
+
                             setTimeout(()=>{
 
-                                console.log('studentObjstudentObj' + JSON.stringify(studentObj));
                                 if(userMarkLists.length > 0 || userTranscripts.length > 0){
                                     res.json({
                                         status: 200,
@@ -12934,22 +11762,20 @@ router.get('/getCountofApplications', function (req, res) {
 
 router.post('/setCollegeConfirmations',middlewares.getUserInfo,function(req,res){	
     console.log('/setCollegeConfirmations');	
+    var exam_date_format;
+    var updated_date;
     models.Application.find({	
         where :{	
-            id : req.body.id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id : req.body.id	
         }	
     }).then(function(application){	
+        updated_date = application.updated_at
+        exam_date_format =moment(new Date(updated_date)).format("DD-MM-YYYY")
         var notes;	
         if(application.notes == null){	
-            notes = req.body.collegeName + ' Confirmation Ok.';	
+            notes = req.body.collegeName + ' Confirmation Ok.(' + exam_date_format + ' )';
         }else{	
-            notes = application.notes + ' ' + req.body.collegeName + ' Confirmation Ok.';	
+            notes = application.notes + ' ' + req.body.collegeName + ' Confirmation Ok.(' + exam_date_format + ' )';	
         }	
         application.update({	
             notes : notes	
@@ -13032,10 +11858,7 @@ router.post("/updateInstituteDataByAdmin",function(req,res){
 	var emailAsWes = req.body.emailAsWes;
     var nameaswes=req.body.nameaswes;
     var lastnameaswes=req.body.lastnameaswes;
-    var hrdno = req.body.hrdno;
-    var delivery_type = req.body.delivery_type;
-	var delivery_speed= req.body.delivery_speed;
-    var noofcopi= req.body.noofcopi;
+    var hrdno = req.body.hrdno
 	// var amount;
 	// if(req.User.current_location == "WITHIN"){
 	// 	amount  = 536 * req.userEducational;
@@ -13044,7 +11867,7 @@ router.post("/updateInstituteDataByAdmin",function(req,res){
 	// }
     models.Institution_details.find({
         where:{
-            id : id,source : 'guattestation'
+            id : id
         }
     }).then(function(data){
         if(data){
@@ -13082,10 +11905,7 @@ router.post("/updateInstituteDataByAdmin",function(req,res){
 				emailAsWes : emailAsWes ? emailAsWes : null,
                 nameaswes:(nameaswes)?nameaswes:null,
                 lastnameaswes:(lastnameaswes)?lastnameaswes:null,
-                hrdno:(hrdno)?hrdno:null,
-                deliveryType :  delivery_type,
-		        deliverySpeed :  delivery_speed,
-                noofcopies:noofcopi
+                hrdno:(hrdno)?hrdno:null
             }).then(function(data_updated){
                 if(data_updated){
                     res.json({
@@ -13139,281 +11959,12 @@ router.post("/updateInstituteDataByAdmin",function(req,res){
         }
     })
 });
-router.post('/printAddress', middlewares.getUserInfo,async function(req,res){
-    console.log("printAddress");
-    var user_id = req.body.user_id;
-    var application_id = req.body.appl_id;
-    var section = req.body.section;
-    console.log("application_id"+application_id);
-   var purpose =[];
-  var institute_address=[];
-  var institutename=[];
-  var student_Refno= [];
-  var inst_data= [];
-  var User_Course_Enroll_details = '';
-  var Outward='';
 
-    apply_for = await functions.application_for_print(application_id);
-    if(apply_for.educationalDetails ==  true && apply_for.educationalDetails != null){
-    if(apply_for.attestedfor.includes('marksheets')){
-          User_Course_Enroll_details = await functions.User_Course_Enroll_Marksheet(user_id,application_id,'marksheets');
-          Outward = User_Course_Enroll_details.outward
-    }else{
-      if(apply_for.attestedfor.includes('degree')){
-          User_Course_Enroll_details = await functions.User_Course_Enroll_Marksheet(user_id,application_id,'degree');
-          Outward = User_Course_Enroll_details.outward
-        }
-        if(apply_for.attestedfor.includes('transcript')){
-          User_Course_Enroll_details = await functions.User_Course_Enroll_Marksheet(user_id,application_id,'transcript');
-          Outward = User_Course_Enroll_details.outward
-        }
-        if(apply_for.attestedfor.includes('thesis')){
-          User_Course_Enroll_details = await functions.User_Course_Enroll_Marksheet(user_id,application_id,'thesis');
-          Outward = User_Course_Enroll_details.outward
-        }
-    }
-  }else{
-      getinstructionalValue = await functions.User_Course_Enroll_Instructional(user_id,application_id,'instructional');
-      Outward = getinstructionalValue[0].outward
-  
-  
-  }
-  
-
- 
-
-   models.Institution_details.findAll({
-      where:{
-        app_id : req.body.appl_id,source : 'guattestation'
-      }
-    }).then(function(applicationData){
-      inst_data = applicationData
-      if(applicationData){
-        models.User.find({
-          where :{
-            id : req.body.user_id
-          }
-        }).then(function(applicationData){
-          if(applicationData){
-            var gender;
-            if(applicationData.gender == 'Male'){
-              gender = 'Mr.';
-            }else if(applicationData.gender == 'Female'){
-              gender = 'Ms.';
-            }else if(applicationData.gender == 'Female'){
-              gender = 'Mr./Ms.';
-            }
-  
-            inst_data.forEach(function (application){
-           
-              if(application.type == 'study'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.studyrefno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-              if(application.type == 'employment'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.emprefno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-              if(application.type == 'IQAS'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.iqasno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'CES'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.cesno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'ICAS'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.icasno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'visa'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.visarefno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'MYIEE'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.myieeno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'ICES'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.icesno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'NASBA'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.nasbano,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'Educational Perspective'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.eduperno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'NCEES'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.nceesno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-            //   if(application.type == 'NARIC'){
-            //       purpose.push({
-            //           type : application.type,
-            //           referenceNo : application.naricno,
-            //           inst_address : application.address,
-            //           deliveryType : application.deliveryType,
-            //           university_name : application.university_name
-            //       })
-            //   }
-              
-              if(application.type == 'National Committee on Accreditation'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.ncano,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-                  
-              if(application.type == 'Educational credential evaluators WES'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.wesno,
-                      inst_address : 'Wes Global Documentation centre,14-145 industrial pkwy South,Aurora ,ON L4G 3V5,Canada',
-                      deliveryType : application.deliveryType,
-                      university_name : 'Educational credential evaluators WES'
-                  })
-              }
-
-              if(application.type == 'NARIC'){
-                purpose.push({
-                    type : application.type,
-                    referenceNo : application.naricno,
-                    inst_address : 'Ecctis, Suffolk House 68-70 Suffolk Road Cheltenham Gloucestershire GL50 2ED United Kingdom.',
-                    deliveryType : application.deliveryType,
-                    university_name : 'NARIC'
-                })
-            }
-                
-              if(application.type == 'others'){
-                  purpose.push({
-                      type : application.type,
-                      referenceNo : application.otheraccno,
-                      inst_address : application.address,
-                      deliveryType : application.deliveryType,
-                      university_name : application.university_name
-                  })
-              }
-            })
-           //student address  
-            var student_name = gender+' '+applicationData.name+' '+applicationData.surname;
-            var mobile_no = applicationData.mobile_country_code+' '+applicationData.mobile;
-            var userfull_name=applicationData.marksheetName
-  
-  
-            self_pdf.attestation_certificate_address(purpose, user_id, application_id, section, userfull_name,Outward,function(err){
-             
-              if(err) {
-                console.log("err------>"+err);
-                res.send({ 
-                  status: 400,
-                  message : 'error occurred while generating pdf.',
-                })
-              }else{
-                  var file_path = constant.BASE_URL+'/upload/institute_address/'+user_id+'/'+application_id+'_attestation_certificate_address.pdf';
-                res.send({ 
-                  status: 200,
-                  message : 'Generating Certificate.',
-                  data : file_path
-                })
-              }
-            })
-  
-          }else{
-            res.json({
-              status : 400,
-              message : "Applicant not found."
-            })
-          }
-        })
-      }else{
-        res.json({
-          status : 400,
-          message : "Application not found."
-        })
-      }
-    })
-  })
 router.post("/adminDashboard/resetApplicationStage",function(req,res){
 	console.log('/adminDashboard/resetApplicationStage');
     models.Application.find({
         where :{
-            id  :req.body.app_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id  :req.body.app_id
         }
     }).then(function(app){
         app.update({
@@ -13433,208 +11984,6 @@ router.post("/adminDashboard/resetApplicationStage",function(req,res){
 	
 });
 
-router.get('/adminDashboard/print', function (req, res) {
-    var students = [];
-    models.Application.getPrintUserApplications(req.query.value).then(data => {
-        require('async').eachSeries(data, function(student, callback){
-            models.Institution_details.getAllInstitutionType_print(student.id).then(function(types){
-                var wesType = false;
-                var purpose = [];
-                var icasFlag = false;
-                    types.forEach(detail=>{
-                        if(detail.type == 'study'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.studyrefno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                        if(detail.type == 'employment'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.emprefno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                        if(detail.type == 'IQAS'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.iqasno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'CES'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.cesno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'ICAS'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.icasno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                            icasFlag = true;
-                        }
-                            
-                        if(detail.type == 'visa'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.visarefno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'MYIEE'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.myieeno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'ICES'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.icesno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'NASBA'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.nasbano,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'Educational Perspective'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.eduperno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'NCEES'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.nceesno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'NARIC'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.naricno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-
-                        if(detail.type == 'National Committee on Accreditation'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.ncano,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                        if(detail.type == 'Educational credential evaluators WES'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.wesno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                            wesType = true;
-                        }
-                            
-                        if(detail.type == 'others'){
-                            purpose.push({
-                                type : detail.type,
-                                referenceNo : detail.otheraccno,
-                                email : detail.email,
-                                inst_address : detail.inst_address,
-                                deliveryType : detail.deliveryType
-                            })
-                        }
-                            
-                    })
-                students.push({
-                    id : student.id,
-                    name :student.name,
-                    email : student.email,
-                    tracker : student.tracker,
-                    user_id : student.user_id,
-                    instructionalField:student.instructionalField,
-                    educationalDetails:student.educationalDetails,
-                    gradToPer : student.gradToPer,
-                    approved_by :student.approved_by,
-                    applying_for:student.applying_for,
-                    curriculum:student.curriculum,
-                    affiliation : student.affiliation,
-                    CompetencyLetter : student.CompetencyLetter,
-                    current_location: student.current_location,
-                    Letterfor_NameChange : student.LetterforNameChange,
-                    types : purpose,
-                    notes : student.notes,
-                    collegeConfirmation : student.collegeConfirmation,
-                    application_date : moment(new Date(student.created_at)).format('DD/MM/YYYY'),
-                    updated_at: (student.updated_at) ? student.updated_at : '',
-                    wesType : wesType,
-                    icasFlag : icasFlag,
-                    file_path : constant.BASE_URL + '/signedpdf/'+student.user_id+ '/'+ student.id+'_Merge.pdf',
-                    deliveryTime : (student.deliveryTime) ?  (student.deliveryTime) : ''
-                    // file_path :  'http://localhost:5000/api/signedpdf/51031/28831_Merge.pdf',
-                  
-
-                });            
-                callback();
-            })
-        }, function(){
-            res.json({
-                status: 200,
-                message: 'Student retrive successfully',
-                items : students,
-                total_count : students.length
-            });
-        });
-    });
-});
-
 router.post('/adminDashboard/resendApp',function(req,res){
     var pdfexist = false;
     var user_id = req.body.user_id;
@@ -13643,13 +11992,7 @@ router.post('/adminDashboard/resendApp',function(req,res){
     var appl_id = req.body.appl_id;
     models.Application.find({
         where : {
-            id : appl_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id : appl_id
         }
     }).then(function(app){
         models.Wes_Records.findAll({
@@ -13748,13 +12091,7 @@ router.post('/adminDashboard/resendAppToPending',middlewares.getUserInfo,functio
    var tracker;
     models.Application.find({
         where  :{
-            id :  app_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id :  app_id
         }
     }).then(function (applicationstatus){
         
@@ -13796,13 +12133,7 @@ router.post('/adminDashboard/removefromreject',middlewares.getUserInfo,function 
    var tracker;
     models.Application.find({
         where  :{
-            id :  app_id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+            id :  app_id
         }
     }).then(function (applicationstatus){
         
@@ -13842,19 +12173,12 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
     setTimeout(() => {
         models.Application.find({
             where : {
-                id : app_id,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                id : app_id
             }
         }).then(function(app){
             models.Applied_For_Details.find({
                 where : {
-                    app_id : app_id,
-                    source : 'guattestation'
+                    app_id : app_id
                 }
             }).then(function(appliedForDetail){
                 models.Emailed_Docs.findAll({
@@ -13865,7 +12189,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
                     if(appliedForDetail.educationalDetails == true){
                         models.User_Transcript.findAll({
                             where :{
-                                user_id  : app.user_id,source : 'guattestation' 
+                                user_id  : app.user_id
                             }
                         }).then(function(transcripts){
                             if(transcripts.length > 0){
@@ -13912,7 +12236,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
 
                     models.UserMarklist_Upload.findAll({
                         where :{
-                            user_id  : app.user_id,source : 'guattestation'
+                            user_id  : app.user_id
                         }
                     }).then(function(marksheets){
                         if(marksheets.length > 0){
@@ -13934,7 +12258,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
                         if(appliedForDetail.educationalDetails == true){
                             models.User_Transcript.findAll({
                                 where :{
-                                    user_id  : app.user_id,source : 'guattestation' 
+                                    user_id  : app.user_id
                                 }
                             }).then(function(transcripts){
                                 if(transcripts.length > 0){
@@ -14171,7 +12495,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
 
                         models.UserMarklist_Upload.findAll({
                             where :{
-                                user_id  : app.user_id,source : 'guattestation'
+                                user_id  : app.user_id
                             }
                         }).then(function(marksheets){
                             if(marksheets.length > 0){
@@ -14288,7 +12612,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
                         if(appliedForDetail.educationalDetails == true){
                             models.User_Transcript.findAll({
                                 where :{
-                                    user_id  : app.user_id,source : 'guattestation' 
+                                    user_id  : app.user_id
                                 }
                             }).then(function(transcripts){
                                 if(transcripts.length > 0){
@@ -14525,7 +12849,7 @@ router.post('/resetErrorApplication',middlewares.getUserInfo, function(req,res){
 
                         models.UserMarklist_Upload.findAll({
                             where :{
-                                user_id  : app.user_id,source : 'guattestation'
+                                user_id  : app.user_id
                             }
                         }).then(function(marksheets){
                             if(marksheets.length > 0){
@@ -14710,13 +13034,7 @@ router.delete('/adminResetDoc', middlewares.getUserInfo, function(req, res){
     if(userid != undefined){
         models.Application.find({
             where:{
-                user_id: userid,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+                user_id: userid
             }
         }).then(function(User_data){
             if(User_data != null){
@@ -14735,7 +13053,8 @@ router.delete('/adminResetDoc', middlewares.getUserInfo, function(req, res){
                                         models.GradeToPercentageLetter.deleteUserData(userid).then(function(GradeToPrecentage){
                                             models.Institution_details.deleteUserData(userid).then(function(Institution){
                                                 models.competency_letter.deleteUserData(userid).then(function(competency_letter){
-                                                
+                                                models.Hrd_details.deleteUserData(userid).then(function(Hrd_details){
+                                                    
                                                 models.Cart.deleteUserData(userid).then(function(cart){
                                                     res.json({
                                                         status: 200,
@@ -14744,6 +13063,7 @@ router.delete('/adminResetDoc', middlewares.getUserInfo, function(req, res){
                                                   
                                                 })
                                             })
+                                        })
                                             })
                                         })
                                     })
@@ -14770,7 +13090,7 @@ router.post('/deleteMarksheet', middlewares.getUserInfo, function(req, res){
         models.UserMarklist_Upload.find({
             where: {
                 id: userData.id,
-                user_id:userData.user_id,source : 'guattestation'
+                user_id:userData.user_id
             }
         }).then(function (userMarklist) {
                 var path = userData.file_path
@@ -14794,7 +13114,7 @@ router.post('/deleteMarksheet', middlewares.getUserInfo, function(req, res){
         models.User_Transcript.find({
             where: {
                 id: userData.id,
-                user_id:userData.user_id,source : 'guattestation' 
+                user_id:userData.user_id
             }
         }).then(function (userTranscript){
             userTranscript.destroy().then(function (delTranscript){
@@ -15025,8 +13345,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                 if(folder == 'marklist'){
                     models.UserMarklist_Upload.findAll({
                         where :{
-                            user_id: userId
-                            ,source : 'guattestation'
+                            user_id: userId,
                         }
                     }).then((datam)=>{
                         if(datam.length > 0){
@@ -15047,7 +13366,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                             if(doc_id != undefined && doc_id != null && doc_id != ''){
                                 models.UserMarklist_Upload.find({
                                     where :{
-                                        id : doc_id,source : 'guattestation'
+                                        id : doc_id
                                     }
                                 }).then(function(marksheetUpload){
                                     marksheetUpload.update({
@@ -15075,7 +13394,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                                         user_id : userId,
                                         collegeId : collegeId,
                                         type : education_type,
-                                        faculty : faculty,source : 'guattestation'
+                                        faculty : faculty
                                     }
                                 }).then(function(marklistData){
                                     models.UserMarklist_Upload.create({
@@ -15087,7 +13406,6 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                                         lock_transcript : false,
                                         upload_step : "changed",
                                         app_id : app_id
-                                        ,source : 'guattestation'
                                     }).then(function (userMarklist) {
                                         if (userMarklist) {
                                             return res.json({
@@ -15112,7 +13430,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                     var fileStatus = false;
                     models.User_Transcript.findAll({
                         where :{
-                            user_id: userId,source : 'guattestation' 
+                            user_id: userId,
                         }
                     }).then((datam)=>{
                         if(datam.length > 0){
@@ -15133,7 +13451,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                             if(doc_id != undefined && doc_id != null && doc_id != ''){
                                 models.User_Transcript.find({
                                     where :{
-                                        id : doc_id,source : 'guattestation' 
+                                        id : doc_id
                                     }
                                 }).then(function(transcriptUpload){
                                     transcriptUpload.update({
@@ -15164,7 +13482,7 @@ router.post('/uploadStudentDocument',middlewares.getUserInfo,function(req,res){
                                     lock_transcript : false,
                                     collegeId : collegeId,
                                     upload_step : "changed",
-                                    app_id : app_id,source : 'guattestation' 
+                                    app_id : app_id
                                 }).then(function (userTranscript) {
                                     if (userTranscript) {
                                         return res.json({
@@ -15210,7 +13528,7 @@ router.get('/getStudentEducationData',middlewares.getUserInfo,function(req,res){
 
     models.userMarkList.findAll({
         where:{
-            user_id : user_id,source : 'guattestation'
+            user_id : user_id
         }
     }).then(function(userMarklists){
         //console.log("userMarklist == " + JSON.stringify(userMarklists))
@@ -15357,8 +13675,7 @@ router.post('/setCurrentLocation', middlewares.getUserInfo, function(req,res){
             models.Applied_For_Details.find({
                 where:{
                     user_id : user_id,
-                    app_id : null,
-                    source : 'guattestation'
+                    app_id : null
                 }
             }).then(function(appliedDetails){
                 if(appliedDetails){
@@ -15492,7 +13809,7 @@ router.post('/setCurrentLocation', middlewares.getUserInfo, function(req,res){
                     models.Institution_details.findAll({
                         where :{
                             user_id : user_id,
-                            app_id : null,source : 'guattestation'
+                            app_id : null
                         }
                     }).then(function(institutes){
                         if(institutes.length > 0){
@@ -15521,916 +13838,5 @@ router.post('/setCurrentLocation', middlewares.getUserInfo, function(req,res){
         }
     })
 })
-router.get('/adminDashboard/appWiseDocssuper', async function(req, res) {
-    console.log("/adminDashboard/appWiseDocssuper");
 
-   var userId = req.query.userId;
-   console.log("userId",userId);
-   console.log("userId",req.query.category);
-   var status=req.query.category
-   // let Application = await functions.getapplication(userId, 'guattestation')
-   // console.log("Application",JSON.stringify(Application));
-   //  var appID = Application[0].id;
-   // console.log("appID",appID);
-   var studentObj = {
-       userMarkLists:[],
-       userTranscripts: [],
-       userCurriculums:[],
-       userExtraDocument :[],
-       letters :[],
-       usercompetencys:[],
-       letterfornamechange:[]
-   };
-   // var errors = [];
-   if(status=='new'){
-    let Application = await functions.getapplication(userId,status,'apply', 'guattestation')
-   if(Application.length>0){
-    for (let application of Application ){
-        console.log("application");
-            let userTranscripts= await functions.userTranscriptdata(application.user_id)
-            if(userTranscripts && userTranscripts.length > 0) {
-                console.log("userTranscripts1",JSON.stringify(userTranscripts));
-                userTranscripts.forEach(function(userTranscript) {
-                    console.log("userTranscript2",JSON.stringify(userTranscript))
-                    if(userTranscript.type.includes('transcripts')){
-                        var app_ids= [];
- 
-                        if(userTranscript.app_id != undefined || userTranscript.app_id != null){
-                            console.log("inssu 1");
-                            app_ids  = userTranscript.app_id.split(',');
-                        }
-                        for(var i=0;i<app_ids.length;i++){
-                            if(application.id == app_ids[i]){
-                                console.log("inis 2");
-                                var imgArr = userTranscript.file_name.split('.');
-                                var extension = imgArr[imgArr.length - 1].trim();
-                                var convo_notApproved = false;	
-                                var convo_approved = false;	
-                                var degreeCertificate = false;	
-                               
-                                if(Application.notes){	
-                                    if(Application.notes.includes(`In place of ${userTranscript.name} you have uploaded degree certificate.`)){	
-                                        degreeCertificate = true;         	
-                                    }	
-                                    if(Application.notes.includes(`${userTranscript.name} is not approved.`)){	
-                                        convo_notApproved = true;	
-                                    }	
-                                    
-                                        
-                                    if(Application.notes.includes(`${userTranscript.name} is approved.`)){	
-                                        convo_approved = true;	
-                                    }	
-                                   
-                                }
-                                if(userTranscript.collegeId != 0 && userTranscript.collegeId != null){
-                                    console.log("ndjhdhd",userTranscript.id);
-                                    models.College.find({
-                                        where:{
-                                            id : userTranscript.collegeId
-                                        }
-                                    }).then(function(college){
-                                        console.log("college",JSON.stringify(college));
-                                        studentObj.userTranscripts.push({
-                                            id: userTranscript.id,
-                                            name: userTranscript.name,
-                                            user_id: userTranscript.user_id,
-                                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                            file_name: userTranscript.file_name,
-                                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                            timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                            updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                            transcript_lock: userTranscript.lock_transcript,
-                                            extension :extension,
-                                            // email : user.email,
-                                            collegeName : college.name,	
-                                            convo_notApproved : convo_notApproved,	
-                                            convo_approved :convo_approved,	
-                                            degreeCertificate : degreeCertificate,
-                                            app_id:application.id 
-                                        });
-                                        console.log("JJJJ",JSON.stringify(studentObj));
-                                    });
-                                }else{
-                                    studentObj.userTranscripts.push({
-                                        id: userTranscript.id,
-                                        name: userTranscript.name,
-                                        user_id: userTranscript.user_id,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                        file_name: userTranscript.file_name,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                                        timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: userTranscript.lock_transcript,
-                                        extension :extension,
-                                        email : user.email,
-                                        collegeName : '',	
-                                        convo_notApproved : convo_notApproved,	
-                                        convo_approved :convo_approved,	
-                                        degreeCertificate : degreeCertificate,
-                                        app_id:application.id 
- 
-                                    });
-                                }
-                            }
-                        }
-                    }else{
-                        studentObj.userExtraDocument.push({
-                            id: userTranscript.id,
-                            name: userTranscript.name,
-                            user_id: userTranscript.user_id,
-                            image: constant.BASE_URL+"/upload/documents/"+userId+'/'+userTranscript.file_name,
-                            file_name: userTranscript.file_name,
-                            file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+userTranscript.file_name,
-                            timestamp: moment(new Date(userTranscript.created_at)).format("DD-MM-YYYY hh:mm a"),
-                            updated_at: moment(new Date(userTranscript.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                            transcript_lock: userTranscript.lock_transcript,
-                            extension :extension,
-                            app_id:application.id,
- 
-                            email : user.email
-                        });
-                    }
-                    console.log("application======>",JSON.stringify(studentObj));
- 
-                });
-            }
-            let userMarkLists= await functions.userMarkList(application.user_id)
-            console.log("userMarkLists0",JSON.stringify(userMarkLists));
-            if(userMarkLists!=undefined || userMarkLists!='' || userMarkLists!='null' || userMarkLists!=null){
-                models.UserMarklist_Upload.getMarksheetData(userMarkLists[0].user_id).then(function(marklistData){
-                marklistData.forEach(function(allMarklistData){
-                    console.log("allMarklistData0",JSON.stringify(allMarklistData));
-                    var app_ids = [];
-                  
-                    if(allMarklistData.app_id != undefined || allMarklistData.app_id != null){
-                        app_ids  = allMarklistData.app_id.split(',');
-                    }
-                    for(var i=0;i<app_ids.length;i++){
-                    
-                        if(application.id == app_ids[i]){
-                    
-                            
-                            if((allMarklistData.file_name!='null' && allMarklistData.file_name!=null && allMarklistData.file_name!='' ) && (allMarklistData.usermarklist_file_name ==null || allMarklistData.usermarklist_file_name =='')){
-                                var imgArr = allMarklistData.file_name.split('.');
-                                var extension = imgArr[imgArr.length - 1].trim(); 
-                            } else if((allMarklistData.usermarklist_file_name!='null' && allMarklistData.usermarklist_file_name!=null && allMarklistData.usermarklist_file_name!='') && (allMarklistData.file_name ==null || allMarklistData.file_name =='')){
-                                    var imgArr1 = allMarklistData.usermarklist_file_name.split('.');
-                                    var extension = imgArr1[imgArr1.length - 1].trim(); 
-
-                            }else if((allMarklistData.file_name!='null' && allMarklistData.file_name!=null && allMarklistData.file_name!='') && (allMarklistData.usermarklist_file_name !='null' && allMarklistData.usermarklist_file_name !=null && allMarklistData.usermarklist_file_name !='')){
-                                var imgArr = allMarklistData.file_name.split('.');
-                                var extension = imgArr[imgArr.length - 1].trim(); 
-
-                                var imgArr1 = allMarklistData.usermarklist_file_name.split('.');
-                                var extension1 = imgArr1[imgArr1.length - 1].trim(); 
-                            }
-                            if(allMarklistData.collegeId != 0 && allMarklistData.collegeId != null){
-                                models.College.find({
-                                    where:{
-                                        id : allMarklistData.collegeId
-                                    }
-                                }).then(function(college){
-                                    if((allMarklistData.file_name !='null' && allMarklistData.file_name !=null && allMarklistData.file_name !='') && (allMarklistData.usermarklist_file_name==null || allMarklistData.usermarklist_file_name=='')){
-                                    studentObj.userMarkLists.push({
-                                        id: allMarklistData.id,
-                                        //userMarklistId: usermarks.id,
-                                        name: allMarklistData.name,
-                                        user_id: allMarklistData.user_id ,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        file_name: allMarklistData.file_name ,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.lock_transcript ,
-                                        education_type:allMarklistData.education_type ,
-                                        extension : extension ,
-                                        // email : user.email,
-                                        collegeName : college.name,
-                                        app_id:application.id 
-
-                                    });
-                                }else if((allMarklistData.usermarklist_file_name !='null' && allMarklistData.usermarklist_file_name !=null && allMarklistData.usermarklist_file_name !='') && (allMarklistData.file_name ==null || allMarklistData.file_name =='' )){
-                                    studentObj.userMarkLists.push({
-                                        id: allMarklistData.usermarklist_id,
-                                        //userMarklistId: usermarks.id,
-                                        name: allMarklistData.usermarklist_name,
-                                        user_id: allMarklistData.usermarklist_user_id ,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                        file_name: allMarklistData.usermarklist_file_name ,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                        timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.user_lock_marklist ,
-                                        education_type:allMarklistData.type ,
-                                        extension : extension ,
-                                        email : user.email,
-                                        collegeName : college.name,
-                                        app_id:application.id 
-
-                                    });
-                                }else if(allMarklistData.file_name !='null' && allMarklistData.file_name !=null && allMarklistData.file_name !='' && allMarklistData.usermarklist_file_name!='null' && allMarklistData.usermarklist_file_name!=null && allMarklistData.usermarklist_file_name!=''){
-                                    studentObj.userMarkLists.push({
-                                        id: allMarklistData.id,
-                                        //userMarklistId: usermarks.id,
-                                        name: allMarklistData.name,
-                                        user_id: allMarklistData.user_id ,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        file_name: allMarklistData.file_name ,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.lock_transcript ,
-                                        education_type:allMarklistData.education_type ,
-                                        extension : extension ,
-                                        email : user.email,
-                                        collegeName : college.name,
-                                        app_id:application.id 
-
-                                    });
-
-                                    // studentObj.userMarkLists.push({
-                                    //     id: allMarklistData.usermarklist_id,
-                                    //     //userMarklistId: usermarks.id,
-                                    //     name: allMarklistData.usermarklist_name,
-                                    //     user_id: allMarklistData.usermarklist_user_id ,
-                                    //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                    //     file_name: allMarklistData.usermarklist_file_name ,
-                                    //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                    //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
-                                    //     transcript_lock: allMarklistData.user_lock_marklist ,
-                                    //     education_type:allMarklistData.type ,
-                                    //     extension : extension1 ,
-                                    //     email : user.email,
-                                    //     collegeName : college.name
-                                    // });
-
-                                }
-                                })
-                            
-                            }else{
-                                if((allMarklistData.file_name !='null' && allMarklistData.file_name !=null && allMarklistData.file_name !='') && (allMarklistData.usermarklist_file_name==null || allMarklistData.usermarklist_file_name=='')){
-                                studentObj.userMarkLists.push({
-                                        id: allMarklistData.id ? allMarklistData.usermarklist_id : '',
-                                        name: allMarklistData.name,
-                                    // userMarklistId: userMarks.id,
-                                        user_id: allMarklistData.user_id,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name,
-                                        file_name: allMarklistData.file_name,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name,
-                                        timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.lock_transcript,
-                                        education_type:allMarklistData.education_type,
-                                        extension :extension,
-                                        email : user.email,
-                                        app_id:application.id ,
-
-                                        collegeName : ''
-                                    });
-                                }else if((allMarklistData.usermarklist_file_name !='null' && allMarklistData.usermarklist_file_name !=null && allMarklistData.usermarklist_file_name !='') && (allMarklistData.file_name ==null || allMarklistData.file_name =='')){
-                                    studentObj.userMarkLists.push({
-                                        id: allMarklistData.usermarklist_id,
-                                        //userMarklistId: usermarks.id,
-                                        name: allMarklistData.usermarklist_name,
-                                        user_id: allMarklistData.usermarklist_user_id ,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                        file_name: allMarklistData.usermarklist_file_name ,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                        timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.user_lock_marklist ,
-                                        education_type:allMarklistData.type ,
-                                        extension : extension ,
-                                        email : user.email,
-                                        collegeName : college.name,
-                                        app_id:application.id 
-
-                                    });
-
-                                }else if(allMarklistData.file_name !='null' && allMarklistData.file_name !=null && allMarklistData.file_name !='' && allMarklistData.usermarklist_file_name!='null' && allMarklistData.usermarklist_file_name!=null && allMarklistData.usermarklist_file_name!=''){
-                                    studentObj.userMarkLists.push({
-                                        id: allMarklistData.id,
-                                        //userMarklistId: usermarks.id,
-                                        name: allMarklistData.name,
-                                        user_id: allMarklistData.user_id ,
-                                        image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        file_name: allMarklistData.file_name ,
-                                        file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.file_name ,
-                                        timestamp: moment(new Date(allMarklistData.created_at)).format("DD-MM-YYYY hh:mm a"),
-                                        updated_at: moment(new Date(allMarklistData.updated_at)).format("DD-MM-YYYY hh:mm a"),
-                                        transcript_lock: allMarklistData.lock_transcript ,
-                                        education_type:allMarklistData.education_type ,
-                                        extension : extension ,
-                                        email : user.email,
-                                        collegeName : college.name,
-                                        app_id:application.id 
-
-                                    });
-
-                                    // studentObj.userMarkLists.push({
-                                    //     id: allMarklistData.usermarklist_id,
-                                    //     //userMarklistId: usermarks.id,
-                                    //     name: allMarklistData.usermarklist_name,
-                                    //     user_id: allMarklistData.usermarklist_user_id ,
-                                    //     image: constant.BASE_URL+"/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                    //     file_name: allMarklistData.usermarklist_file_name ,
-                                    //     file_path: constant.FILE_LOCATION+"public/upload/documents/"+userId+'/'+allMarklistData.usermarklist_file_name ,
-                                    //     timestamp: moment(new Date(allMarklistData.usermarklist_created_at)).format("DD-MM-YYYY hh:mm a"),
-                                    //     transcript_lock: allMarklistData.user_lock_marklist ,
-                                    //     education_type:allMarklistData.type ,
-                                    //     extension : extension1 ,
-                                    //     email : user.email,
-                                    //     collegeName : college.name
-                                    // });
-                                }
-                            } 
-
-                        }
-                    }
-            })
-            })
-        }
- 
-            setTimeout(()=>{
-                console.log("studentObj0",JSON.stringify(studentObj));
-                if( userTranscripts.length > 0){
-                    console.log("usertranscript length");
-                    res.json({
-                        status: 200,
-                        message: 'Dashboard success',
-                        data: studentObj,
-                        app_id:application.id
-                        // userEmail : userEmail
-                    });
-                }else{
-                    res.json({
-                        status: 400,
-                        message: 'Transcipt not avaliable of this student !!',
-                        data: studentObj,
-                        // userEmail : userEmail
-                    });
-                }
-            },3000);
-        
- 
-     }
-   }
- 
-
-
-
-
-   }
-   
-    
-});
-
-router.get('/adminDashboard/getallpedingpayment',  async (req, res) => {
-    var date = req.query.date ? req.query.date : '';
-    var formatetDate = moment(new Date(date)).format("YYYY-MM-DD")
-    var page = req.query.page;
-    var email = req.query.email ? req.query.email : '';
-    var value = req.query.value ? req.query.value : '';
-    var limit = 10;
-    var offset = (page - 1) * limit;
-    var countObjects = {};
-    var filters = [];
-
-    if (email != '' && email != null && email != undefined && email != 'null' && email != 'undefined') {
-        var filter = {};
-        filter.name = 'email';
-        filter.value = email;
-        filters.push(filter);
-    }
-
-
-
-    if (date != '' && date != null && date != undefined && date != 'null' && date != 'undefined') {
-
-        var filter = {};
-        filter.name = 'date';
-        filter.value = formatetDate;
-        filters.push(filter);
-    }
-
-    var data = []; var countObj = {};
-
-    models.paymenterror_details.getpending(filters, null, null, value).then(function (useractivity) {
-        countObjects.totalLength = useractivity.length;
-
-        models.paymenterror_details.getpending(filters, limit, offset, value).then(function (filter_activity) {
-            countObjects.filteredLength = filter_activity.length;
-            var acticity_data = [];
-            if (filter_activity != null) {
-                require('async').eachSeries(filter_activity, function (student, callback) {
-
-                    var obj = {
-                        id:(student.id) ? student.id : '',
-                        email: (student.email) ? student.email : '',
-                        transaction_id: (student.transaction_id) ? student.transaction_id : '',
-                        order_id: (student.order_id) ? student.order_id : '',
-                        bank_refno: (student.bank_refno) ? student.bank_refno : '',
-                        date: (student.date) ? student.date : '' ,
-                        amount: (student.amount) ? student.amount : '',
-                        selectissuetype: (student.selectissuetype) ? student.selectissuetype : '',
-                        note: (student.note) ? student.note : '',
-                        user_id: (student.user_id) ? student.user_id : '',
-                        tracker: (student.tracker) ? student.tracker : '',
-                        source: (student.source) ? student.source : '',
-                        updated_at: (student.updated_at) ? student.updated_at : '',
-
-
-                    };
-
-                    acticity_data.push(obj);
-                    callback();
-
-                }, function () {
-                    res.json({
-                        status: 200,
-                        message: 'Student retrive successfully',
-                        items: acticity_data,
-                        total_count: countObjects,
-                    });
-                });
-            } else {
-                res.json({
-                    status: 400,
-                    message: 'Problem in retrieving student list'
-                });
-            }
-
-
-        });
-
-    });
-})
-
-router.post('/adminDashboard/setResolve', async (req, res) => {
-    var payid = req.body.id;
-    var email_id = req.body.email;
-    var source = req.body.value;
-    var adminemail = req.body.adminemail;
-    var app_id = req.body.app_id;
-    models.paymenterror_details.update({
-        tracker: 'resolved'
-    }, {
-        where: {
-            id: payid,
-            source: 'guattestation'
-        }
-
-    }).then(function (data) {
-        if (data.length == 1) {
-            request.post(BASE_URL_SENDGRID + 'Paymenterror_toStudent', {
-                json: {
-                    email: email_id,
-                    status: 200,
-                    source: source
-
-
-                }
-            }, function (error, response, body) {
-                if (response) {
-                    var activity = 'Processed From Ispending';
-                    var data = adminemail + ' Processed the application no ' + app_id + ' from Ispending to resolved'
-                    functions.activitylog(null, activity, data, null, 'Attestation');
-                    res.json({
-                        status: 200,
-
-                    })
-                } else {
-                    status: 400
-                }
-            })
-
-        } else {
-            res.json({
-                status: 400,
-
-            })
-        }
-
-    })
-    // request.post(BASE_URL_SENDGRID + 'Paymenterror_toStudent', {
-    //     json: {
-    //         status: 200,
-    //     }
-    // }, function (error, response, body) {
-    //     if (response) {
-    //         res.json({
-    //             status: 200,
-
-    //         })
-    //     } else {
-    //         status: 400
-    //     }
-    // })
-})
-
-
-router.get('/adminDashboard/regeneratePdf', function(req,res){
-    console.log('regeneratePdfregeneratePdf');
-    var user_id = req.query.user_id;
-    var appl_id = req.query.appl_id;
-    var rege = req.query.reg_reason;
-    var email_admin = req.query.email_admin
-    // console.log("user_id-->"+user_id+" appl_id---->"+appl_id);
-    models.Application.findOne({
-        where:{
-            id : appl_id,
-            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-        }
-    }).then(function(application){
-        if(rege!=null){
-        application.update({
-            regenerate_reason : rege
-        })
-    }
-        if(application){
-            models.User.findOne({
-                where : {
-                    id : application.user_id
-                }
-            }).then(async function(applicant){
-                if(applicant){
-                    var emailed = await functions.getEmailedDocs(appl_id);
-                    emailed.forEach(file=>{
-                        fs.unlink(constant.FILE_LOCATION + 'public/signedpdf/' + user_id + '/' + file.filename , function (err) {
-                            models.Emailed_Docs.destroy({
-                                where :
-                                {
-                                    id : file.id
-                                }
-                            })
-                        })
-                    })    
-                    
-                    application.update({
-                        tracker : 'verified'
-                    }).then(function(app_updated){
-                        if(app_updated){
-                            var desc = "Application " +  appl_id +" is sent to verified state for regenerate because of '" + rege + "' by "+email_admin;
-                            var activity = "Application Regenerate";
-                            var applicationId = appl_id;
-                            functions.activitylog(applicant.id, activity, desc, applicationId);
-                                res.json({
-                                status : 200,
-                                message : 'send to pending Application tab to regeneate certificate.'
-                            })
-
-                        }else{
-                            res.json({
-                                status : 400,
-                                message : 'Error occured while updating Application.'
-                            })
-                        }
-                    })
-                }else{
-                    res.json({
-                        status : 400,
-                        message : 'Applicant not found.'
-                    })
-                }
-            })
-        }else{
-            res.json({
-                status : 400,
-                message : 'Application not found.'
-            })
-        }
-    })
-})
-router.post('/adminDashboard/pending/pickupdate', async function (req, res) {
-    var user_id = req.body.user_id;
-    var email_admin = req.body.email_admin;
-    var app_id = req.body.app_id;
-    var date=req.body.date;
-
-    var ApplicationData = await functions.getnotes(app_id);
-        if(ApplicationData.tracker == 'print_signed'){
-            if(ApplicationData.print_signedstatus == 'print'){
-                models.Application.update({
-                    tracker  : 'done',
-                    Pickupdate:date,
-                    print_by : email_admin,
-                    courier_date : moment(new Date()).format('YYYY-MM-DD'),
-                    print_signedstatus : 'done'
-                },{
-                    where:{
-                        id : app_id,
-                        user_id : user_id
-                    }
-                }).then(function(application){
-                    if(application){
-                        models.Activitytracker.create({
-                            user_id :user_id,
-                            activity : "Application PickUpdate",
-                            data :"Application " +  app_id +" is Pickup Date  Added by "+email_admin,
-                            application_id : app_id,
-                            source :'guattestation'
-                        });
-                        res.json({
-                            status : 200
-                        })
-                    }else{
-                        res.json({
-                            status : 400
-                        })
-                    }
-                    
-                })
-            }else if(ApplicationData.print_signedstatus == 'print_signed'){
-                models.Application.update({
-                    Pickupdate:date,
-                    print_by : email_admin,
-                    courier_date : moment(new Date()).format('YYYY-MM-DD'),
-                    print_signedstatus : 'print'
-                },{
-                    where:{
-                        id : app_id,
-                        user_id : user_id
-                    }
-                }).then(function(application){
-                    if(application){
-                        models.Activitytracker.create({
-                            user_id :user_id,
-                            activity : "Application PickUpdate",
-                            data :"Application " +  app_id +" is Pickup Date  Added by "+email_admin,
-                            application_id : app_id,
-                            source :'guattestation'
-                        });
-                        res.json({
-                            status : 200
-                        })
-                    }else{
-                        res.json({
-                            status : 400
-                        })
-                    }
-                    
-                })
-            }
-    }else{
-        models.Application.update({
-            Pickupdate:date,
-            tracker  : 'done',
-            print_by : email_admin,
-            courier_date : moment(new Date()).format('YYYY-MM-DD'),
-            print_signedstatus : 'print'
-        },{
-            where:{
-                id : app_id,
-                user_id : user_id
-            }
-        }).then(function(application){
-            if(application){
-                models.Activitytracker.create({
-                    user_id :user_id,
-                    activity : "Application PickUpdate",
-                    data :"Application " +  app_id +" is Pickup Date  Added by "+email_admin,
-                    application_id : app_id,
-                    source :'guattestation'
-                });
-                res.json({
-                    status : 200
-                })
-            }else{
-                res.json({
-                    status : 400
-                })
-            }
-            
-        })
-    }
-   
-});
-router.post('/adminDashboard/pending/pickupmail', function (req, res) {
-    var user_id = req.body.user_id;
-    var email_admin = req.body.email_admin;
-    var app_id = req.body.app_id;
-    var date=req.body.date
-    var time=req.body.time
-    models.User.findAll({
-        where:{
-            id:user_id
-        }
-    }).then(function(user){
-        var desc = user[0].name +"'s ( "+user[0].email+" ) mailed for pickup by  "+ email_admin+".";
-        var activity = "mail For Pickup";
-        // var applicationId = req.body.id;
-        functions.activitylog(user[0].id, activity, desc, app_id);
-        request.post(constant.BASE_URL_SENDGRID + 'applicationStatus', {
-            json: {
-                email : user[0].email,
-                name : user[0].name + ' ' + user[0].surname,
-                app_id : app_id,
-                statusType : 'readytoprint',
-                mobile : user[0].mobile,
-                mobile_country_code : user[0].mobile_country_code,
-                source : 'gu',
-                date :date,
-                time : time
-            }
-        }, function (error, response, body) {
-            if(error) {
-
-            }else{
-                res.send({
-                    status: 200,
-                    message:'message sent to student.'
-                });
-            }
-        })
-        
-    })
-});
-
-
-router.post('/adminDashboard/pending/verifiedBy_new', function (req, res) {
-    var moutward=req.body.moutward
-    var toutward=req.body.toutward
-    var doutward=req.body.doutward
-    var moioutward=req.body.moioutward
-   
-   
-    models.Application.update({
-        approved_by: req.body.email_admin,
-        tracker: 'verified',
-        status:'accept',
-    }, {
-        where: {
-            id: req.body.id,
-                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-        }
-    }).then(function (result) {
-        
-
-        models.Application.findOne({
-            where:{
-                id : req.body.id,
-                    [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
-            }
-        }).then(async function(application){
-            if(moutward != null){
-                var createoutward =  await functions.createoutward(moutward,'marksheet',req.body.id ,application.user_id );
-            }
-            if(toutward != null){
-                var createoutward =  await functions.createoutward(moutward,'transcript',req.body.id ,application.user_id );
-            }
-            if(doutward != null){
-                var createoutward =  await functions.createoutward(moutward,'degree',req.body.id ,application.user_id );
-            }
-            if(moioutward != null){
-                var createoutward =  await functions.createoutward(moutward,'moi',req.body.id ,application.user_id );
-            }
-            models.User.findOne({
-                where:{
-                    id : application.user_id
-                }
-            }).then(function(userdata){
-                self_pdf.generateQRCode(application.user_id,application.id,function(err){
-                        if(err) {
-                            res.json({ 
-                                status: 400
-                            })
-                        }else{
-                            var desc = userdata.name+"'s ( "+userdata.email+" ) application approved by "+req.body.email_admin+".";
-                            var activity = "Application Verified";
-                            var applicationId = req.body.id;
-                            functions.activitylog(userdata.id, activity, desc, applicationId);
-                            request.post(constant.BASE_URL_SENDGRID + 'applicationStatus', {
-                                json: {
-                                    email : userdata.email,
-                                    name : userdata.name + ' ' + userdata.surname,
-                                    app_id : applicationId,
-                                    statusType : 'verified',
-                                    mobile : userdata.mobile,
-                                    mobile_country_code : userdata.mobile_country_code,
-                                    source : 'gu'
-                                }
-                            }, function (error, response, body) {
-                                return res.json({
-                                    status: 200,
-                                    items: result
-                                });  
-                            })
-
-                        }
-                    })
-            })
-        });
-    });
-
-});
-router.get('/printDocument', function (req, res) {
-        console.log("PrintDocument" + req.query.user_id);
-        var app_id = req.query.app_id
-        var user_id = req.query.user_id
-        var file_url = 'https://guattestation.studentscenter.in' + '/api/signedpdf/'+user_id+ '/'+ app_id+'_Merge.pdf'
-        var file_path = constant.FILE_LOCATION +"public/signedpdf/"+user_id+'/'+app_id+'_Merge.pdf';
-
-        if(fs.existsSync(file_path)){
-            res.json({
-                status : 200,
-                data : file_url
-            })
-        }else{
-            var mergefilesString=''
-                let mergeDocumentsPromise = new promises((resolve,reject)=>{
-                        
-																models.Emailed_Docs.findAll({
-																	where:{
-																		category : 'Transcript',
-																		app_id : app_id
-																	}
-																}).then((result)=>{
-																	result.forEach((docs)=>{
-																		var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																		mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																	})
-																	models.Emailed_Docs.findAll({
-																		where:{
-																			category :  'Marklist',
-																			app_id : app_id
-																		}
-																	}).then((result)=>{
-																		result.forEach((docs)=>{
-																			var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																			mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																		})
-																		models.Emailed_Docs.findAll({
-																			where:{
-																				category : 'Degree',
-																				app_id : app_id
-																			}
-																		}).then((result)=>{
-																			result.forEach((docs)=>{
-																				var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																				mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																			})
-																			models.Emailed_Docs.findAll({
-																				where:{
-																					category : 'InstructionalLetter',
-																					app_id : app_id
-																				}
-																			}).then((result)=>{
-																				result.forEach((docs)=>{
-																					var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																					mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																				})
-																				models.Emailed_Docs.findAll({
-																					where:{
-																						category : 'Thesis',
-																						app_id : app_id
-																					}
-																				}).then((result)=>{
-																					result.forEach((docs)=>{
-																						var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																						mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																					})
-																							result.forEach((docs)=>{
-																								var signedfile_loc =  constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+docs.filename;  
-																								mergefilesString = mergefilesString+' "'+signedfile_loc+'" ';
-																							})
-																						
-																								fn.merge(app_id,user_id,mergefilesString);
-																							
-																				})
-																			})
-																		})
-																	})
-																})
-    
-                resolve('true');
-            });
-    
-            mergeDocumentsPromise.then((value)=>{
-                         models.Emailed_Docs.create({
-														filename : app_id  + '_Merge.pdf',
-														doc_type : 'merged',
-														app_id:app_id
-											});
-                                res.json({
-                                    status : 200,
-                                    data : file_url
-                                })
-                
-            })
-        }
-})
 module.exports = router;

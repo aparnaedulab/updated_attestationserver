@@ -12,18 +12,17 @@ var moment = require('moment');
 var functions = require(root_path+'/utils/function');
 var models = require(root_path + '/models');
 var Client = require('ssh2').Client;
-var config    = require(__dirname + '/../../config/config.json')['live'];
+var config    = require(__dirname + '/../../config/config.json')['local'];
 //config.database, config.username, config.password
 const connection = mysql.createConnection({
   host: config.host,
   user: config.username,
   database: config.database,
-  password: config.password,
-  port: config.port
+  password: config.password
 });
 var connSettings = {
   host: constant.HOST,
-  port: config.port,
+  port: 22,
   username: constant.QUSERNAME,
   password: constant.QPASSWORD,
 };

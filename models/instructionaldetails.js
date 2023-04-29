@@ -11,21 +11,12 @@ var instructionaldetails = sequelize.define("InstructionalDetails", {
     duration: DataTypes.STRING(10),
     division: DataTypes.STRING(255),
     yearofpassing: DataTypes.STRING(255),
-    yearofenrollment: DataTypes.STRING(255),
     specialization: DataTypes.STRING(255),
     emailMsgId : DataTypes.TEXT,
     instruction_medium : DataTypes.STRING(30),
     academicYear : DataTypes.STRING(20),
     reference_no : DataTypes.INTEGER(11),
-    education : DataTypes.STRING(255),
-    courseshort : DataTypes.STRING(255),
-    new_course_faculty : DataTypes.STRING(255),
-    clg : DataTypes.STRING(255),
-    lock_transcript: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
+    education : DataTypes.STRING(255)
  });
 
  instructionaldetails.updateEmailStatus = function(id,status){

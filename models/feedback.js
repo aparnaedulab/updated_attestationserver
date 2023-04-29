@@ -9,7 +9,6 @@ module.exports = function(sequelize, DataTypes) {
     	experience_problem : DataTypes.STRING(20),
     	problem: DataTypes.TEXT,
     	suggestion: DataTypes.TEXT,
-		source : DataTypes.STRING(100)
  	});
 
 	Feedback.getAllData  = function() {

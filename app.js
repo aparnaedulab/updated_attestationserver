@@ -22,7 +22,6 @@ var wes=require('./routes/wes/index');
 const logger = require('./logger')(__filename);
 var support = require('./routes/support');
 var cron = require('./routes/cron');
-var superAdmin = require('./routes/superAdmin');
 
 app.use(cors());
 
@@ -54,13 +53,11 @@ app.use((err, req, res, next) => {
 
 
 
-// app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(constant.FILE_LOCATION, 'public')));
-app.use('/api/signedpdf',express.static(constant.FILE_LOCATION + "/public/signedpdf/"));
-app.use('/api/images',express.static(constant.FILE_LOCATION + "/public/images/"));
-app.use('/api/sample',express.static(constant.FILE_LOCATION + "/public/sample/"));
-app.use('/api/register',express.static(constant.FILE_LOCATION + "/public/register/"));
-app.use('/api/upload',express.static(constant.FILE_LOCATION + "/public/upload/"));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api/signedpdf',express.static(__dirname + "/public/signedpdf/"));
+app.use('/api/images',express.static(__dirname + "/public/images/"));
+app.use('/api/register',express.static(__dirname + "/public/register/"));
+app.use('/api/upload',express.static(__dirname + "/public/upload/"));
 
 //var io = require('socket.io').listen(2);
 //app.io = io;
@@ -137,39 +134,22 @@ var unprotected = [
   '/api/auth/captcha',
   '/api/admin/sp',
   '/api/auth/verify-otp-reg',
-  '/api/admin/printAddress',
-  '/api/admin/printDocument',
-  '/api/admin/adminDashboard/pending/pickupdate',
-  '/api/admin/adminDashboard/pending/pickupmail',
   '/api/admin/adminDashboard/get_otp',
-  '/api/admin/adminDashboard/updateErrataTranscript',
-  '/api/admin/adminDashboard/regeneratePdf',
-  '/api/admin/updateNoteAndApplication_updated',
   '/api/admin/adminDashboard/deleteNotification',
-  '/api/admin/adminDashboard/trans_sendmessage',
-  '/api/admin/adminDashboard/pending/verifiedBy',
-  '/api/admin/adminDashboard/pending/verifiedBy_new',
-  '/api/admin/adminDashboard/rejectApplication',
-  '/api/admin/adminDashboard/checksignedpdf',
   '/api/admin/getclickDetails',
   '/favicon.ico',
   '/\/public*/',
   '/\/upload*/',
   '/socket.io/',
   '/api/attestation/uploadMarkList',
-  '/api/attestation/downloadForm',
   '/api/payment/success-redirect-url',
   '/api/payment/proceedRefund',
-  '/api/payment/mergeDocuments',
   '/api/payment/cancel-redirect-url',
-  '/api/payment/setApp_id',
   '/api/attestation/upload_document',
   '/api/support/attachment',
   '/api/abcdef',
   '/api/replyFromCollege',
   '/api/auth/checkEmail',
-  '/api/auth/getCourses',
-  '/api/auth/getColleges',
   '/api/auth/downloadStructureFile',
   '/api/cron/collegeEmailStatusUpdate',
   '/api/cron/WESApplicationUploadStatus',
@@ -184,8 +164,6 @@ var unprotected = [
   '/api/cron/statusEmailSendtoStudent',
   '/api/cron/statusEmailSendtoStudent_other',
   '/api/cron/pendingApplicationReminderMailToCollege',
-  '/api/cron/autoMergeApp',
-  '/api/cron/autoprint',
   '/api/attestation/sendEmail',
   '/api/payment/changeSplitStatus',
   '/api/payment/invoicelookup',
@@ -195,19 +173,11 @@ var unprotected = [
   '/api/payment/payment_details_one_month',
   '/api/payment/getQuickInvoice',
   '/api/payment/autoSplit',
-  '/api/payment/splitPaymentCron',
-  '/api/payment/finance_dep',
-  '/api/payment/splitInvoicePaymentCron',
   '/api/testApp',
   '/api/signpdf/checkWESINfo',
-  '/api/signpdf/mergeAllUserDocuments',
-  '/api/signpdf/documentSigning',
-  '/api/signpdf/documentSending',
-  '/api/signpdf/documentSigning_merge',
-  '/api/signpdf/documentSigning_merge_manual',
-  '/api/signpdf/merge_documents',
   '/api/attestation/upload_gradeToPercentLetter',
   '/api/attestation/getNameChangeData',
+  '/api/attestation/getname',
   '/api/onHoldReminderManually',
   '/api/payment/split_excel_sheets',
   '/api/attestation/upload_CompetencyLetter',
@@ -218,7 +188,8 @@ var unprotected = [
   '/api/attestation/post_applicationdata_byApp_id',
   '/api/attestation/geterror_msg',
   '/api/auth/getUserDataByEmail',
-  '/api/attestation/courier_excel_sheets',
+  '/api/admin/generateHrdLetter',
+  '/api/cron/improvementFeedback'
 ];
 app.use(checkjwt({
   secret: cfg.jwtSecret
@@ -234,7 +205,7 @@ app.use('/api/attestation',attestation);
 app.use('/api/payment', payment);
 app.use('/api/signpdf',signpdf);
 app.use('/api/wes',wes);
-app.use('/api/superAdmin',superAdmin);
+
 app.use('/api/support',support);
 app.use('/api/cron',cron);
 

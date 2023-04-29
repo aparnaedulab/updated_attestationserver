@@ -11,16 +11,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0
     },
-    provisional: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
-    verify_doc: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
     emailMsgId : DataTypes.TEXT,
     collegeEmailStatus : DataTypes.STRING(20),
     upload_step: {
@@ -28,12 +18,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 'default'
     },
-    previous_data: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
-    source : DataTypes.STRING()
   });
 
   UserTranscript.updateEmailStatus = function(id,status){

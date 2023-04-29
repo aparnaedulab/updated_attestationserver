@@ -17,6 +17,7 @@ module.exports = function(sequelize, DataTypes) {
     degree : DataTypes.STRING(100),
     reference_no : DataTypes.INTEGER,
     user_id: DataTypes.INTEGER,
+    app_id: DataTypes.INTEGER,
     verification_type : DataTypes.STRING(100),
     secondlastsem : DataTypes.STRING(100),
     lastsem : DataTypes.STRING(100),
@@ -29,7 +30,10 @@ module.exports = function(sequelize, DataTypes) {
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   
   }
-
+  Hrd_details.deleteUserData = function(user_id){
+    var query = "DELETE FROM Hrd_details WHERE user_id = " + user_id;
+    return sequelize.query(query, { type: sequelize.QueryTypes.DELETE});
+  }
 
   Hrd_details.getMaxRefetenceNumber = function(){
     var query = "SELECT MAX(reference_no) as maxNumber FROM Hrd_details";// WHERE created_at between '" + condition + "'";

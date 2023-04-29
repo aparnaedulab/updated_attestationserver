@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node-dev app.js"
+    "start": "nodemon app.js"
   },
   "author": "akveo <contact@akveo.com>",
   "license": "MIT",
@@ -13,7 +13,7 @@
     "@sendgrid/client": "^6.3.0",
     "@sendgrid/mail": "^6.3.1",
     "async": "^2.6.1",
-    "aws-sdk": "^2.1282.0",
+    "aws-sdk": "^2.1368.0",
     "base64-img": "^1.0.4",
     "body-parser": "^1.17.1",
     "cloudconvert": "^1.1.2",
@@ -22,14 +22,11 @@
     "cron": "^1.6.0",
     "crypto": "^1.0.1",
     "express": "^4.15.2",
-    "express-fileupload": "^1.4.0",
     "express-jwt": "^5.3.1",
     "file-base64": "^1.0.0",
-    "fs-extra": "^10.0.0",
     "html2plaintext": "^2.1.2",
     "http": "0.0.0",
     "hummus": "^1.0.93",
-    "images-to-pdf": "^1.0.3",
     "jade": "^1.11.0",
     "js-sha512": "^0.8.0",
     "json2csv": "^5.0.3",
@@ -41,7 +38,6 @@
     "multer": "^1.4.1",
     "mysql2": "^1.6.1",
     "node-cron": "^1.2.1",
-    "node-dev": "^7.1.0",
     "node-forge": "^0.10.0",
     "node-geocoder": "^3.22.0",
     "node-qpdf": "^1.0.3",
@@ -60,11 +56,9 @@
     "pdfmake": "^0.1.31",
     "pdfreader": "^1.0.0",
     "pngjs": "^5.0.0",
-    "qrcode": "^1.5.1",
     "querystring": "^0.2.0",
     "randomstring": "^1.1.5",
     "request": "^2.88.0",
-    "roman-numbers": "^1.0.2",
     "scp2": "^0.5.0",
     "sendgrid": "^5.2.3",
     "sequelize": "^4.42.0",
@@ -80,7 +74,6 @@
     "urlencode": "^1.1.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.8.0",
-    "words-to-numbers": "^1.5.1",
     "xlsx": "^0.17.4"
   }
 }

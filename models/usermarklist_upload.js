@@ -15,17 +15,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 'default'
     },
-    verify_doc: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
-    previous_data: {
-      type: DataTypes.BOOLEAN(),
-      allowNull: false,
-      defaultValue: 0
-    },
-    source : DataTypes.STRING()
   });
 
   UserMarklist_Upload.getMarksheetData = function(userMarklistId){
@@ -113,12 +102,7 @@ module.exports = function(sequelize, DataTypes) {
     var query = "DELETE FROM UserMarklist_Upload WHERE user_id = " + user_id;
     return sequelize.query(query, { type: sequelize.QueryTypes.DELETE});
   }
-  UserMarklist_Upload.getDocumentStatus = function(user_id,app_id){
-    var query = "SELECT app.id, app.source_from from Application as app ";
-    query += " WHERE app.tracker IN ('verired','print','signed','done') AND user_id = " + user_id;
-    query += " AND app.id <> " + app_id;
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-  }
+
   UserMarklist_Upload.belongsTo(sequelize.models.User, {foreignKey: 'user_id'});
   UserMarklist_Upload.belongsTo(sequelize.models.userMarkList, {foreignKey: 'user_marklist_id'});
   UserMarklist_Upload.belongsTo(sequelize.models.Application, {foreignKey: 'app_id'});

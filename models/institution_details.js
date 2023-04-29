@@ -8,6 +8,7 @@ module.exports = function(sequelize, DataTypes) {
     country_name : DataTypes.TEXT,
     contact_person : DataTypes.STRING(100),
     type  : DataTypes.STRING(100),
+    address : DataTypes.TEXT,
 		landmark : DataTypes.TEXT,
     pincode : DataTypes.STRING(20),
     wesno : DataTypes.STRING(20),
@@ -35,36 +36,12 @@ module.exports = function(sequelize, DataTypes) {
     nameaswes :DataTypes.STRING(255),
     lastnameaswes:DataTypes.STRING(255),
     hrdno:DataTypes.STRING(255),
-    inst_address : DataTypes.STRING(255),
-    deliveryType : DataTypes.STRING(50),
-    deliverySpeed : DataTypes.STRING(50),
-    noofcopies: {
-      type: DataTypes.INTEGER
-    },
-    address : DataTypes.STRING(255),
-    source : DataTypes.STRING(255)
   });
 
   Institution_details.getAllInstitutionType = function(id){
     var query = "select email,type,wesno,cesno,iqasno,eduPerno,icasno,wesupload,studyrefno,emprefno,";
     query += "visarefno,visaaccno,empaccno,studyaccno,otheraccno,myieeno,icesno,nasbano,OtherEmail,nceesno,hrdno,";
     query += "naricno,ncano from Institution_details where app_id =" + id;
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-  
-  }
-
-  Institution_details.getAllInstitutionType_signed = function(id){
-    var query = "select email,type,wesno,cesno,iqasno,eduPerno,icasno,wesupload,studyrefno,emprefno,";
-    query += "visarefno,visaaccno,empaccno,studyaccno,otheraccno,myieeno,icesno,nasbano,OtherEmail,nceesno,hrdno,";
-    query += "naricno,ncano from Institution_details where deliveryType = 'digital' and app_id =" + id;
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-  
-  }
-
-  Institution_details.getAllInstitutionType_print = function(id){
-    var query = "select email,type,wesno,cesno,iqasno,eduPerno,icasno,wesupload,studyrefno,emprefno,";
-    query += "visarefno,visaaccno,empaccno,studyaccno,otheraccno,myieeno,icesno,nasbano,OtherEmail,nceesno,hrdno,";
-    query += "naricno,ncano from Institution_details where deliveryType = 'physcial' and app_id =" + id;
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   
   }
@@ -124,20 +101,6 @@ module.exports = function(sequelize, DataTypes) {
   Institution_details.deleteUserData = function(user_id){
     var query = "DELETE FROM Institution_details WHERE user_id = " + user_id;
     return sequelize.query(query, { type: sequelize.QueryTypes.DELETE});
-  }
-
-  Institution_details.getDeliveryTypeModeWiseAppCount = function(source_from,type,mode){
-    var query = "SELECT count( DISTINCT(app.id) ) AS app_count from Application as app";
-    query += " JOIN User AS usr  ON app.user_id = usr.id";
-    query += " JOIN Institution_details AS inst ON inst.user_id = usr.id "
-    query += " WHERE app.source_from = 'guattestation' or  app.source_from = 'gumoi' AND inst.deliveryType = '" + type + "' ";
-    query += " AND inst.deliverySpeed = '" + mode + "'";
-    console.log("query == " + query);
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-  }
-  Institution_details.getInstituteData = function(user_id){
-    var query = "select * from Institution_details where user_id = " + user_id;
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   }
 
 

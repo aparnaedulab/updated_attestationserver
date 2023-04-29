@@ -1,8 +1,8 @@
 "use strict";
 
-module.exports=function(sequelize , DataTypes){
+module.exports=function(sequelize , DataTypes){ 
  var Application   = sequelize.define("Application",{
-    tracker: DataTypes.ENUM('preapply','apply','verification','verified','done','signed','print_signed'),
+    tracker: DataTypes.ENUM('preapply','apply','verification','verified','done','signed'),
     status: {
                 type: DataTypes.ENUM('new','accept', 'reject','repeat'),
                 allowNull: false
@@ -14,25 +14,9 @@ module.exports=function(sequelize , DataTypes){
                  defaultValue: 0.00
       },
     approved_by: DataTypes.STRING(100),
-    verified_by: DataTypes.STRING(100),
     notes : DataTypes.TEXT,
     transcriptRequiredMail : DataTypes.BOOLEAN(),
-    collegeConfirmation : DataTypes.BOOLEAN(),
-    source_from  :  DataTypes.STRING(255),
-    inward  :  DataTypes.STRING(255),
-    outward  :  DataTypes.STRING(255),
-    deliveryType : DataTypes.STRING(255),
-    Pickupdate:DataTypes.DATE,
-    signed_date:DataTypes.DATE,
-    verified_date:DataTypes.DATE,
-    print_date:DataTypes.DATE,
-    courier_date:DataTypes.DATE,
-    regenerate_reason : DataTypes.STRING(255),
-    servicetype : DataTypes.STRING(255),
-    print_by : DataTypes.STRING(255),
-    print_signedstatus :{
-      type: DataTypes.STRING(100),
-    },
+    collegeConfirmation : DataTypes.BOOLEAN()
   });
 
   Application.getTotalUserApplications = function(filters,limit,offset) {
@@ -66,7 +50,6 @@ module.exports=function(sequelize , DataTypes){
   query += " FROM Application as a JOIN User as u on u.id = a.user_id ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
   query += " WHERE 1 = 1";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   query += where_application_id;
   query += where_application_email;
   query += where_student_name;
@@ -84,9 +67,7 @@ Application.getVerifiedUserApplications = function(value) {
     query +="  app.applying_for ,a.created_at as application_date, a.notes, a.collegeConfirmation,u.current_location";
     query += " FROM Application as a JOIN User as u on u.id = a.user_id ";
     query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-    query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
     query += " where a.tracker = 'verified' ORDER BY u.updated_at desc";
-   
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   }else if(value != 'undefined' || value != undefined){
     var query = "SELECT a.id,CONCAT(u.name,' ',u.surname) as name,u.email,a.user_id, a.approved_by,";
@@ -96,7 +77,6 @@ Application.getVerifiedUserApplications = function(value) {
     query += " left join Institution_details as i on a.id = i.app_id  ";
     query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
     query += " where a.tracker = 'verified' and  i.type LIKE '%" + value + "%'  ORDER BY u.updated_at desc";
-    query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   }
 
@@ -111,7 +91,6 @@ Application.getPurposeWiseVerified = function(purposewise) {
   query += " left join Institution_details as i on a.id = i.app_id  ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
   query += " where a.tracker = 'verified' and  i.type LIKE '%" + purposewise + "%' ORDER BY u.updated_at desc";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 };
 
@@ -124,36 +103,7 @@ Application.getSignedUserApplications = function(value) {
     query += " left join Institution_details as i on a.id = i.app_id  ";
     query+="left join InstructionalDetails as inst on inst.app_id =  i.app_id";
     query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-    query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";//+" LIMIT  "+per_page;
-    query += " where a.tracker = 'signed' or  a.tracker = 'print_signed' and signed_date is  null and i.wesupload is null ORDER BY a.updated_at desc";
-    
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
-  }else if(value != 'undefined' || value != undefined){
-    var query = "SELECT a.id,CONCAT(u.name,' ',u.surname) as name,u.email,a.user_id,a.approved_by,a.created_at,a.updated_at,";
-    query += " app.educationalDetails, app.gradToPer, app.instructionalField, app.curriculum ,app.affiliation,app.CompetencyLetter,app.LetterforNameChange,";
-    query +=" i.wesupload,i.type,i.wesno,a.notes, a.collegeConfirmation,u.current_location";
-    query += " FROM Application as a JOIN User as u on u.id = a.user_id";
-    query += " left join Institution_details as i on a.id = i.app_id  ";
-    query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-    query += " and a.source_from = 'guattestation'";
-    query += " where a.tracker = 'signed'  or   a.tracker = 'print_signed' and signed_date is  null and  i.type LIKE '%" + value + "%' and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
-    return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-  }
-
-};
-
-Application.getPrintUserApplications = function(value) {
-  if(value == 'undefined' || value ==undefined){
-    var query = "SELECT a.id,CONCAT(u.name,' ',u.surname) as name,u.email,a.user_id,a.approved_by,a.created_at,a.updated_at,";
-    query += " app.educationalDetails, app.gradToPer, app.instructionalField a.tracker = 'print_signed', app.curriculum ,app.affiliation,app.CompetencyLetter,app.LetterforNameChange,";
-    query +=" i.wesupload,i.type,i.wesno,a.notes, a.collegeConfirmation,u.current_location,inst.reference_no";
-    query += " FROM Application as a JOIN User as u on u.id = a.user_id";
-    query += " left join Institution_details as i on a.id = i.app_id  ";
-    query+="left join InstructionalDetails as inst on inst.app_id =  i.app_id";
-    query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-    query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
-    query += " where a.tracker = 'print' or   a.tracker = 'print_signed' and Pickupdate is  null and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
- 
+    query += " where a.tracker = 'signed' and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   }else if(value != 'undefined' || value != undefined){
     var query = "SELECT a.id,CONCAT(u.name,' ',u.surname) as name,u.email,a.user_id,a.approved_by,a.created_at,a.updated_at,";
@@ -162,11 +112,10 @@ Application.getPrintUserApplications = function(value) {
     query += " FROM Application as a JOIN User as u on u.id = a.user_id";
     query += " left join Institution_details as i on a.id = i.app_id  ";
     query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-    query += " where a.tracker = 'print' or   a.tracker = 'print_signed' and Pickupdate is  null and  i.type LIKE '%" + value + "%' and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
-    query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
+    query += " where a.tracker = 'signed'and  i.type LIKE '%" + value + "%' and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
     return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
   }
-
+  
 };
 
 Application.getPurposeWiseApplication = function(purposewise) {
@@ -177,9 +126,16 @@ Application.getPurposeWiseApplication = function(purposewise) {
   query += " left join Institution_details as i on a.id = i.app_id  ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
   query += " where a.tracker = 'signed'and  i.type LIKE '%" + purposewise + "%' and i.wesupload is null ORDER BY a.updated_at desc"; //+" LIMIT  "+per_page;
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 };
+// Application.getEmailedUserApplications = function() {
+
+//   var query = "SELECT a.id,CONCAT(u.name,' ',u.surname) as name,u.email,a.user_id, a.approved_by,a.created_at, a.updated_at, app.educationalDetails, app.gradToPer, app.instructionalField, app.curriculum , a.notes, a.collegeConfirmation,u.current_location";
+//  query += " FROM Application as a JOIN User as u on u.id = a.user_id ";
+//  query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
+//  query += " where a.tracker = 'done' ORDER BY a.updated_at desc";
+//   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
+// };
 
 Application.getEmailedUserApplications = function(filters,limit,offset) {
   var where_student_name = '',
@@ -211,19 +167,18 @@ query += " app.educationalDetails, app.gradToPer, app.instructionalField, app.cu
 query += " a.notes, a.collegeConfirmation,u.current_location";
 query += " FROM Application as a JOIN User as u on u.id = a.user_id ";
 query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-query += " where a.tracker = 'done' or a.tracker = 'print_signed' and a.signed_date is not null or Pickupdate is not null " ;
+query += " where a.tracker = 'done' ";
 query += where_application_id;
 query += where_application_email;
 query += where_student_name;
 query += where_application_date;
-query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
 query += " ORDER BY a.created_at desc ";
  query += limitOffset;
 return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 };
 
 
-Application.getUnsignedUserApplications_new = function(filters,limit,offset,tab,status) {
+Application.getUnsignedUserApplications_new = function(filters,limit,offset,tab) {
   var where_student_name = '',
    // where_student_surname = '',
     where_application_id = '',
@@ -250,7 +205,7 @@ Application.getUnsignedUserApplications_new = function(filters,limit,offset,tab,
         where_application_id = " AND a.id = " + filter.value + " ";
       } else if (filter.name == "email") {
         where_application_email = " AND u.email like '%" + filter.value  + "%' ";
-      }
+      } 
     });
   }
   if (limit != null && offset != null) {
@@ -261,14 +216,13 @@ Application.getUnsignedUserApplications_new = function(filters,limit,offset,tab,
   query +=" a.status, app.diplomaHolder, app.current_year";
   query += " FROM Application as a JOIN User as u on u.id = a.user_id  ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-  query += " where a.tracker = 'apply' and  a.status = '" +status + "' or a.status = 'accept'" ;
+  query += " where a.tracker = 'apply' and (a.status = 'new' OR a.status ='repeat')";
   query += where_application_id;
   query += where_application_email;
  // query += where_student_surname;
   query += where_transcriptRequiredMail;
   query += where_collegeConfirmation;
   query += where_student_name;
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   query += " ORDER BY a.created_at desc ";
   query += limitOffset;
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
@@ -280,7 +234,6 @@ Application.getUnsignedUserApplications = function() {
   query += " FROM Application as a JOIN User as u on u.id = a.user_id  ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
   query += " where a.tracker = 'apply' and a.status = 'new' ORDER BY a.created_at desc" //+" LIMIT  "+per_page;
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 };
 
@@ -290,7 +243,6 @@ Application.getRejectedUserApplications = function(){
   query += " FROM Application as a JOIN User as u on u.id = a.user_id ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
   query += " where a.tracker = 'apply' and a.status = 'reject' ORDER BY a.created_at desc";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -309,7 +261,7 @@ Application.downloadExcel = function(type){
  if(type == 'totalApplications'){
   query="select u.email , CONCAT( u.name, ' ', u.surname) as Name ,u.applying_for, ";
   query += "a.id , a.tracker , a.user_id, a.created_at, app_det.educationalDetails,";
-  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,";
+  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,"; 
   query += "app_det.affiliation,app_det.CompetencyLetter,app_det.LetterforNameChange";
   query += "from Application as a JOIN User as u on  a.user_id = u.id";
   query += "JOIN Applied_For_Details AS app_det ON app_det.app_id = a.id"
@@ -346,7 +298,7 @@ Application.downloadExcel = function(type){
  }else if(type == 'totalApplications_finance'){
   query="select u.email , CONCAT( u.name, ' ', u.surname) as Name ,u.applying_for, ";
   query += "a.id , a.tracker , a.user_id, a.created_at, app_det.educationalDetails,";
-  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,";
+  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,"; 
   query += "app_det.affiliation,app_det.CompetencyLetter,app_det.LetterforNameChange ";
   query += "from Application as a JOIN User as u on  a.user_id = u.id ";
   query += "JOIN Applied_For_Details AS app_det ON app_det.app_id = a.id "
@@ -355,69 +307,21 @@ Application.downloadExcel = function(type){
  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
-Application.downloadExcel_finance = function(type,startDate,endDate){
-  var whereCreated_at = '';
-  if(startDate && endDate){
-      whereCreated_at = 'and a.created_at BETWEEN "'+startDate+'" AND "'+endDate+'"'
-  }
-  var query;
-  if(type == 'totalApplications_finance'){
-  query="SELECT usr.id AS user_id, usr.`name`, usr.email,"
-  query+="app.created_at,ord.application_id AS application_id,ord.source,ord.amount,afd.attestedfor,"
-  query+='if( afd.educationalDetails = 1, "applied for educational deatils", "NA") AS Educational_details,'
-  query+='if( afd.instructionalField = 1, "applied for moi", "NA") AS MOI,'
-  query+="if (( afd.attestedfor REGEXP 'newmark'), 0 , count( DISTINCT(umu.id) ) )as no_of_marksheets,"
-  query+="count( DISTINCT(ut.id) ) as no_of_transcripts,count( DISTINCT(ud.id) ) as no_of_degree,app.deliveryType as app_type "
-  query+="FROM Orders AS ord "
-  query+="LEFT JOIN `Transaction` AS tran ON tran.order_id = ord.id "
-  query+="LEFT JOIN `User` AS usr ON usr.id = ord.user_id "
-  query+="LEFT JOIN Applied_For_Details AS afd ON afd.app_id = ord.application_id "
-  query+="LEFT JOIN UserMarklist_Upload AS umu ON umu.app_id = ord.application_id "
-  query+="LEFT JOIN User_Transcript AS ut ON ut.app_id = ord.application_id and ut.type like '%_transcripts%' "
-  query+="LEFT JOIN User_Transcript AS ud ON ud.app_id = ord.application_id and ud.type like '%_degree%' "
-  query+="LEFT JOIN Application As app on app.id = ord.application_id "
-  query+="WHERE ord.`status` = '1' AND ( ord.amount != '1.00' AND ord.amount != '2.00' ) AND ( ord.source = 'guattestation' or ord.source = 'gumoi' ) GROUP BY ord.application_id"
-  }
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-}
-Application.download_dailyData = function(yesterdayNew,todayNew){
-  var whereCreated_at = '';
-  if(yesterdayNew && todayNew){
-      whereCreated_at = 'and a.created_at BETWEEN "'+yesterdayNew+'" AND "'+todayNew+'"'
-  }
-  var query;
-  query="SELECT usr.id AS user_id, usr.`name`, usr.email,usr.mobile, "
-  query+="app.created_at as applicationDate,ord.application_id AS application_id,ord.source,ord.amount,afd.attestedfor,ord.id as orderId,tran.tracking_id as TrackingId,tran.bank_ref_no,ord.amount as ord_amount,  "
-  query+='if( afd.educationalDetails = 1, "applied for educational deatils", "NA") AS Educational_details,'
-  query+='if( afd.instructionalField = 1, "applied for moi", "NA") AS MOI,'
-  query+="if (( afd.attestedfor REGEXP 'newmark'), 0 , count( DISTINCT(umu.id) ) )as no_of_marksheets,"
-  query+="count( DISTINCT(ut.id) ) as no_of_transcripts,count( DISTINCT(ud.id) ) as no_of_degree,app.deliveryType as app_type "
-  query+="FROM Orders AS ord "
-  query+="LEFT JOIN `Transaction` AS tran ON tran.order_id = ord.id "
-  query+="LEFT JOIN `User` AS usr ON usr.id = ord.user_id "
-  query+="LEFT JOIN Applied_For_Details AS afd ON afd.app_id = ord.application_id "
-  query+="LEFT JOIN UserMarklist_Upload AS umu ON umu.app_id = ord.application_id "
-  query+="LEFT JOIN User_Transcript AS ut ON ut.app_id = ord.application_id and ut.type like '%_transcripts%' "
-  query+="LEFT JOIN User_Transcript AS ud ON ud.app_id = ord.application_id and ud.type like '%_degree%' "
-  query+="LEFT JOIN Application As app on app.id = ord.application_id "
-  query+="WHERE ord.`status` = '1' AND ( ord.amount != '1.00' AND ord.amount != '2.00' ) AND ( ord.source = 'guattestation' or ord.source = 'gumoi' ) GROUP BY ord.application_id"
-  console.log("QUERY==> "+ query);
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-}
-Application.downloadExcel_datewise = function(type,startDate,endDate){
 
+Application.downloadExcel_datewise = function(type,startDate,endDate){
+    console.log("type = >>>>>>>>"  +type);
   // console.log("enddatee"+end);
   var whereCreated_at = '';
   if(startDate && endDate){
       whereCreated_at = 'and a.created_at BETWEEN "'+startDate+'" AND "'+endDate+'"'
-
+    
   }
-
+  console.log("whereCreated_at" + whereCreated_at);
   var query;
  if(type == 'totalApplications'){
   query="select u.email , CONCAT( u.name, ' ', u.surname) as Name ,u.applying_for, ";
   query += "a.id , a.tracker , a.user_id, a.created_at, app_det.educationalDetails,";
-  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,";
+  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,"; 
   query += "app_det.affiliation,app_det.CompetencyLetter,app_det.LetterforNameChange ";
   query += "from Application as a JOIN User as u on  a.user_id = u.id ";
   query += "JOIN Applied_For_Details AS app_det ON app_det.app_id = a.id "
@@ -462,23 +366,14 @@ Application.downloadExcel_datewise = function(type,startDate,endDate){
  }else if(type == 'totalApplications_finance'){
   query="select u.email , CONCAT( u.name, ' ', u.surname) as Name ,u.applying_for, ";
   query += "a.id , a.tracker , a.user_id, a.created_at, app_det.educationalDetails,";
-  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,";
-  query += "app_det.affiliation,app_det.CompetencyLetter,app_det.LetterforNameChange ";
+  query += "app_det.instructionalField, app_det.curriculum, app_det.gradToPer,"; 
+  query += "app_det.affiliation,app_det.CompetencyLetter,app_det.LetterforNameChange,ord.id as orderId,ord.amount,trac.tracking_id,trac.split_status ";
   query += "from Application as a JOIN User as u on  a.user_id = u.id ";
-  query += "JOIN Applied_For_Details AS app_det ON app_det.app_id = a.id "
-  query += " where 1=1 "+whereCreated_at+" ORDER BY a.id desc ";
+  query += "JOIN Applied_For_Details AS app_det ON app_det.app_id = a.id ";
+	query += "JOIN Orders as ord on ord.application_id = a.id  JOIN Transaction as trac on trac.order_id = ord.id ";
+  query += " where 1=1 "+whereCreated_at+" ORDER BY a.id desc";
 }
  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-}
-
-Application.paymentExcel = function(tracker,status){
-  if(tracker == null && status == null){
-    var query = "SELECT id FROM Application WHERE source_from='guattestation' ORDER BY created_at ASC";
-  }else{
-    var query = "SELECT id FROM Application WHERE tracker = '" + tracker + "' AND STATUS = '" + status + "' and source_from='guattestation' ORDER BY created_at ASC";
-    console.log('query' + query);
-  }
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
 Application.getStudentDetails = function(userIds){
@@ -489,7 +384,6 @@ Application.getStudentDetails = function(userIds){
   query += " application.id as appid  FROM Application as application JOIN User as user ON user.id = application.user_id";
   query +=" JOIN Applied_For_Details  as applied_for_details ON applied_for_details.user_id = application.user_id";
   query +="  WHERE application.status in ('new', 'repeat') and application.tracker = 'apply' and application.user_id in (" + userIds + ")";
-  query += " and application.source_from = 'guattestation' or application.source_from = 'gumoi'";
   //var query ="SELECT  u.id as userid, CONCAT(u.name, ' ', u.surname) as student_name, u.educationalDetails, u.instructionalField, u.curriculum, a.id as appid FROM Application as a join User as u ON u.id = a.user_id where a.user_id in (" + userIds + ")";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 };
@@ -500,7 +394,6 @@ Application.getDoneApplications = function(date){
   query += " join User as u on u.id = a.user_id ";
   query += " join Institution_details as i on a.id = i.app_id ";
   query += " where a.tracker = 'done' and a.updated_at like '%" + date + "%'";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -509,8 +402,7 @@ Application.getPendingApplications = function(){
   query += " app.affiliation, app.gradToPer, app.instructionalField, app.curriculum FROM Application AS a ";
   query += " JOIN User AS u ON u.id = a.user_id ";
   query += " JOIN Applied_For_Details as app ON app.app_id = a.id ";
-  query += " WHERE a.tracker = 'apply' and a.status = 'new' and a.transcriptRequiredMail is null ";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
+  query += " WHERE a.tracker = 'apply' and a.status = 'new' and a.transcriptRequiredMail is null "; 
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -524,9 +416,8 @@ Application.getPurposeWiseApplicationsCount = function(purpose,location) {
 
 Application.getCollegeWiseApplicationsCount = function(user_ids,location) {
   var query = "SELECT COUNT(a.id) as count FROM Application AS a JOIN User AS u ON u.id = a.user_id WHERE ";
-  query += " u.id in (" + user_ids + ") AND source_from = 'guattestation' or source_from = 'gumoi' AND ";
+  query += " u.id in (" + user_ids + ") AND ";
   query += "u.current_location = '" + location + "'";
-  console.log(query);
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -534,7 +425,6 @@ Application.getOnHoldApplications = function(){
   var query = "SELECT CONCAT(u.name, ' ', u.surname) as stduent_name, u.email, u.mobile_country_code,u.mobile, a.id as application_id";
   query += " FROM User AS u JOIN Application AS a ON u.id = a.user_id ";
   query += "WHERE a.transcriptRequiredMail = 1 and a.tracker = 'apply' and a.status in ('new','repeat')";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -543,7 +433,6 @@ Application.getOnHoldApplications_date = function(){
   query += " FROM User AS u JOIN Application AS a ON u.id = a.user_id ";
   query += "WHERE a.transcriptRequiredMail = 1 and a.tracker = 'apply' and a.status in ('new','repeat')";
   query += " and a.created_at between '2022-02-01' and '2022-02-22' ";
-  query += " and a.source_from = 'guattestation' or a.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 }
 
@@ -558,137 +447,14 @@ Application.getUserApplicationData = function(email) {
   query += " JOIN User AS u ON u.id = a.user_id ";
   query += " WHERE u.email = '" + email + "'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
+};  
 
 Application.getAllApplicationsDetails = function(email) {
   var query = "SELECT app.* FROM Application as app";
   query += " JOIN User AS u ON u.id = app.user_id ";
   query += " WHERE u.email = '" + email + "'";
-  query += " and app.source_from = 'guattestation' or app.source_from = 'gumoi'";
   return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-
-//Super Admin Queries
-
-  Application.getApplicationByUser = function(filters,tracker,status,limit,offset) {
-    console.log("filters=" + JSON.stringify(filters));
-    console.log("tracker" + tracker);
-    console.log("status" + status);
-    console.log("limit" + limit);
-    var where_student_name = '',
-    where_application_id = '',
-    where_application_email = '',
-    where_source_from = '',
-    where_tracker = '',
-    where_status = '';
- var limitOffset = '';
- if (filters.length > 0) {
-  filters.forEach(function(filter) {
-      if (filter.name == "name") {
-        where_student_name = filter.value;
-      }  else if (filter.name == "application_id") {
-        where_application_id = " AND app.id = " + filter.value + " ";
-      } else if (filter.name == "email") {
-        where_application_email = " AND usr.email like '%" + filter.value  + "%' ";
-      } else if(filter.name == 'source_from'){
-        where_source_from = " AND app.source_from = " + filter.value + " ";
-      }
-  });
-}
-if (limit != null && offset != null) {
-  limitOffset = ' LIMIT ' + limit + ' OFFSET ' + offset;
-}
-if(tracker != null){
-  where_tracker = " AND app.tracker = '" + tracker + "'";
-}
-if(status != null){
-  where_status = " AND app.status = '" + status + "'";
-}
-var query = "SELECT app.user_id as user_id, CONCAT(usr.name,' ', usr.surname) AS name, usr.email,";
-query += " JSON_ARRAYAGG(JSON_OBJECT( 'app_id', app.id, 'tracker', app.tracker, 'status', app.status, 'source_from', app.source_from,'created_at' , app.created_at,'addressid',app.address_id  )) As app_data  ";
-query += " FROM Application AS app ";
-query += " Join User AS usr ON usr.id = app.user_id ";
-query += " WHERE 1 = 1";
-query += where_tracker;
-query += where_status;
-query += where_application_id;
-query += where_application_email;
-query += where_student_name;
-query += where_source_from;
-query += " GROUP BY app.user_id "
-query += " ORDER BY app.created_at DESC";
-query += limitOffset;
-
-console.log(query);
-return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-
-Application.getDeliveryTypeModeWiseAppCount = function(source_from,mode){
-  var query = "SELECT count( DISTINCT(app.id) ) AS app_count from Application as app";
-  query += " WHERE app.source_from = '" + source_from + "' AND app.deliveryTime = '" + mode + "' ";
-  console.log("query == " + query);
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-}
-
-Application.getStudentReportDetails = function(filters,limit,offset) {
-  console.log("filters=" + JSON.stringify(filters));
-  console.log("limit" + limit);
-  var where_student_name = '',
-    where_application_email = '';
-  var limitOffset = '';
-  if (filters.length > 0) {
-    filters.forEach(function(filter) {
-      if (filter.name == "name") {
-        where_student_name = filter.value;
-      }else if (filter.name == "email") {
-        where_application_email = " AND usr.email like '%" + filter.value  + "%' ";
-      }
-    });
-  }
-  if (limit != null && offset != null) {
-    limitOffset = ' LIMIT ' + limit + ' OFFSET ' + offset;
-  }
-  
-  var query = "SELECT CONCAT( usr.name, ' ', usr.surname ) AS name, usr.email, ";
-  query += " JSON_ARRAYAGG(JSON_OBJECT( 'source_from', source.source_from ,'count', source.source_count )) AS app_data ";
-  query += " FROM User as usr JOIN ";
-  query += " (SELECT user_id, source_from, count(source_from) AS source_count ";
-  query += " FROM Application GROUP BY user_id,source_from) source";
-  query += " ON usr.id = source.user_id";
-  query += " WHERE 1 = 1";
-  query += where_application_email;
-  query += where_student_name;
-  query += " GROUP BY usr.id"
-  query += limitOffset;
-
-  console.log(query);
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-
-Application.getMarksheets_convo_pdc = function(user_id) {
-  var query = "SELECT  pl.degree_type,pl.faculty as plfaculty,pl.duration,am.file_name,uml.faculty,uml.id,am.lock_transcript FROM Applicant_Marksheet am JOIN userMarkList uml ON am.user_id = uml.user_id join Program_List pl on uml.faculty = pl.course_name where uml.user_id  =  " +  user_id
-  query += " and am.applied_for_degree = uml.faculty and am.lock_transcript = 0"
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-
-Application.getMarksheets_migartion = function(user_id) {
-  var query = "SELECT  pl.degree_type,pl.faculty as plfaculty,pl.duration,am.file_name,uml.id,am.lock_transcript FROM Applicant_Marksheet am JOIN userMarkList uml ON am.user_id = uml.user_id join Program_List pl on uml.faculty = pl.course_name where uml.user_id  =  " +  user_id
-  query += " and am.applied_for_degree = uml.faculty and am.lock_transcript = 0"
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-Application.getExtraDocuments = function(user_id) {
-  var query = "select file_name,lock_transcript, name from Applicant_Marksheet  where user_id =  " +  user_id
-  query += " and lock_transcript = 0 and name like '%Aadhar Card%'"
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-};
-
-Application.printapp = function (startTime,currentTime) {
-  var query = " SELECT JSON_ARRAYAGG(JSON_OBJECT( 'app_id', app.id, 'app_inward_no', app.inward ,'usr_name', usr.name , 'usr_surname', usr.surname , 'user_id', usr.id )) As app_data , COUNT(*) As count, app.source_from FROM Application  AS app ";
-  query += " Join User AS usr ON usr.id = app.user_id ";
-  query += " WHERE app.created_at BETWEEN '"+startTime+"' AND '"+currentTime+"' ";
-  query += " GROUP BY app.source_from ";
-  return sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
-};
+};  
 
  Application.associate = (models) => {
   Application.belongsTo(models.User, {foreignKey: 'user_id'});

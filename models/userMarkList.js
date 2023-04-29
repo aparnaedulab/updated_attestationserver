@@ -5,10 +5,8 @@ module.exports = function(sequelize, DataTypes) {
     name: DataTypes.STRING(30),
   	file_name: DataTypes.TEXT,
     type: DataTypes.STRING(30),
-    faculty: DataTypes.STRING(100),
-    course_faculty: DataTypes.STRING(255),
+    faculty: DataTypes.STRING(30),
     patteren: DataTypes.STRING(30),
-    enrollment_number: DataTypes.STRING(255), 
     lock_marklist: {
       type: DataTypes.BOOLEAN(),
       allowNull: false,
@@ -29,7 +27,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull:false,
       defaultValue:0
     },
-    source : DataTypes.STRING()
   });
 
   userMarkList.getdistinctClg = function(userId){

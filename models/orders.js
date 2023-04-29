@@ -17,15 +17,13 @@ module.exports = function(sequelize, DataTypes) {
 		recurring: DataTypes.ENUM('YES', 'NO'),
 		timeduration: DataTypes.STRING(35),
 		challan_no : DataTypes.TEXT,
-		split: DataTypes.BOOLEAN(),
-		source: DataTypes.STRING(100)
+		split: DataTypes.BOOLEAN()
 	});
 
 	Orders.getOrderID = function(yesterday,today){
 		var query='';
 			query += " SELECT * FROM Orders ";
 			query += " Where (`status` != '1') and created_at BETWEEN  '"+yesterday+"' AND '"+today+"' ";
-			query += " and source = 'guattestation' or source = 'gumoi' ";
 		return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 		//`status` = '-1' or `status` = '0'
 	};
@@ -33,7 +31,6 @@ module.exports = function(sequelize, DataTypes) {
 	Orders.getThreeDigit = function(yesterday,today){
 		var query='';
 			query += " SELECT max( id ) as MAXID FROM `Orders` where id < '346849194' ";
-			query += " and source = 'guattestation' or source = 'gumoi'";
 		return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 	};
 
@@ -43,7 +40,6 @@ module.exports = function(sequelize, DataTypes) {
 			query += " LEFT JOIN Orders as ord on ord.id = tran.order_id "
 			query += " LEFT JOIN User as usr on usr.id = ord.user_id "
 			query += " Where tran.created_at BETWEEN  '"+yesterday+"' AND '"+today+"' ";
-			query += " and ord.source = 'guattestation'or source = 'gumoi' ";
 		return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 		//`status` = '-1' or `status` = '0'
 	};
@@ -54,7 +50,6 @@ module.exports = function(sequelize, DataTypes) {
 			query += " LEFT JOIN Orders as ord on ord.id = tran.order_id "
 			query += " LEFT JOIN User as usr on usr.id = ord.user_id "
 			query += " Where tran.created_at BETWEEN  '"+monthstart+"' AND '"+monthend+"' ";
-			query += " and ord.source = 'guattestation'  or source = 'gumoi' ";
 		return sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
 		//`status` = '-1' or `status` = '0'
 	};

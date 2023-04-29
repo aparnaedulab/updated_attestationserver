@@ -18,7 +18,7 @@ var gm = require('gm').subClass({imageMagick: true});
 var models  = require(root_path+'/models');
 var PDFImage = require("pdf-image").PDFImage;
 const { exec } = require('child_process');
-var obj = {"username":"Gujarat","password":"bnBdO9x96h7r"}
+var obj = {"username":"Edulab","password":"amn#!K49"}
 
 
 const https = require('https');
@@ -29,20 +29,20 @@ module.exports.pdfpop = async function(filename,user_id,type) {
     var file;
 	let converter
     if(type == "transcript"){
-       file = constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+filename;
+       file = constant.FILE_LOCATION+"public/upload/transcript/"+user_id+"/"+filename;
 	converter = new PDF2Pic({
       density: 100,           
       savename: "con2img_"+name_pdf,   
-      savedir: constant.FILE_LOCATION+"public/upload/documents/"+user_id,    
+      savedir: constant.FILE_LOCATION+"public/upload/transcript/"+user_id,    
       format: "png",          
       size: 600               
     })
     }else if( type == "marksheet"){
-       file = constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+filename;
+       file = constant.FILE_LOCATION+"public/upload/marklist/"+user_id+"/"+filename;
 	converter = new PDF2Pic({
       density: 100,           
       savename: "con2img_"+name_pdf,   
-      savedir: constant.FILE_LOCATION+"public/upload/documents/"+user_id,    
+      savedir: constant.FILE_LOCATION+"public/upload/marklist/"+user_id,    
       format: "png",          
       size: 600               
     })
@@ -70,47 +70,26 @@ module.exports.pdfpop = async function(filename,user_id,type) {
      
 }
 
-module.exports.merge_alldocs = async function (app_id,user_id, mergefilesString){
-  logger.info("merge_alldocs called for application no : "+app_id)
-  var outputfile = constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+app_id+"_UploadedDocument_Merge.pdf" ;
-  var command = "pdfunite "+mergefilesString+ " " +outputfile;
-  console.log('commandcommand in merge@@@@@@'+  command);
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-    if (error) {
-      logger.error(error.stack);
-      logger.error('Error code: '+error.code);
-      logger.error('Signal received: '+error.signal);
-    }else{
-     
-    }
-    logger.debug('Child Process STDOUT: '+stdout);
-    logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-    logger.debug('Child process exited with exit code '+code);
-  });
-}
 module.exports.pdfpop_new = function(filename,user_id,type,callback) {
   var pdfstatus;
   var name_pdf=path.parse(filename).name;
   var file;
 	let converter
     if(type == "transcript"){
-      file = constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+filename;
+      file = constant.FILE_LOCATION+"public/upload/transcript/"+user_id+"/"+filename;
 	    converter = new PDF2Pic({
         density: 100,           
         savename: "con2img_"+name_pdf,   
-        savedir: constant.FILE_LOCATION+"public/upload/documents/"+user_id,    
+        savedir: constant.FILE_LOCATION+"public/upload/transcript/"+user_id,    
         format: "png",          
         size: 600               
       })
     }else if( type == "marksheet"){
-      file = constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+filename;
+      file = constant.FILE_LOCATION+"public/upload/marklist/"+user_id+"/"+filename;
 	    converter = new PDF2Pic({
         density: 100,           
         savename: "con2img_"+name_pdf,   
-        savedir: constant.FILE_LOCATION+"public/upload/documents/"+user_id,    
+        savedir: constant.FILE_LOCATION+"public/upload/marklist/"+user_id,    
         format: "png",          
         size: 600               
       })
@@ -319,200 +298,199 @@ module.exports.pdftomultipleimg_new = async function(filename,user_id,numOfpages
 }
 
 module.exports.signedpdf = async function(filename, user_id, appl_id, file_loc, signstatus, transcript_id, marksheet_id, doc_type,category,count, curriculum_id){
-  logger.debug("signedpdf called for "+filename);
-var signstatus;
-     var name_pdf = filename;
-      const createPdf = (params = {
-         placeholder: { reason : 'Digital signed by University Of Gujarat' },
-       }) => new Promise((resolve) => {
-         const pdf = new PDFDocument({
-             autoFirstPage: true,
+    logger.debug("signedpdf called for "+filename);
+  var signstatus;
+       var name_pdf = filename;
+        const createPdf = (params = {
+           placeholder: { reason : 'Digital signed by University Of Mumbai' },
+         }) => new Promise((resolve) => {
+           const pdf = new PDFDocument({
+               autoFirstPage: true,
+               size: 'A4',
+               layout: 'portrait',
+               bufferPages: true,
+               margins : { 
+                 top: 72, 
+                 bottom: 20,
+                 left: 72,
+                 right: 72
+             },
+             info: {
+                 Author: 'Mumbai University',
+                 Subject: 'Digital Signature', 
+                 CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
+             }
+           });
+           pdf.info.CreationDate = '';
+           pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
+       
+           const pdfChunks = [];
+           pdf.on('data', (data) => {
+               pdfChunks.push(data);
+           });
+       
+           pdf.image(file_loc,0,0, {
              size: 'A4',
-             layout: 'portrait',
-             bufferPages: true,
-             margins : { 
-               top: 72, 
-               bottom: 20,
-               left: 72,
-               right: 72
-           },
-           info: {
-               Author: 'Gujarat University',
-               Subject: 'Digital Signature', 
-               CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-           }
-         });
-         pdf.image(constants.FILE_LOCATION+'public/profile_pic/notforprint.jpg', 0,0, {width: pdf.page.width, height: pdf.page.height});
-         pdf.info.CreationDate = '';
-         pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-     
-         const pdfChunks = [];
-         pdf.on('data', (data) => {
-             pdfChunks.push(data);
-         });
-     
-         pdf.image(file_loc,0,0, {
-           size: 'A4',
-           align: 'center',
-           width: 600,
-           height:pdf.page.height - 90,
-           note:'Digitally signed by University Of Gujarat',
-       }).moveDown(0.2);
-       pdf.moveTo(20, pdf.page.height - 92) 
-       .lineTo( pdf.page.width-20, pdf.page.height - 92) 
-       .dash(10, {space: 0}) 
-       .stroke() ;
-       pdf.moveTo(20, pdf.page.height - 94)  
-       .lineTo(pdf.page.width-20, pdf.page.height - 94)  
-       .dash(10, {space: 0}) 
-       .stroke() ;
+             align: 'center',
+             width: 600,
+             height:pdf.page.height - 90,
+             note:'Digitally signed by University Of Mumbai',
+         }).moveDown(0.2);
+         pdf.moveTo(20, pdf.page.height - 92) 
+         .lineTo( pdf.page.width-20, pdf.page.height - 92) 
+         .dash(10, {space: 0}) 
+         .stroke() ;
+         pdf.moveTo(20, pdf.page.height - 94)  
+         .lineTo(pdf.page.width-20, pdf.page.height - 94)  
+         .dash(10, {space: 0}) 
+         .stroke() ;
+          
+        pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,755,{fit: [85, 85], align: 'center'});
+        pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,755,{width: 130,height: 80, align: 'center'});
         
-      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-      
-      pdf.on('end', () => {
-               resolve(Buffer.concat(pdfChunks));
+        pdf.on('end', () => {
+                 resolve(Buffer.concat(pdfChunks));
+         });
+           
+           const refs = addSignaturePlaceholder({
+               pdf,
+               reason: 'Approved',
+               ...params.placeholder,
+           });
+       
+           Object.keys(refs).forEach(key => refs[key].end());
+           pdf.end();
        });
          
-         const refs = addSignaturePlaceholder({
-             pdf,
-             reason: 'Approved',
-             ...params.placeholder,
-         });
-     
-         Object.keys(refs).forEach(key => refs[key].end());
-         pdf.end();
-     });
-       
-       const action = async () => {
-         //logger.debug("action called")
-         let pdfBuffer = await createPdf();
-         let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-         var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-          try{
-            var fpath=constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-            var fname ;
-            models.Institution_details.findAll({
-              where:
-              {
-                user_id : user_id,
-                app_id: appl_id,source : 'guattestation'
-               }
-              }) .then(function(resultset){
-              
-             
-                if(resultset && resultset[0] != undefined){
-                 if(resultset[0]['wesno'] != "" &&  
-                 resultset[0]['wesno'] != undefined && 
-                 resultset[0]['wesno'].length != 0){
-                   fname= doc_type+"_"+resultset[0]['wesno']+"-"+count+".pdf";
-                 // logger.verbose("@1 " + resultset[0]['wesno'] + " filename " + resultset[0]['wesno']+"-"+count)
-                 }else if (resultset[0]['cesno'] != ""&&  
-                 resultset[0]['cesno'] != undefined && 
-                 resultset[0]['cesno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['cesno']+"-"+count+".pdf";
-                 // logger.verbose("@2 "+ resultset[0]['cesno'])
-                 }else if (resultset[0]['iqasno'] != ""&&  
-                 resultset[0]['iqasno'] != undefined && 
-                 resultset[0]['iqasno'].length != 0) {
-                  fname= doc_type+"_"+resultset[0]['iqasno']+"-"+count+".pdf";
-                 // logger.verbose("@3")
-                 }else if(resultset[0]['eduperno'] != ""&&  
-                 resultset[0]['eduperno'] != undefined && 
-                 resultset[0]['eduperno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['eduperno']+"-"+count+".pdf";
-                 // logger.verbose("@4")
-                 }else if(resultset[0]['icasno'] != ""&&  
-                 resultset[0]['icasno'] != undefined && 
-                 resultset[0]['icasno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['icasno']+"-"+count+".pdf";
-                 // logger.verbose("@5")
-                 }else if(resultset[0]['studyrefno'] != ""&&  
-                 resultset[0]['studyrefno'] != undefined && 
-                 resultset[0]['studyrefno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['studyrefno']+"-"+count+".pdf";
-                 // logger.verbose("@6")
-                 }else if(resultset[0]['emprefno'] != ""&&  
-                 resultset[0]['emprefno'] != undefined && 
-                 resultset[0]['emprefno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['emprefno']+"-"+count+".pdf";
-                 // logger.verbose("@7")
-                 }else if(resultset[0]['visarefno'] != ""&&  
-                 resultset[0]['visarefno'] != undefined && 
-                 resultset[0]['visarefno'].length != 0){
-                  fname= doc_type+"_"+resultset[0]['visarefno']+"-"+count+".pdf";
-                 // logger.verbose("@8")
-                 }else {
-                  fname = appl_id+"_"+doc_type+"_"+name_pdf+"-"+count+".pdf";
-                 // logger.verbose("@default")
+         const action = async () => {
+           //logger.debug("action called")
+           let pdfBuffer = await createPdf();
+           let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
+           var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
+            try{
+              var fpath=constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
+              var fname ;
+              models.Institution_details.findAll({
+                where:
+                {
+                  user_id : user_id,
+                  app_id: appl_id
                  }
-                }else {
-                  fname = appl_id+"_"+doc_type+"_"+filename+"-"+count+".pdf";
-                }     
-            var fullfile = fpath+fname;
-         //   logger.debug("fullfile : "+fullfile)
-            if (!fs.existsSync(fullfile)) {
-              signstatus = true;
+                }) .then(function(resultset){
+                
+               
+                  if(resultset && resultset[0] != undefined){
+                   if(resultset[0]['wesno'] != "" &&  
+                   resultset[0]['wesno'] != undefined && 
+                   resultset[0]['wesno'].length != 0){
+                     fname= doc_type+"_"+resultset[0]['wesno']+"-"+count+".pdf";
+                   // logger.verbose("@1 " + resultset[0]['wesno'] + " filename " + resultset[0]['wesno']+"-"+count)
+                   }else if (resultset[0]['cesno'] != ""&&  
+                   resultset[0]['cesno'] != undefined && 
+                   resultset[0]['cesno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['cesno']+"-"+count+".pdf";
+                   // logger.verbose("@2 "+ resultset[0]['cesno'])
+                   }else if (resultset[0]['iqasno'] != ""&&  
+                   resultset[0]['iqasno'] != undefined && 
+                   resultset[0]['iqasno'].length != 0) {
+                    fname= doc_type+"_"+resultset[0]['iqasno']+"-"+count+".pdf";
+                   // logger.verbose("@3")
+                   }else if(resultset[0]['eduperno'] != ""&&  
+                   resultset[0]['eduperno'] != undefined && 
+                   resultset[0]['eduperno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['eduperno']+"-"+count+".pdf";
+                   // logger.verbose("@4")
+                   }else if(resultset[0]['icasno'] != ""&&  
+                   resultset[0]['icasno'] != undefined && 
+                   resultset[0]['icasno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['icasno']+"-"+count+".pdf";
+                   // logger.verbose("@5")
+                   }else if(resultset[0]['studyrefno'] != ""&&  
+                   resultset[0]['studyrefno'] != undefined && 
+                   resultset[0]['studyrefno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['studyrefno']+"-"+count+".pdf";
+                   // logger.verbose("@6")
+                   }else if(resultset[0]['emprefno'] != ""&&  
+                   resultset[0]['emprefno'] != undefined && 
+                   resultset[0]['emprefno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['emprefno']+"-"+count+".pdf";
+                   // logger.verbose("@7")
+                   }else if(resultset[0]['visarefno'] != ""&&  
+                   resultset[0]['visarefno'] != undefined && 
+                   resultset[0]['visarefno'].length != 0){
+                    fname= doc_type+"_"+resultset[0]['visarefno']+"-"+count+".pdf";
+                   // logger.verbose("@8")
+                   }else {
+                    fname = appl_id+"_"+doc_type+"_"+name_pdf+"-"+count+".pdf";
+                   // logger.verbose("@default")
+                   }
+                  }else {
+                    fname = appl_id+"_"+doc_type+"_"+filename+"-"+count+".pdf";
+                  }     
+              var fullfile = fpath+fname;
+           //   logger.debug("fullfile : "+fullfile)
+              if (!fs.existsSync(fullfile)) {
+                signstatus = true;
 
-              var file=fs.writeFileSync(fullfile,pdf, function (err) {
-                if (err) {
-                  console.log("signpdf fs.writeFileSync error in file ==>"+err)
-                }
-              });
-               fs.exists(fullfile, function (exists) {
-                if (exists) {
-                  models.Institution_details.find({
-                    where :{
-                      app_id  :appl_id,source : 'guattestation'
-                    }
-                  }).then(function(details){ 
-                    if(details.type == "Educational credential evaluators WES"){  
-                      fileTransferWes(user_id,appl_id,fullfile);
-                    }else {
-                    }
-                  })
-                //  compress(fullfile,fname);
-                }
-              })
+                var file=fs.writeFileSync(fullfile,pdf, function (err) {
+                  if (err) {
+                    console.log("signpdf fs.writeFileSync error in file ==>"+err)
+                  }
+                });
+                 fs.exists(fullfile, function (exists) {
+                  if (exists) {
+                    models.Institution_details.find({
+                      where :{
+                        app_id  :appl_id
+                      }
+                    }).then(function(details){ 
+                      if(details.type == "Educational credential evaluators WES"){  
+                        fileTransferWes(user_id,appl_id,fullfile);
+                      }else {
+                      }
+                    })
+                  //  compress(fullfile,fname);
+                  }
+                })
 
-  models.Emailed_Docs.create({
-                filename : fname,
-                doc_type : doc_type,
-                category : category,
-                user_id: user_id,
-                transcript_id: transcript_id,
-                marklist_id : marksheet_id,
-                app_id:appl_id,
-                curriculum_id : curriculum_id
-              }).then((result)=>{
-               // logger.debug(" result : "+JSON.stringify(result))
-              })
-            }else{
-              signstatus = true;
+		models.Emailed_Docs.create({
+                  filename : fname,
+                  doc_type : doc_type,
+                  category : category,
+                  user_id: user_id,
+                  transcript_id: transcript_id,
+                  marklist_id : marksheet_id,
+                  app_id:appl_id,
+                  curriculum_id : curriculum_id
+                }).then((result)=>{
+                 // logger.debug(" result : "+JSON.stringify(result))
+                })
+              }else{
+                signstatus = true;
+              }
+            })
+            }catch(error){
+              signstatus = false;
+              logger.error("There is problem in generating signed pdf."+error);
             }
-          })
-          }catch(error){
-            signstatus = false;
-            logger.error("There is problem in generating signed pdf."+error);
-          }
-       }
-     
-        action();
-  
-       return new Promise(resolve => {
-          setTimeout(() => {
-              
-            resolve(signstatus);
-          }, 5000);
-        });
-} 
+         }
+       
+          action();
+    
+         return new Promise(resolve => {
+            setTimeout(() => {
+                
+              resolve(signstatus);
+            }, 5000);
+          });
+ } 
 
  module.exports.signedpdf_new = async function(filename, user_id, appl_id, file_loc, signstatus, transcript_id, marksheet_id, doc_type,category,count, curriculum_id,competency_id,letter_id,callback){
-  logger.debug("signedpdf_newsignedpdf_new called for "+category);
+  logger.debug("signedpdf called for "+filename);
   var signstatus;
   var name_pdf = filename;
   const createPdf = (params = {
-    placeholder: { reason : 'Digital signed by University Of Gujarat' },
+    placeholder: { reason : 'Digital signed by University Of Mumbai' },
   }) => new Promise((resolve) => {
   const pdf = new PDFDocument({
     autoFirstPage: true,
@@ -526,7 +504,7 @@ var signstatus;
       right: 72
     },
     info: {
-      Author: 'Gujarat University',
+      Author: 'Mumbai University',
       Subject: 'Digital Signature', 
       CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
     }
@@ -542,7 +520,7 @@ var signstatus;
     align: 'center',
     width: 600,
     height:pdf.page.height - 90,
-    note:'Digitally signed by University Of Gujarat',
+    note:'Digitally signed by University Of Mumbai',
   }).moveDown(0.2);
   pdf.moveTo(20, pdf.page.height - 92) 
   .lineTo( pdf.page.width-20, pdf.page.height - 92) 
@@ -552,24 +530,8 @@ var signstatus;
   .lineTo(pdf.page.width-20, pdf.page.height - 94)  
   .dash(10, {space: 0}) 
   .stroke() ;
-
-  console.log("categorycategory@@@@@@s" + category);
-  if(category == 'Marklist'){
-    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{width: 160,height: 100, align: 'center'});
-  }
-  
-  if(category == 'Transcript'){
-    pdf.image(constant.FILE_LOCATION +'public/upload/profile_pic/transcriptStamp.png',300,765,{width: 150,height: 80, align: 'center'});
-  }
-  if(category == 'Degree'){
-    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{width: 160,height: 100, align: 'center'});
-  }
-  else{
-    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{width: 160,height: 100, align: 'center'});
-  }
-
-
-  // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,765,{width: 130,height: 80, align: 'center'});
+  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,765,{fit: [85, 85], align: 'center'});
+  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,765,{width: 130,height: 80, align: 'center'});
   pdf.on('end', () => {
     resolve(Buffer.concat(pdfChunks));
   });
@@ -584,7 +546,7 @@ var signstatus;
   const action = async () => {
     //logger.debug("action called")
     let pdfBuffer = await createPdf();
-    let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
+    let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
     var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
     try{
       var fpath=constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
@@ -740,7 +702,7 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
   var signstatus;
   var name_pdf = filename;
   const createPdf = (params = {
-    placeholder: { reason : 'Digital signed by University Of Gujarat' },
+    placeholder: { reason : 'Digital signed by University Of Mumbai' },
   }) => new Promise((resolve) => {
   const pdf = new PDFDocument({
     autoFirstPage: true,
@@ -754,7 +716,7 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
       right: 72
     },
     info: {
-      Author: 'Gujarat University',
+      Author: 'Mumbai University',
       Subject: 'Digital Signature', 
       CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
     }
@@ -770,7 +732,7 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
     align: 'center',
     width: 600,
     height:pdf.page.height - 90,
-    note:'Digitally signed by University Of Gujarat',
+    note:'Digitally signed by University Of Mumbai',
   }).moveDown(0.2);
   pdf.moveTo(20, pdf.page.height - 92) 
   .lineTo( pdf.page.width-20, pdf.page.height - 92) 
@@ -780,8 +742,8 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
   .lineTo(pdf.page.width-20, pdf.page.height - 94)  
   .dash(10, {space: 0}) 
   .stroke() ;
-  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,765,{fit: [85, 85], align: 'center'});
-  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,765,{width: 130,height: 80, align: 'center'});
+  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,765,{fit: [85, 85], align: 'center'});
+  pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,765,{width: 130,height: 80, align: 'center'});
   pdf.on('end', () => {
     resolve(Buffer.concat(pdfChunks));
   });
@@ -796,7 +758,7 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
   const action = async () => {
     //logger.debug("action called")
     let pdfBuffer = await createPdf();
-    let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
+    let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
     var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
     try{
       var fpath=constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
@@ -946,35 +908,11 @@ module.exports.signedpdf_competency = async function(filename, user_id, appl_id,
   // });
 }
 
-module.exports.merge_uploaded = async function(inputString,outputfile,callback){
-  console.log("inputString == " + inputString); 
- console.log("outputfile" + outputfile);
-  var command = "pdfunite "+inputString+ " " +outputfile;
-  console.log("command" + command);
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-      if (error) {
-        logger.error(error.stack);
-        logger.error('Error code: '+error.code);
-        logger.error('Signal received: '+error.signal);
-      }else{
-          console.log("merge complete");
-         callback();
-      }
-      logger.debug('Child Process STDOUT: '+stdout);
-      logger.error('Child Process STDERR: '+stderr);
-    });
-
-    pdfunite.on('exit', function (code) {
-      logger.debug('Child process exited with exit code '+code);
-    });
-},
-
 module.exports.merge = async function (app_id,user_id, mergefilesString){
   logger.info("merge called for application no : "+app_id)
   var outputfile = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge.pdf" ;
   var inputdirectory = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/*";
   var command = "pdfunite "+mergefilesString+ " " +outputfile;
-  console.log('commandcommand in merge@@@@@@'+  command);
   const pdfunite = exec(command, function (error, stdout, stderr) {
     if (error) {
       logger.error(error.stack);
@@ -1111,312 +1049,6 @@ module.exports.merge = async function (app_id,user_id, mergefilesString){
   });
 }
 
-module.exports.merge = async function (app_id,user_id, mergefilesString){
-  logger.info("merge called for application no : "+app_id)
-  var outputfile = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge.pdf" ;
-  var inputdirectory = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/*";
-  var command = "pdfunite "+mergefilesString+ " " +outputfile;
-  console.log('commandcommand in merge@@@@@@'+  command);
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-    if (error) {
-      logger.error(error.stack);
-      logger.error('Error code: '+error.code);
-      logger.error('Signal received: '+error.signal);
-    }else{
-      models.Emailed_Docs.find({
-        where:{
-          filename : app_id+"_Merge.pdf",
-          doc_type : 'merged',
-          app_id : app_id
-        }
-      }).then((result)=>{
-        if(result){
-          logger.info("file created @ "+constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge.pdf")
-          // models.Institution_details.find({
-          //   where:{
-          //     user_id : user_id
-          //   },
-          //   attributes:[
-          //     'wesno'
-          //   ]
-          // }).then((stu)=>{
-          //   unirest('POST', constant.urlAuthString)
-          //   .headers({
-          //     'Content-Type': 'application/json',
-          //     'Cookie': '__cfduid=de30535dd8b92c6d12074d60ef2df6cdd1592205580'
-          //   })
-          //   .send(JSON.stringify(obj))
-          //   .end(function (res) { 
-          //     if (res.error) throw new Error(res.error); 
-          //     var parsed = JSON.parse(res.raw_body);
-          //     //Add 7 digit wes code instead of 123
-          //     var wesid = stu['wesno'].slice(3, 10);
-          //     var req = unirest('POST', constant.urlFileUpload + '/' + wesid)
-          //     .headers({
-          //       'Content-Type': 'multipart/form-data',
-          //       'Authorization': 'Bearer '+parsed.token
-          //     })//give the location of the file to upload
-          //     .attach('file', constant.signedFileUrl + user_id + '/' + app_id + '_Merge.pdf')
-          //     .end(function (res) {
-          //       if (res.error) throw new Error(res.error);
-          //       if(JSON.parse(res['raw_body'])['status']=='Accepted'){
-          //         models.Institution_details.update({
-          //           wesupload:new Date().toISOString().slice(0,10)},
-          //           {
-          //             where :{
-          //              [Op.and]:[{
-          //                user_id:user_id
-          //               },
-          //               {
-          //                 type:'Educational credential evaluators WES'
-          //               }]
-          //           }
-          //         }).then((err,updated)=>{
-          //           if(err){
-          //             logger.error(err)
-          //           }
-          //           functions.socketnotification('Wes file Uploaded','Wes file uploaded to wes server succesfully',user_id,'student');
-          //         })
-          //       }
-          //     });
-          //   });
-          // })  
-        }else{
-          models.Emailed_Docs.create({
-            filename : app_id+"_Merge.pdf",
-            doc_type : 'merged',
-            app_id : app_id
-          }).then((result)=>{
-            if(result){
-              logger.info("file created @ "+constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+app_id+"_Merge.pdf")
-            //   models.Institution_details.find({
-            //   where:{
-            //     user_id : user_id
-            //   },
-            //   attributes:[
-            //    'wesno'
-            //   ]
-            // }).then((stu)=>{
-            //   unirest('POST', constant.urlAuthString)
-            //   .headers({
-            //    'Content-Type': 'application/json',
-            //     'Cookie': '__cfduid=de30535dd8b92c6d12074d60ef2df6cdd1592205580'
-            //   })
-            //   .send(JSON.stringify(obj))
-            //   .end(function (res) { 
-            //     if (res.error) throw new Error(res.error); 
-            //       var parsed = JSON.parse(res.raw_body);
-            //       //Add 7 digit wes code instead of 123
-            //       var wesid = stu['wesno'].slice(3, 10);
-            //       var req = unirest('POST', constant.urlFileUpload + '/' + wesid)
-            //       .headers({
-            //         'Content-Type': 'multipart/form-data',
-            //         'Authorization': 'Bearer '+parsed.token
-            //       })//give the location of the file to upload
-            //       .attach('file', constant.signedFileUrl + user_id + '/' + app_id + '_Merge.pdf')
-            //       .end(function (res) {
-            //         if (res.error) throw new Error(res.error);
-            //         if(JSON.parse(res['raw_body'])['status']=='Accepted'){
-            //           models.Institution_details.update(
-            //             {wesupload:new Date().toISOString().slice(0,10)},
-            //             {
-            //               where :{
-            //                [Op.and]:[{
-            //                  user_id:user_id
-            //                 },
-            //                 {
-            //                   type:'Educational credential evaluators WES'
-            //                 }]
-            //               }
-            //             }
-            //           ).then((err,updated)=>{
-            //             if(err){
-            //               logger.error(err)
-            //             }
-            //            functions.socketnotification('Wes file Uploaded','Wes file uploaded to wes server succesfully',user_id,'student');
-            //           })
-            //         }
-            //       });
-            //     });
-            //   })  
-            }
-          })
-        }
-      })
-    }
-    logger.debug('Child Process STDOUT: '+stdout);
-    logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-    logger.debug('Child process exited with exit code '+code);
-  });
-}
-
-
-module.exports.merge_All = async function (app_id,user_id, mergefilesString){
-  logger.info("merge called merge_All : "+app_id)
-  var outputfile = constant.FILE_LOCATION+"public/upload/documents"+user_id+"/"+app_id+"_MergeAll.pdf" ;
-  var inputdirectory = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/*";
-  var command = "pdfunite "+mergefilesString+ " " +outputfile;
-  console.log('commandcommand in merge@@@@@@'+  command);
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-    if (error) {
-      logger.error(error.stack);
-      logger.error('Error code: '+error.code);
-      logger.error('Signal received: '+error.signal);
-    }else{
-     
-    }
-    logger.debug('Child Process STDOUT: '+stdout);
-    logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-    logger.debug('Child process exited with exit code '+code);
-  });
-}
-module.exports.mergenotforprint = async function (app_id,user_id, mergefilesString){
-  logger.info("_Merge_notforprint called for application no : "+app_id)
-  var outputfile = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge_notforprint.pdf" ;
-  var inputdirectory = constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/*";
-  var command = "pdfunite "+mergefilesString+ " " +outputfile;
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-    if (error) {
-      logger.error(error.stack);
-      logger.error('Error code: '+error.code);
-      logger.error('Signal received: '+error.signal);
-    }else{
-      models.Emailed_Docs.find({
-        where:{
-          filename : app_id+"_Merge_notforprint.pdf",
-          doc_type : 'merged',
-          app_id : app_id
-        }
-      }).then((result)=>{
-        if(result){
-          logger.info("file created @ "+constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge_notforprint.pdf")
-          // models.Institution_details.find({
-          //   where:{
-          //     user_id : user_id
-          //   },
-          //   attributes:[
-          //     'wesno'
-          //   ]
-          // }).then((stu)=>{
-          //   unirest('POST', constant.urlAuthString)
-          //   .headers({
-          //     'Content-Type': 'application/json',
-          //     'Cookie': '__cfduid=de30535dd8b92c6d12074d60ef2df6cdd1592205580'
-          //   })
-          //   .send(JSON.stringify(obj))
-          //   .end(function (res) { 
-          //     if (res.error) throw new Error(res.error); 
-          //     var parsed = JSON.parse(res.raw_body);
-          //     //Add 7 digit wes code instead of 123
-          //     var wesid = stu['wesno'].slice(3, 10);
-          //     var req = unirest('POST', constant.urlFileUpload + '/' + wesid)
-          //     .headers({
-          //       'Content-Type': 'multipart/form-data',
-          //       'Authorization': 'Bearer '+parsed.token
-          //     })//give the location of the file to upload
-          //     .attach('file', constant.signedFileUrl + user_id + '/' + app_id + '_Merge.pdf')
-          //     .end(function (res) {
-          //       if (res.error) throw new Error(res.error);
-          //       if(JSON.parse(res['raw_body'])['status']=='Accepted'){
-          //         models.Institution_details.update({
-          //           wesupload:new Date().toISOString().slice(0,10)},
-          //           {
-          //             where :{
-          //              [Op.and]:[{
-          //                user_id:user_id
-          //               },
-          //               {
-          //                 type:'Educational credential evaluators WES'
-          //               }]
-          //           }
-          //         }).then((err,updated)=>{
-          //           if(err){
-          //             logger.error(err)
-          //           }
-          //           functions.socketnotification('Wes file Uploaded','Wes file uploaded to wes server succesfully',user_id,'student');
-          //         })
-          //       }
-          //     });
-          //   });
-          // })  
-        }else{
-          models.Emailed_Docs.create({
-            filename : app_id+"_Merge_notforprint.pdf",
-            doc_type : 'merged',
-            app_id : app_id
-          }).then((result)=>{
-            if(result){
-              logger.info("file created @ "+constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/"+app_id+"_Merge_notforprint.pdf")
-            //   models.Institution_details.find({
-            //   where:{
-            //     user_id : user_id
-            //   },
-            //   attributes:[
-            //    'wesno'
-            //   ]
-            // }).then((stu)=>{
-            //   unirest('POST', constant.urlAuthString)
-            //   .headers({
-            //    'Content-Type': 'application/json',
-            //     'Cookie': '__cfduid=de30535dd8b92c6d12074d60ef2df6cdd1592205580'
-            //   })
-            //   .send(JSON.stringify(obj))
-            //   .end(function (res) { 
-            //     if (res.error) throw new Error(res.error); 
-            //       var parsed = JSON.parse(res.raw_body);
-            //       //Add 7 digit wes code instead of 123
-            //       var wesid = stu['wesno'].slice(3, 10);
-            //       var req = unirest('POST', constant.urlFileUpload + '/' + wesid)
-            //       .headers({
-            //         'Content-Type': 'multipart/form-data',
-            //         'Authorization': 'Bearer '+parsed.token
-            //       })//give the location of the file to upload
-            //       .attach('file', constant.signedFileUrl + user_id + '/' + app_id + '_Merge.pdf')
-            //       .end(function (res) {
-            //         if (res.error) throw new Error(res.error);
-            //         if(JSON.parse(res['raw_body'])['status']=='Accepted'){
-            //           models.Institution_details.update(
-            //             {wesupload:new Date().toISOString().slice(0,10)},
-            //             {
-            //               where :{
-            //                [Op.and]:[{
-            //                  user_id:user_id
-            //                 },
-            //                 {
-            //                   type:'Educational credential evaluators WES'
-            //                 }]
-            //               }
-            //             }
-            //           ).then((err,updated)=>{
-            //             if(err){
-            //               logger.error(err)
-            //             }
-            //            functions.socketnotification('Wes file Uploaded','Wes file uploaded to wes server succesfully',user_id,'student');
-            //           })
-            //         }
-            //       });
-            //     });
-            //   })  
-            }
-          })
-        }
-      })
-    }
-    logger.debug('Child Process STDOUT: '+stdout);
-    logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-    logger.debug('Child process exited with exit code '+code);
-  });
-}
-
 module.exports.curriculum_merge =    async function (appl_id, user_id, curriculum_id,doc_type,filename, inputdirectory,count){
   logger.info("curriculum_merge called for application no : "+appl_id);
   var fname;
@@ -1424,7 +1056,7 @@ module.exports.curriculum_merge =    async function (appl_id, user_id, curriculu
     where:
     {
       user_id : user_id,
-      app_id: appl_id,source : 'guattestation'
+      app_id: appl_id
      }
     }) .then(function(resultset){
     
@@ -1569,7 +1201,7 @@ module.exports.curriculumsignedpdf = async function(filename, user_id, appl_id, 
 var signstatus;
      var name_pdf = filename;
       const createPdf = (params = {
-         placeholder: { reason : 'Digital signed by University Of Gujarat' },
+         placeholder: { reason : 'Digital signed by University Of Mumbai' },
        }) => new Promise((resolve) => {
          const pdf = new PDFDocument({
              autoFirstPage: true,
@@ -1583,7 +1215,7 @@ var signstatus;
                right: 72
            },
            info: {
-               Author: 'Gujarat University',
+               Author: 'Mumbai University',
                Subject: 'Digital Signature', 
                CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
            }
@@ -1601,7 +1233,7 @@ var signstatus;
            align: 'center',
            width: 600,
            height:pdf.page.height - 90,
-           note:'Digitally signed by University Of Gujarat',
+           note:'Digitally signed by University Of Mumbai',
        }).moveDown(0.2);
        pdf.moveTo(20, pdf.page.height - 92) 
        .lineTo( pdf.page.width-20, pdf.page.height - 92) 
@@ -1612,8 +1244,8 @@ var signstatus;
        .dash(10, {space: 0}) 
        .stroke() ;
         
-      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
+      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,755,{fit: [85, 85], align: 'center'});
+      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,755,{width: 130,height: 80, align: 'center'});
       
       pdf.on('end', () => {
                resolve(Buffer.concat(pdfChunks));
@@ -1632,7 +1264,7 @@ var signstatus;
        const action = async () => {
          logger.debug("action called")
          let pdfBuffer = await createPdf();
-         let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
+         let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
          var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
           try{
             var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
@@ -1670,7 +1302,7 @@ module.exports.curriculumsignedpdf_new = async function(filename, user_id, appl_
   var signstatus;
   var name_pdf = filename;
   const createPdf = (params = {
-    placeholder: { reason : 'Digital signed by University Of Gujarat' },
+    placeholder: { reason : 'Digital signed by University Of Mumbai' },
   }) => new Promise((resolve) => {
     const pdf = new PDFDocument({
       autoFirstPage: true,
@@ -1684,7 +1316,7 @@ module.exports.curriculumsignedpdf_new = async function(filename, user_id, appl_
         right: 72
       },
       info: {
-        Author: 'Gujarat University',
+        Author: 'Mumbai University',
         Subject: 'Digital Signature', 
         CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
       }
@@ -1700,7 +1332,7 @@ module.exports.curriculumsignedpdf_new = async function(filename, user_id, appl_
       align: 'center',
       width: 600,
       height:pdf.page.height - 90,
-      note:'Digitally signed by University Of Gujarat',
+      note:'Digitally signed by University Of Mumbai',
     }).moveDown(0.2);
     pdf.moveTo(20, pdf.page.height - 92) 
     .lineTo( pdf.page.width-20, pdf.page.height - 92) 
@@ -1710,8 +1342,8 @@ module.exports.curriculumsignedpdf_new = async function(filename, user_id, appl_
     .lineTo(pdf.page.width-20, pdf.page.height - 94)  
     .dash(10, {space: 0}) 
     .stroke() ;
-    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
+    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,755,{fit: [85, 85], align: 'center'});
+    pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,755,{width: 130,height: 80, align: 'center'});
     pdf.on('end', () => {
       resolve(Buffer.concat(pdfChunks));
     });
@@ -1726,7 +1358,7 @@ module.exports.curriculumsignedpdf_new = async function(filename, user_id, appl_
   const action = async () => {
     logger.debug("action called")
     let pdfBuffer = await createPdf();
-    let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
+    let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
     var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
     try{
       var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
@@ -1826,7 +1458,6 @@ function fileTransferWes(user_id,appl_id,fullfile){
        {
          type:'Educational credential evaluators WES'
        }]
-       ,source : 'guattestation'
     },
     attributes:[
       'wesno'
@@ -1842,7 +1473,7 @@ function fileTransferWes(user_id,appl_id,fullfile){
       var wesid = stu['wesno'].slice(3, 10);
       if (res.error) throw new Error(res.error); 
       var parsed = JSON.parse(res.raw_body);
-      unirest('GET', 'https://testeuploads.wes.org/api/v2/applicantinfo/'+wesid)
+      unirest('GET', 'https://euploads.wes.org/api/v2/applicantinfo/'+wesid)
       .headers({
         'Authorization': 'Bearer '+ parsed.token
       }).end(function (res) {
@@ -1856,7 +1487,7 @@ function fileTransferWes(user_id,appl_id,fullfile){
                 },
                 {
                   type:'Educational credential evaluators WES'
-                }],source : 'guattestation'
+                }]
             }
         }).then((err,update)=>{
           if(err){
@@ -1882,7 +1513,7 @@ function fileTransferWes(user_id,appl_id,fullfile){
         fileName:JSON.parse(res['raw_body'])['fileName'] ,
         reference_no :JSON.parse(res['raw_body'])['id'] ,
         status:JSON.parse(res['raw_body'])['status'],
-        wesnumber:'GU-'+JSON.parse(res['raw_body'])['referenceNumber']
+        wesnumber:'MU-'+JSON.parse(res['raw_body'])['referenceNumber']
       }).then((userCreated)=>{
 				if(userCreated){
 					// res.status(200).json({
@@ -1898,7 +1529,7 @@ function fileTransferWes(user_id,appl_id,fullfile){
           fileName:'' ,
           reference_no :'' ,
           status:'File is too big.Only 50mb is allowed.',
-          wesnumber:'GU-'+wesid 
+          wesnumber:'MU-'+wesid 
         }).then((userCreated)=>{
           if(userCreated){
             // res.status(200).json({
@@ -1918,7 +1549,6 @@ function fileTransferWes(user_id,appl_id,fullfile){
               {
                 type:'Educational credential evaluators WES'
               }]
-              ,source : 'guattestation'
           }
       }).then((err,updated)=>{
           if(err){
@@ -1946,7 +1576,6 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
        {
          type:'Educational credential evaluators WES'
        }]
-       ,source : 'guattestation'
     },
     attributes:[
       'wesno'
@@ -1960,52 +1589,38 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
     .send(JSON.stringify(obj))
     .end(function (res) { 
       var wesid = stu['wesno'].slice(3, 10);
-      console.log("wesid" + wesid);
-      if (res.error){ callback("authentication error for wes"); throw new Error(res.error); } 
+      if (res.error){ callback("authentication error for wes"); throw new Error(res.error); }
       var parsed = JSON.parse(res.raw_body);
-      unirest('GET', 'https://testeuploads.wes.org/api/v2/applicantinfo/'+wesid)
+      unirest('GET', 'https://euploads.wes.org/api/v2/applicantinfo/'+wesid)
       .headers({
         'Authorization': 'Bearer '+ parsed.token
       }).end(function (res) {
-        console.log("Responseeeeee");
-        console.log("Response in TESTWES API" + res);
-        
-        console.log("Response in TESTWES API" + res['raw_body']);
-        console.log("Response in TESTWES API" + res['body']);
-        
         if (res.error) {
-          console.log("If Error");
-          // models.Institution_details.update(
-          //       {wesrecord:res['raw_body']},
-          //         {
-          //           where :{
-          //         [Op.and]:[{
-          //           user_id:user_id
-          //           },
-          //           {
-          //             app_id:appl_id
-          //             },
-          //           {
-          //             type:'Educational credential evaluators WES'
-          //           }]
-          //       }
-          //   }).then((err,update)=>{
-          //     if(err){
-          //       logger.error(err);
-          //       callback(err)
-          //     }
-          //   })
-            //throw new Error
-            // if(res['raw_body'] == 'Status Code: 404; Not Found'){
-              console.log("err");
-              callback('WES No. Not Found');
-            // }
+          models.Institution_details.update(
+                {wesrecord:JSON.parse(res['raw_body'])['title']},
+                  {
+                    where :{
+                  [Op.and]:[{
+                    user_id:user_id
+                    },
+                    {
+                      app_id:appl_id
+                      },
+                    {
+                      type:'Educational credential evaluators WES'
+                    }]
+                }
+            }).then((err,update)=>{
+              if(err){
+                logger.error(err);
+                callback(err)
+              }
+            })
+            throw new Error(res.error)
         }else{
-          console.log("Inside Else");
           if(JSON.parse(res['raw_body'])['lastName'].toLowerCase() == lastName.toLowerCase() || 
             JSON.parse(res['raw_body'])['firstName'].toLowerCase() == firstName.toLowerCase() || 
             JSON.parse(res['raw_body'])['email'].toLowerCase()==email.toLowerCase()){
-              console.log('inside valid condition');
           //  if((JSON.parse(res['raw_body'])['lastName'].toLowerCase() == lastName.toLowerCase() && JSON.parse(res['raw_body'])['email'].toLowerCase()==email.toLowerCase())
           // || (JSON.parse(res['raw_body'])['firstName'].toLowerCase() == firstName.toLowerCase() && JSON.parse(res['raw_body'])['email'].toLowerCase()==email.toLowerCase())
           // || (JSON.parse(res['raw_body'])['lastName'].toLowerCase() == lastName.toLowerCase() && JSON.parse(res['raw_body'])['firstName'].toLowerCase()== firstName.toLowerCase())){
@@ -2019,14 +1634,13 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
             .attach('file', fullfile)
             .end(function (res) {
               logger.debug(res['raw_body']);
-              console.log("INside Create");
               models.Wes_Records.create({
                 userId:user_id,
                 appl_id:appl_id,
                 fileName:JSON.parse(res['raw_body'])['fileName'] ,
                 reference_no :JSON.parse(res['raw_body'])['id'] ,
                 status:JSON.parse(res['raw_body'])['status'],
-                wesnumber:'GU-'+JSON.parse(res['raw_body'])['referenceNumber']
+                wesnumber:'MU-'+JSON.parse(res['raw_body'])['referenceNumber']
               }).then((userCreated)=>{
                 if(userCreated){
                   // res.status(200).json({
@@ -2035,7 +1649,6 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
                 }
               })
               if (res.error){ 
-                console.log("Errorrrr");
                 var wesid = stu['wesno'].slice(3, 10);
                 models.Wes_Records.create({
                   userId:user_id,
@@ -2043,7 +1656,7 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
                   fileName:'' ,
                   reference_no :'' ,
                   status:'File is too big.Only 50mb is allowed.',
-                  wesnumber:'GU-'+wesid 
+                  wesnumber:'MU-'+wesid 
                 }).then((userCreated)=>{
                   if(userCreated){
                     // res.status(200).json({
@@ -2055,7 +1668,6 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
                 callback("File is too big");
               }
               if(JSON.parse(res['raw_body'])['status']=='Accepted'){
-                console.log("Accepted");
                 models.Institution_details.update(
                   {wesupload:new Date().toISOString().slice(0,10)},
                   {
@@ -2069,7 +1681,6 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
                       {
                         type:'Educational credential evaluators WES'
                       }]
-                      ,source : 'guattestation'
                     }
                   }).then((err,updated)=>{
                     if(err){
@@ -2080,15 +1691,13 @@ module.exports.fileTransferWes1 = function(user_id,appl_id,firstName,lastName,em
                 })
               }
             });
-            console.log('@@@@@@@@@' + req);
           }else{
-            console.log("last anme or email not match");
-            callback("Student has filled wrong Wes Details")
+            callback("last name or email not match")
           }
         }
       });
     });
-  })  
+  })
 }
 
 module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback){
@@ -2100,7 +1709,6 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
        {
          type:'Educational credential evaluators WES'
        }]
-       ,source : 'guattestation'
     },
     attributes:[
       'wesno'
@@ -2116,7 +1724,7 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
       var wesid = stu['wesno'].slice(3, 10);
       if (res.error) throw new Error(res.error); 
       var parsed = JSON.parse(res.raw_body);
-      unirest('GET', 'https://testeuploads.wes.org/api/v2/applicantinfo/'+wesid)
+      unirest('GET', 'https://euploads.wes.org/api/v2/applicantinfo/'+wesid)
       .headers({
         'Authorization': 'Bearer '+ parsed.token
       }).end(function (res) {
@@ -2130,7 +1738,6 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
               {
                 type:'Educational credential evaluators WES'
               }]
-              ,source : 'guattestation'
             }
           }).then((err,update)=>{
             if(err){
@@ -2157,7 +1764,7 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
               fileName:JSON.parse(res['raw_body'])['fileName'] ,
               reference_no :JSON.parse(res['raw_body'])['id'] ,
               status:JSON.parse(res['raw_body'])['status'],
-              wesnumber:'GU-'+JSON.parse(res['raw_body'])['referenceNumber']
+              wesnumber:'MU-'+JSON.parse(res['raw_body'])['referenceNumber']
             }).then((userCreated)=>{
 				      if(userCreated){
 					      // res.status(200).json({
@@ -2173,7 +1780,7 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
                 fileName:'' ,
                 reference_no :'' ,
                 status:'File is too big.Only 50mb is allowed.',
-                wesnumber:'GU-'+wesid 
+                wesnumber:'MU-'+wesid 
               }).then((userCreated)=>{
                 if(userCreated){
                   // res.status(200).json({
@@ -2195,7 +1802,6 @@ module.exports.fileTransferWes_new = function(user_id,appl_id,fullfile,callback)
                   {
                     type:'Educational credential evaluators WES'
                   }]
-                  ,source : 'guattestation'
                 }
               }).then((err,updated)=>{
                 if(err){
@@ -2226,7 +1832,6 @@ module.exports.checkWESInfo = function(user_id,app_id,callback){
        {
          type:'Educational credential evaluators WES'
        }]
-       ,source : 'guattestation'
     },
     attributes:[
       'wesno'
@@ -2242,7 +1847,7 @@ module.exports.checkWESInfo = function(user_id,app_id,callback){
       var wesid = stu['wesno'].slice(3, 10);
       if (res.error) throw new Error(res.error); 
       var parsed = JSON.parse(res.raw_body);
-      unirest('GET', 'https://testeuploads.wes.org/api/v2/applicantinfo/'+wesid)
+      unirest('GET', 'https://euploads.wes.org/api/v2/applicantinfo/'+wesid)
       .headers({
         'Authorization': 'Bearer '+ parsed.token
       }).end(function (res) {
@@ -2256,7 +1861,6 @@ module.exports.checkWESInfo = function(user_id,app_id,callback){
               {
                 type:'Educational credential evaluators WES'
               }]
-              ,source : 'guattestation'
             }
           }).then((err,update)=>{
             if(err){
@@ -2294,7 +1898,7 @@ module.exports.pdfSigner =  async function(fileName, filePath, user_id, callback
 
   const p12Buffer = fs.readFileSync(constant.FILE_LOCATION + 'pdf-signer.p12');
 
-  var pdfBuffer = fs.readFileSync(constant.FILE_LOCATION + '/public/upload/documents/6910/EDUCATIONCERTIFICATE.pdf');
+  var pdfBuffer = fs.readFileSync(constant.FILE_LOCATION + '/public/upload/transcript/6910/EDUCATIONCERTIFICATE.pdf');
  // console.log("pdfBuffer == " + pdfBuffer);
   
   const certPassword = 'pdfsigner';
@@ -2303,8 +1907,8 @@ module.exports.pdfSigner =  async function(fileName, filePath, user_id, callback
   const signedPdf = await sign(pdfBuffer, p12Buffer, certPassword, {
       reason: '2',
       email: 'priyanka@edulab.in',
-      location: 'Gujarat',
-      signerName: 'University Of Gujarat',
+      location: 'Mumbai',
+      signerName: 'University Of Mumbai',
       annotationOnPages: [0, 1, 2],
       annotationAppearanceOptions: {
           signatureCoordinates: { left: 400, bottom: 500, right: 250, top: -50 },
@@ -2321,7 +1925,7 @@ module.exports.pdfSigner =  async function(fileName, filePath, user_id, callback
               },
           ],
           imageDetails: {
-            imagePath: constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',
+            imagePath: constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',
             transformOptions: { rotate: 0, space: 140, stretch: 10, tilt: 0, xPos: 0, yPos: 20 },
           },
           
@@ -2340,8 +1944,8 @@ module.exports.pdfSigner =  async function(fileName, filePath, user_id, callback
       const signedPdf2 = await sign(pdfBuffer2, p12Buffer, certPassword, {
           reason: '2',
           email: 'test@email.com',
-          location: 'Gujarat',
-          signerName: 'University Of Gujarat',
+          location: 'Mumbai',
+          signerName: 'University Of Mumbai',
           annotationAppearanceOptions: {
             signatureCoordinates: { left: 400, bottom: 500, right: 250, top: -50 },
               signatureDetails: [{
@@ -2355,7 +1959,7 @@ module.exports.pdfSigner =  async function(fileName, filePath, user_id, callback
                   transformOptions: { rotate: 0, space: 1, tilt: 0, xPos: 20, yPos: 30 },
               }],
               imageDetails: {
-                  imagePath: constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',
+                  imagePath: constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',
                   transformOptions: { rotate: 0, space: 140, stretch: 10, tilt: 0, xPos: 300, yPos: 20 },
               },
           },
@@ -2373,16 +1977,13 @@ module.exports.pdfToImageConversion = async function(fileName,user_id,filePath,o
   if(!fs.existsSync(outputdirectory)){
       fs.mkdirSync(outputdirectory, { recursive: true });//fs.writeFileSync
   }
-  var output_file = outputdirectory  + path.parse(fileName).name;
-  
-  console.log("insidee pdfToImageConversion" + filePath + output_file);
+  var output_file = outputdirectory  + path.parse(fileName).name
   var command = "pdftoppm -jpeg " + filePath +  " " + output_file;
   const pdfToImg = exec(command, function (error, stdout, stderr) {
       if (error) {
           logger.error(error.stack);
-          logger.error('Error code: of pdf to image '+error.code);
+          logger.error('Error code: '+error.code);
           logger.error('Signal received: '+error.signal);
-
       }else{
           console.log("done");
       }
@@ -2394,37 +1995,13 @@ module.exports.pdfToImageConversion = async function(fileName,user_id,filePath,o
   });
 }
 
-module.exports.addAadharAndApp_id  = async function(fileName, user_id, app_id,filePath,outputdirectory,aadharNo,callback){
-  console.log("addAadharAndApp_id");
-  var file = outputdirectory + '/' + fileName + '.pdf';
-  console.log("file == " + file);
-  const pdf = new PDFDocument();
-  pdf.pipe(fs.createWriteStream(file));
-  pdf.font(FILE_LOCATION+'public/fonts/Roboto-Regular.ttf')
-  .fontSize(10)
-  .text('Application Number : MDT/SY' + app_id, {
-      width: pdf.page.width-150,
-      align: 'right'
-  });
-  pdf.moveDown();
-  pdf.font(FILE_LOCATION+'public/fonts/Roboto-Regular.ttf')
-  .fontSize(10)
-  .text('Aadhar Number : ' + aadharNo, {
-      width: pdf.page.width-150,
-      align: 'right'
-  });
-  pdf.image(filePath, 0, 160, {width: pdf.page.width, height: pdf.page.height - 200})
-  pdf.moveDown();
-  pdf.end();
 
-  callback();
-},
 module.exports.signingDocuments = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments@@@@@@@@@@@@@@@@@@@@@" + category);
+  console.log("signingDocuments");
   console.log("fileName == " + filename);
   console.log("file_loc == " + file_loc);
   const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
+      placeholder: { reason : 'Digital signed by University Of Mumbai' },
   }) => new Promise((resolve) => {
       console.log("createPdf")
       const pdf = new PDFDocument({
@@ -2439,9 +2016,9 @@ module.exports.signingDocuments = async function(filename, user_id, app_id, file
               right: 72
           },
           info: {
-              Author: 'Gujarat University',
+              Author: 'Mumbai University',
               Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
           }
       });
       pdf.info.CreationDate = '';
@@ -2450,35 +2027,23 @@ module.exports.signingDocuments = async function(filename, user_id, app_id, file
       pdf.on('data', (data) => {
           pdfChunks.push(data);
       });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
-
-
+      pdf.image(file_loc,0,0, {
+          size: 'A4',
+          align: 'center',
+          width: 600,
+          height:pdf.page.height - 90,
+          note:'Digitally signed by University Of Mumbai',
+      }).moveDown(0.2);
+      pdf.moveTo(20, pdf.page.height - 92) 
+      .lineTo( pdf.page.width-20, pdf.page.height - 92) 
+      .dash(10, {space: 0}) 
+      .stroke() ;
       pdf.moveTo(20, pdf.page.height - 94)  
       .lineTo(pdf.page.width-20, pdf.page.height - 94)  
       .dash(10, {space: 0}) 
       .stroke() ;
-
-      console.log("categorycategory@@@@@@s" + category);
-      
-        pdf.image(constant.FILE_LOCATION +'public/upload/profile_pic/transcriptStamp.png',300,765,{width: 150,height: 80, align: 'center'});
-  
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-      pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/' + app_id + '_attestation_qrcode.png',30,755,{width: 110,height: 80, align: 'center'});
+      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/STAMP01.png',300,755,{fit: [85, 85], align: 'center'});
+      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/stamp_design2.png',430,755,{width: 130,height: 80, align: 'center'});
       pdf.on('end', () => {
           resolve(Buffer.concat(pdfChunks));
       });
@@ -2494,117 +2059,12 @@ module.exports.signingDocuments = async function(filename, user_id, app_id, file
   const action = async () => {
       logger.debug("action called");
       let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
+      let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
       var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
       try{
           var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
           var fname ;
           fname = name + "_" + filename + ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback('',fname);
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-module.exports.signingDocuments_notforprint = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments_notforprint @@@@@@@" );
-  console.log("fileName == " + filename);
-  console.log("file_loc == " + file_loc);
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          // image : constant.FILE_LOCATION+'public/upload/profile_pic/x.png',
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-          }
-      });
-      pdf.image(constant.FILE_LOCATION+'public/profile_pic/notforprint.jpg', {
-        // cover: [pdf.page.width - 100, pdf.page.height - 100],
-        align: 'center',
-        valign: 'center',
-      });
-
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
-
-      pdf.moveTo(20, pdf.page.height - 92) 
-      .lineTo( pdf.page.width-20, pdf.page.height - 92)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/notforprint.jpg', 0,0, {width: pdf.page.width, height: pdf.page.height});
-
-        pdf.image(constant.FILE_LOCATION +'public/upload/profile_pic/transcriptStamp.png',300,765,{width: 150,height: 80, align: 'center'});
-   
-      // else{
-      //   pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{fit: [85, 85], align: 'center'});
-      // }
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-      pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/'+ app_id + '_attestation_qrcode.png',30,755,{width: 130,height: 80, align: 'left'});
-
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + '_notforpint'+ ".pdf";   
           var fullfile = fpath+fname;
           console.log("fullfile : "+fullfile)
           var file=fs.writeFileSync(fullfile,pdf);
@@ -2617,286 +2077,10 @@ module.exports.signingDocuments_notforprint = async function(filename, user_id, 
 
   action();
 }
-module.exports.signingDocuments_marksheet = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments@@@@@@@@@@@@@@@@@@@@@" + category);
-  console.log("fileName == " + filename);
-  console.log("file_loc == " + file_loc);
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
-          }
-      });
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
 
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)  
-      .dash(10, {space: 0}) 
-      .stroke() ;
-
-        pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',250,755,{width: 160,height: 100, align: 'center'});
- 
-      
-   
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-      pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/' + app_id + '_attestation_qrcode.png',30,755,{width: 110,height: 80, align: 'center'});
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback('',fname);
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-module.exports.signingDocuments_notforprint_marksheet = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments_notforprint @@@@@@@" );
-  console.log("fileName == " + filename);
-  console.log("file_loc == " + file_loc);
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          // image : constant.FILE_LOCATION+'public/upload/profile_pic/x.png',
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-          }
-      });
-      pdf.image(constant.FILE_LOCATION+'public/profile_pic/notforprint.jpg', {
-        // cover: [pdf.page.width - 100, pdf.page.height - 100],
-        align: 'center',
-        valign: 'center',
-      });
-
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
-    
-      pdf.moveTo(20, pdf.page.height - 92) 
-      .lineTo( pdf.page.width-20, pdf.page.height - 92)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/notforprint.jpg', 0,0, {width: pdf.page.width, height: pdf.page.height});
-      console.log("categorycategory@@@@@@s" + category);
-      pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{width: 160,height: 100, align: 'center'});
-     
-      // else{
-      //   pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/marksheetStamp.png',300,765,{fit: [85, 85], align: 'center'});
-      // }
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-      // pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-      // pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/'+app_id + '_attestation_qrcode.png',30,755,{width: 130,height: 80, align: 'left'});
-
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + '_notforpint'+ ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback();
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-// module.exports.signingDocuments = async function(filename, user_id, app_id, file_loc, outputdirectory,callback){
-//   console.log("signingDocuments");
-//   console.log("fileName == " + filename);
-//   console.log("file_loc == " + file_loc);
-//   const createPdf = (params = {
-//       placeholder: { reason : 'Digital signed by University Of Gujarat' },
-//   }) => new Promise((resolve) => {
-//       console.log("createPdf")
-//       const pdf = new PDFDocument({
-//           autoFirstPage: true,
-//           size: 'A4',
-//           layout: 'portrait',
-//           bufferPages: true,
-//           margins : { 
-//               top: 72, 
-//               bottom: 20,
-//               left: 72,
-//               right: 72
-//           },
-//           info: {
-//               Author: 'Gujarat University',
-//               Subject: 'Digital Signature', 
-//               CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-//           }
-//       });
-//       pdf.info.CreationDate = '';
-//       pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-//       const pdfChunks = [];
-//       pdf.on('data', (data) => {
-//           pdfChunks.push(data);
-//       });
-//       pdf.image(file_loc,0,0, {
-//           size: 'A4',
-//           align: 'center',
-//           width: 600,
-//           height:pdf.page.height - 90,
-//           note:'Digitally signed by University Of Gujarat',
-//       }).moveDown(0.2);
-//       pdf.moveTo(20, pdf.page.height - 92) 
-//       .lineTo( pdf.page.width-20, pdf.page.height - 92) 
-//       .dash(10, {space: 0}) 
-//       .stroke() ;
-//       pdf.moveTo(20, pdf.page.height - 94)  
-//       .lineTo(pdf.page.width-20, pdf.page.height - 94)  
-//       .dash(10, {space: 0}) 
-//       .stroke() ;
-//       pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/gu_Stamp.png',300,755,{fit: [85, 85], align: 'center'});
-//       pdf.image(constant.FILE_LOCATION+'public/upload/profile_pic/sample_signature.jpeg',430,755,{width: 130,height: 80, align: 'center'});
-//       pdf.on('end', () => {
-//           resolve(Buffer.concat(pdfChunks));
-//       });
-//       const refs = addSignaturePlaceholder({
-//           pdf,
-//           reason: 'Approved',
-//           ...params.placeholder,
-//       });
-//       Object.keys(refs).forEach(key => refs[key].end());
-//       pdf.end();
-//   });
-
-//   const action = async () => {
-//       logger.debug("action called");
-//       let pdfBuffer = await createPdf();
-//       let p12Buffer = fs.readFileSync(constant.FILE_LOCATION+'certificateATT.pfx');
-//       var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-//       try{
-//           var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-//           var fname ;
-//           fname = name + "_" + filename + ".pdf";   
-//           var fullfile = fpath+fname;
-//           console.log("fullfile : "+fullfile)
-//           var file=fs.writeFileSync(fullfile,pdf);
-//           callback();
-//       }catch(error){
-//           logger.error("There is problem in generating signed pdf."+error);
-//           callback("There is problem in generating signed pdf.");
-//       }
-//   }
-
-//   action();
-// }
 
 module.exports.mergeDocuments = async function (app_id,user_id, name,fileName,outputDirectory,mergefilesString, callback){
-  logger.info("merge called for application no : ")
+  logger.info("merge called for application no : "+app_id)
   var file_name = name + "_" + fileName + ".pdf";
   var outputfile = outputDirectory +  file_name ;
   console.log("outputfile==>"+outputfile)
@@ -2920,353 +2104,4 @@ module.exports.mergeDocuments = async function (app_id,user_id, name,fileName,ou
       logger.debug('Child process exited with exit code '+code);
   });
 }
-module.exports.signingDocuments_provisional = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments_provisional @@@@@@@" );
-  console.log("fileName == " + filename);
-  console.log("file_loc == " + file_loc);
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          // image : constant.FILE_LOCATION+'public/upload/profile_pic/x.png',
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-          }
-      });
-      pdf.image(constant.FILE_LOCATION+'public/profile_pic/notforprint.jpg', {
-        // cover: [pdf.page.width - 100, pdf.page.height - 100],
-        align: 'center',
-        valign: 'center',
-      });
 
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
-
-      pdf.moveTo(20, pdf.page.height - 92) 
-      .lineTo( pdf.page.width-20, pdf.page.height - 92)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/'+ app_id + '_attestation_qrcode.png',30,755,{width: 130,height: 80, align: 'left'});
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback('',fname);
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-module.exports.ssigningDocuments_provisional_notforprint = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("ssigningDocuments_provisional_notforprint @@@@@@@" );
-  console.log("fileName == " + filename);
-  console.log("file_loc == " + file_loc);
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          // image : constant.FILE_LOCATION+'public/upload/profile_pic/x.png',
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-          }
-      });
-      pdf.image(constant.FILE_LOCATION+'public/profile_pic/notforprint.jpg', {
-        // cover: [pdf.page.width - 100, pdf.page.height - 100],
-        align: 'center',
-        valign: 'center',
-      });
-
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      // pdf.image(file_loc,0,0, {
-      //     size: 'A4',
-      //     align: 'center',
-      //     width: 600,
-      //     height:pdf.page.height - 90,
-      //     note:'Digitally signed by University Of Gujarat',
-      // }).moveDown(0.2);
-      pdf.image(file_loc,0,0, {fit:[pdf.page.width,pdf.page.height - 90],
-        size: 'A4',
-        // align: 'center',
-        // //width: 600,
-        // height:pdf.page.height - 90,
-        note:'Digitally signed by Gujarat University',
-    }).moveDown(0.2);
-
-      pdf.moveTo(20, pdf.page.height - 92) 
-      .lineTo( pdf.page.width-20, pdf.page.height - 92)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.image(constant.FILE_LOCATION+'public/signedpdf/' + user_id + '/'+ app_id + '_attestation_qrcode.png',30,755,{width: 130,height: 80, align: 'left'});
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + '_notforpint'+ ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback();
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-
-module.exports.mergeAutoPrint = async function (name, fileName, outputDirectory, mergefilesString, callback){
-  logger.info("merge called for : "+name, fileName)
-  var file_name = name + "_" + fileName + ".pdf";
-  var outputfile = outputDirectory +"/"+  file_name ;
-  
-  var command = "pdfunite " + mergefilesString + " " + outputfile;
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-      if (error) {
-        logger.error(error.stack);
-        logger.error('Error code: '+error.code);
-        logger.error('Signal received: '+error.signal);
-        callback(error);
-      }else{
-        callback();
-      }
-      logger.debug('Child Process STDOUT: '+stdout);
-      logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-      logger.debug('Child process exited with exit code '+code);
-  });
-}
-
-module.exports.mergeCoverAppPrint = async function (name, fileName, outputDirectory, mergefilesString, callback){
-  logger.info("merge called for : "+name, fileName)
-  var file_name = name + "_" + fileName + "_merge.pdf";
-  var outputfile = outputDirectory +"/"+  file_name ;
-
-  var command = "pdfunite " + mergefilesString + " " + outputfile;
-  const pdfunite = exec(command, function (error, stdout, stderr) {
-      if (error) {
-        logger.error(error.stack);
-        logger.error('Error code: '+error.code);
-        logger.error('Signal received: '+error.signal);
-        callback(error);
-      }else{
-        callback();
-      }
-      logger.debug('Child Process STDOUT: '+stdout);
-      logger.error('Child Process STDERR: '+stderr);
-  });
-
-  pdfunite.on('exit', function (code) {
-      logger.debug('Child process exited with exit code '+code);
-  });
-}
-
-module.exports.signingDocuments_merge = async function(filename, user_id, app_id, file_loc, name,category, outputdirectory,callback){
-  console.log("signingDocuments_merge");
-  let enrollment = '';
-  let course = '';
-  let userdetails = await functions.getuserdetail(user_id);
-  userdetails.enrollmentNo.forEach(function (enroll){
-      console.log('enrollenroll' + JSON.stringify(enroll));
-      enrollment = enroll.enrollmentNo + enrollment;
-      course = enroll.course + course;
-  })
-  const createPdf = (params = {
-      placeholder: { reason : 'Digital signed by University Of Gujarat' },
-  }) => new Promise((resolve) => {
-      console.log("createPdf")
-      const pdf = new PDFDocument({
-          autoFirstPage: true,
-          size: 'A4',
-          layout: 'portrait',
-          bufferPages: true,
-          margins : { 
-              top: 72, 
-              bottom: 20,
-              left: 72,
-              right: 72
-          },
-          info: {
-              Author: 'Gujarat University',
-              Subject: 'Digital Signature', 
-              CreationDate: moment.utc(Date.now()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), 
-          }
-      });
-    
-      pdf.info.CreationDate = '';
-      pdf.fillColor('#333').fontSize(25).moveDown().text(params.text);
-      const pdfChunks = [];
-      pdf.on('data', (data) => {
-          pdfChunks.push(data);
-      });
-      pdf.image(file_loc,0,0, {
-          size: 'A4',
-          align: 'center',
-          width: 600,
-          height:pdf.page.height - 90,
-          note:'Digitally signed by University Of Gujarat',
-      }).moveDown(0.2);
-      pdf.moveTo(20, pdf.page.height - 92) 
-      .lineTo( pdf.page.width-20, pdf.page.height - 92) 
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.moveTo(20, pdf.page.height - 94)  
-      .lineTo(pdf.page.width-20, pdf.page.height - 94)
-      .dash(10, {space: 0}) 
-      .stroke() ;
-      pdf.text('',50,755,{fit: [85, 85], align: 'left'}).fontSize(9);
-      pdf.text('Enrollment No:' + enrollment + '-' +course ,50,775,{fit: [85, 85], align: 'center'}).fontSize(9);
-      pdf.text('Aadhar Number:' + userdetails.aadharNumber,50,755,{fit: [85, 85], align: 'center'}).fontSize(9);
-      // pdf.text('Enrollment No :' + enrollment + ' - ' + course ,50,780,{fit: [85, 85], align: 'left'}).fontSize(12);
-      
-      pdf.on('end', () => {
-          resolve(Buffer.concat(pdfChunks));
-      });
-      const refs = addSignaturePlaceholder({
-          pdf,
-          reason: 'Approved',
-          ...params.placeholder,
-      });
-      Object.keys(refs).forEach(key => refs[key].end());
-      pdf.end();
-  });
-
-  const action = async () => {
-      logger.debug("action called");
-      let pdfBuffer = await createPdf();
-      let p12Buffer = fs.readFileSync(constant.Certificate_Url+'certificateATT.pfx');
-      var pdf = signer.sign(pdfBuffer, p12Buffer, { passphrase : constant.PASSPHRASE, asn1StrictParsing : true });
-      try{
-          var fpath = outputdirectory; //constant.FILE_LOCATION+"public/signedpdf/"+user_id+"/";
-          var fname ;
-          fname = name + "_" + filename + ".pdf";   
-          var fullfile = fpath+fname;
-          console.log("fullfile : "+fullfile)
-          var file=fs.writeFileSync(fullfile,pdf);
-          callback();
-      }catch(error){
-          logger.error("There is problem in generating signed pdf."+error);
-          callback("There is problem in generating signed pdf.");
-      }
-  }
-
-  action();
-}
-
-
-module.exports.imagetopdf = async function (inputDir,outputDir){
-  console.log('imagetopdfimagetopdfimagetopdf');
-  var command = "img2pdf "+inputDir+ " -o " +outputDir;console.log("command",command);
-  const img2pdf = exec(command, function (error, stdout, stderr) {
-    if (error) {
-      logger.error(error.stack);
-      logger.error('Error code: '+error.code);
-      logger.error('Signal received: '+error.signal);
-    }else{
-          logger.info("file created @ "+outputDir);
-    }
-    logger.debug('Child Process STDOUT: '+stdout);
-    logger.error('Child Process STDERR: '+stderr);
-  });
-  img2pdf.on('exit', function (code) {
-    logger.debug('Child process exited with exit code '+code);
-  });
-    }

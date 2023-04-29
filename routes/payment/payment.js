@@ -16,7 +16,6 @@ var base64 = require('file-base64');
 var json2xls = require('json2xls');
 const moment = require('moment');
 const fs = require('fs');
-var cron = require('node-cron');
 var json2csv = require('json2csv').parse;
 var sequelize = require("sequelize");
 const Op = sequelize.Op;
@@ -29,6 +28,7 @@ var XLSX = require('xlsx');
 var json2xls = require('json2xls');
 
 
+
 var paymentGatewayMode='live';//'live'; // live OR test
 var workingKey='';
 var accessCode='';
@@ -39,11 +39,11 @@ var secureUrl='';
 if (paymentGatewayMode=='live')
 {
 //Live payment gateway
-    workingKey = '8DFEB87B936835C33E70B70EF4B39144';
-    accessCode = 'AVMM20JH05BY13MMYB'; //
+    workingKey = '1FD95763C4E31757EC1A56F06661B520';
+    accessCode = 'AVDB91HC07BB02BDBB'; //
     secureUrl = 'https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction';
 
-
+    
     //16-03-2019
    //  workingKey = 'D8C2131C2C5546D9E33506F880CABCF0';
    // // workingKey = 'FBB306BAC746D017DFBC62E41E9DA026';
@@ -60,44 +60,88 @@ else
 {
    //
     //for local
-    workingKey = '8DFEB87B936835C33E70B70EF4B39144';
-    accessCode = 'AVMM20JH05BY13MMYB'; //
+    workingKey = '19220C811E78848B76420041521DC0E1';
+    accessCode = 'AVXY02GC57AA32YXAA'; //
     secureUrl = 'https://test.ccavenue.com/transaction/transaction.do?command=initiateTransaction';
 }
 
 router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
-    var currentdate = new Date();
+    var currentdate = new Date(); 
     var year = currentdate.getFullYear();
     year = year.toString().substr(-2);
     var total_amount = req.body.total_amount;
-    var service = req.body.service;
-    var source;
-    var Appliedfor;
+    var incremented_Id;
     var transaction_id = req.User.id+"Y"+year+"M"+(currentdate.getMonth()+1)+"D"+currentdate.getDate()+"T"+currentdate.getHours()+currentdate.getMinutes()+currentdate.getSeconds();
-    var  merchant_id = '897916';
-    if(req.User.id == ''){
+    var merchant_id;
+
+    if(req.User.id == '6551' || req.User.id == '6679' || req.User.id == '6910' || req.User.id == '33841' || req.User.id == '59759' || req.User.id == '65218'){
         total_amount = '1.00';
-        workingKey = '8DFEB87B936835C33E70B70EF4B39144';
-        accessCode = 'AVMM20JH05BY13MMYB'; //
+        workingKey = '1FD95763C4E31757EC1A56F06661B520';
+        accessCode = 'AVDB91HC07BB02BDBB'; //
         secureUrl = 'https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction';
     }
 
-    models.Applied_For_Details.getAttestationFor(req.User.id).then(function(attested){
-        Appliedfor= attested[0];
-
-    if(Appliedfor.instructionalField == true || Appliedfor.instructionalField == 1){
-        source = 'gumoi'
+    if(req.User.id == '53774' || req.User.id =='54944' || req.User.id =='54946' || req.User.id =='54947' || req.User.id =='54948' || req.User.id =='54949' || req.User.id =='54950' || req.User.id =='54951' || req.User.id =='54952' || req.User.id =='54953' || req.User.id =='54954' || req.User.id =='54955' || req.User.id =='54956' || req.User.id =='54957' || req.User.id =='54958' || req.User.id =='54959' || req.User.id =='54961' || req.User.id =='54962' || req.User.id =='54963' || req.User.id =='54964' || req.User.id =='54966'){
+        console.log("1")
+        currency = 'INR';
+        merchant_id = '783346';
+        //total_amount = '10';
+        workingKey = '1485DDD8F5987066FBFF4C93AF600CB1';
+        accessCode = 'AVVL65JA71AU49LVUA'; //
+        secureUrl = 'https://test.ccavenue.com/transaction/transaction.do?command=initiateTransaction';
+        if(req.User.id =='54944'){
+            total_amount = '100';
+        }else if(req.User.id =='54946'){
+            total_amount = '200';
+        }else if(req.User.id =='54947'){
+            total_amount = '300';
+        }else if(req.User.id =='54948'){
+            total_amount = '400';
+        }else if(req.User.id =='54949'){
+            total_amount = '500';
+        }else if(req.User.id =='54950'){
+            total_amount = '600';
+        }else if(req.User.id =='54951'){
+            total_amount = '700';
+        }else if(req.User.id =='54952'){
+            total_amount = '800';
+        }else if(req.User.id =='54953'){
+            total_amount = '900';
+        }else if(req.User.id =='54954'){
+            total_amount = '1000';
+        }else if(req.User.id =='54955'){
+            total_amount = '1100';
+        }else if(req.User.id =='54956'){
+            total_amount = '1200';
+        }else if(req.User.id =='54957'){
+            total_amount = '1300';
+        }else if(req.User.id =='54958'){
+            total_amount = '1400';
+        }else if(req.User.id =='54959'){
+            total_amount = '1500';
+        }else if(req.User.id =='54961'){
+            total_amount = '1600';
+        }else if(req.User.id =='54962'){
+            total_amount = '1700';
+        }else if(req.User.id =='54963'){
+            total_amount = '1800';
+        }else if(req.User.id =='54964'){
+            total_amount = '1900';
+        }else if(req.User.id =='54966'){
+            total_amount = '2000';
+        }
     }else{
-        source = 'guattestation'
+        console.log("2")
+        currency = 'INR';
+        merchant_id = '252217';
     }
-    
-    models.Orders.findOne({
+ 
+    models.Orders.find({
         where:{
             order_id : '1',
             user_id : req.User.id,
             amount :  total_amount,
-            status : '0',
-            source : source
+            status : '0'
         }
     }).then(function(order_exists){
         if(order_exists){
@@ -106,8 +150,8 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                 order_id: order_exists.id,
                 currency: 'INR',
                 amount: total_amount,
-                redirect_url: "https://guattestation.studentscenter.in/api/payment/success-redirect-url",
-                cancel_url: "https://guattestation.studentscenter.in/api/payment/cancel-redirect-url",
+                redirect_url: "https://mu.etranscript.in/api/payment/success-redirect-url",
+                cancel_url: "https://mu.etranscript.in/api/payment/cancel-redirect-url", 
                 language: 'EN',
                 billing_name: req.User.name,
                 billing_address: req.User.address1,
@@ -117,10 +161,9 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                 billing_country: 'India',
                 billing_tel: req.User.mobile,
                 billing_email: req.User.email,
-                // merchant_param1 : req.User.name,
-                merchant_param1 : service,
+                merchant_param1 : req.User.name,
                 merchant_param2 : req.User.email,
-                merchant_param3 : source,//req.User.mobile,
+                merchant_param3 : constant.BASE_URL,//req.User.mobile,
                 merchant_param4 : req.User.address1,
                 merchant_param5 : transaction_id
             };
@@ -131,14 +174,14 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                 if (i){data=data+'&';}i=1;
                 data=data+attr+'='+encodeURIComponent(bodyJson[attr]);
             }
-
+ 
             var encRequest = ccav.encrypt(data,workingKey);
             var viewdata={
                 secureUrl : secureUrl,
                 encRequest : encRequest,
                 accessCode : accessCode
             }
-
+ 
             res.json({
                 status : 200,
                 data : viewdata
@@ -148,13 +191,13 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                 var last_id = getid[0].MAXID;
                 incremented_Id = parseInt(last_id)+01;
                 models.Orders.create({
-                    // id : incremented_Id,
+                    id : incremented_Id,
                     order_id : '1',
                     user_id : req.User.id,
                     application_id : '0',
                     timestamp : functions.get_current_datetime(),
                     amount :  total_amount,
-                    source : source
+                    status : '0'
                 }).then(function(order_created){
                     if(order_created){
                         var paymentData = {
@@ -162,8 +205,8 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                             order_id: order_created.id,
                             currency: 'INR',
                             amount: total_amount,
-                            redirect_url: "https://guattestation.studentscenter.in/api/payment/success-redirect-url",
-                            cancel_url: "https://guattestation.studentscenter.in/api/payment/cancel-redirect-url",
+                            redirect_url: "https://mu.etranscript.in/api/payment/success-redirect-url",
+                            cancel_url: "https://mu.etranscript.in/api/payment/cancel-redirect-url", 
                             language: 'EN',
                             billing_name: req.User.name,
                             billing_address: req.User.address1,
@@ -173,10 +216,9 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                             billing_country: 'India',
                             billing_tel: req.User.mobile,
                             billing_email: req.User.email,
-                            // merchant_param1 : req.User.name,
-                            merchant_param1 : service,
+                            merchant_param1 : req.User.name,
                             merchant_param2 : req.User.email,
-                            merchant_param3 : source,
+                            merchant_param3 : constant.BASE_URL,//req.User.mobile,
                             merchant_param4 : req.User.address1,
                             merchant_param5 : transaction_id
                         };
@@ -193,7 +235,7 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
                             encRequest : encRequest,
                             accessCode : accessCode
                         }
-
+  
                         res.json({
                             status : 200,
                             data : viewdata
@@ -203,28 +245,26 @@ router.post('/paymentrequest',middlewares.getUserInfo,function(req,res){
             })
         }
     });
-})
 });
-
+ 
 router.post('/success-redirect-url',function(req,res){
     console.log("Success URL");
-    institutionData = [];
+
     var ccavEncResponse='',
-    ccavResponse='',
+    ccavResponse='',    
     ccavPOST = '';
     var total_amount;
     var outercounter = 0;
-    var randomEnroNo;
+
     var bodyJson=JSON.parse(JSON.stringify(req.body));
     var data='';
     var i=0;
-    var deliverType;
     for(var attr in bodyJson){
         if (i){data=data+'&';}i=1;
         data=data+attr+'='+encodeURIComponent(bodyJson[attr]);
     }
 
-
+    
 
     ccavEncResponse += data;
     ccavPOST =  qs.parse(ccavEncResponse);
@@ -233,80 +273,47 @@ router.post('/success-redirect-url',function(req,res){
 
     var pData = [];
     var obj = qs.parse(ccavResponse);
-    var source = obj.merchant_param3
-    
+    // console.log("obj.mer_amount----->"+obj.mer_amount);
+    // console.log("obj.order_id----->"+obj.order_id);
+
     if(obj.order_status == "Success"){
-        models.User.getUserDetailsByemail( obj.merchant_param2 ).then(user =>{
+        // models.User.find({
+        //     where : {
+        //         email : obj.merchant_param2 
+        //     }
+        // }).then(function(user){
+        models.User.getUserDetailsByemail(obj.merchant_param2 ).then(user =>{
+            models.Cart.findAll({
+                where:
+                {
+                    user_id : user[0].id
+                }
+            }).then(function(cart){
+                //total_amount = 1000 * cart.length;
                 total_amount = obj.mer_amount;
                 models.Application.findAll({
                     where :{
-                        user_id : user[0].id,
-                        source_from : source
+                        user_id : user[0].id 
                     }
-                }).then(async function(applications){
-                    var type;
-                    institutionData = await functions.getInstitution(user[0].id);
-                    institutionData.forEach(function (inst){
-                        type = inst.deliveryType + type;
-                    })
-                    if(type.includes('digital') && type.includes('physcial')){
-                        deliverType = 'digital,sealed'
-                    }
-                    if(type.includes('digital')){
-                        deliverType = 'digital'
-                    }
-                    if(type.includes('physcial')){
-                        deliverType = 'sealed'
-                    }
+                }).then(function(applications){
                     var appStatus ;
-                    var appTracker;
-					var appliedfor = await functions.FetchPreviousData_applied_notPaid(user[0].id);
-                    if(appliedfor.previous_data != null){
-                            if(appliedfor.previous_data.Type == 'SameType'){
-                                var appliationTracker =  await functions.getnotes(appliedfor.previous_data.app_id);
-                                   if(appliationTracker.tracker == 'done'){
-                                    if(deliverType == 'digital,sealed'){
-                                        appStatus = 'accept'
-                                        appTracker = 'print_signed'
-                                    }
-                                    if(deliverType == 'digital'){
-                                        appStatus = 'accept'
-                                        appTracker = 'signed'
-                                    }
-                                    if(deliverType == 'sealed'){
-                                        appStatus = 'accept'
-                                        appTracker = 'print'
-                                    }
-                              
-                                   }else{
-                                    appStatus = 'new'
-                                     appTracker = 'apply'
-                                   }
-                            }else{
-                                appStatus = 'new'
-                                appTracker = 'apply'
-
-                            }
-                            
+                    if(applications.length > 0){
+                        appStatus = 'repeat'
                     }else{
                         appStatus = 'new'
-                        appTracker = 'apply'
                     }
+                
                     models.Application.create({
-                        tracker :appTracker,
+                        tracker : 'apply',
                         status : appStatus,
                         total_amount : total_amount,
-                        user_id : user[0].id,
-                        source_from : source,
-                        deliveryType : deliverType,
-                        servicetype : obj.merchant_param1
+                        user_id : user[0].id
                     }).then(function(created){
                         if(created){
-                            models.Orders.findOne({
+                            models.Orders.find({
                                 where:
                                 {
-                                    id : obj.order_id,
-                                    source : source
+                                    id : obj.order_id
                                 }
                             }).then(function(order){
                                 order.update({
@@ -318,14 +325,15 @@ router.post('/success-redirect-url',function(req,res){
                                     status : '1'
                                 }).then(function(order_updated){
 
-                                    models.Transaction.findOne({
+                                    models.Transaction.find({
                                         where  :{
-                                            tracking_id  : obj.tracking_id
+                                            tracking_id  : obj.tracking_id 
                                         }
                                     }).then(function (checktranasction){
                                     setTimeout(()=>{
                                         if(checktranasction){
-                                            res.redirect("https://guattestation.studentscenter.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
+                                            res.redirect("http://mu.etranscript.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
+
                                         }else{
                                             models.Transaction.create({
                                                 order_id : order_updated.id,
@@ -348,106 +356,210 @@ router.post('/success-redirect-url',function(req,res){
                                                 merchant_param3 : obj.merchant_param3,
                                                 merchant_param4 : obj.merchant_param4,
                                                 merchant_param5 : obj.merchant_param5,
-                                                split_status : '-1',
-                                                source : source
-                                            }).then(async function(transaction_created){
+                                                split_status : '-1'
+                                            }).then(function(transaction_created){
                                                 if(transaction_created){
-                                                    // models.User_Course_Enrollment_Detail_Attestation.getListLastData().then(async function(last){
-                                                    // var last_id = last[0].enrollment_no;
-                                                    // randomEnroNo = parseInt(last_id)+01;
-                                                    randomEnroNo = '';
-                                                    let ucedcreate=await functions.ucedcreated(created.id,user[0].id,randomEnroNo,source);
-                                                    let inwardno=await functions.createinward(created.id,user[0].id,'A/');
-                                                    if(ucedcreate && inwardno){
-                                                    
-                                                          var userName = user[0].name + ' ' + user[0].surname;
-                                                          updateAppId(user[0].id, user[0].educationalDetails,user[0].instructionalField,created.id);
-                                                         var desc = user.name+"( "+user.email+" ) made payment ";
-                                                         var activity = "Payment";
-                                                         var applicationId = created.id;
-                                                         functions.activitylog(user.id, activity, desc, applicationId);
+                                                    var userName = user[0].name + ' ' + user[0].surname;
+                                                    updateAppId(user[0].id, user[0].educationalDetails,user[0].instructionalField,user[0].curriculum,user[0].gradToPer,created.id,user[0].affiliation,user[0].CompetencyLetter,user[0].LetterforNameChange);
+                                                    cart.forEach(function(single_cart){
+                                                        outercounter ++ ;
+                                                        models.Institution_details.find({
+                                                            where:
+                                                            {
+                                                                id : single_cart.institute_id
+                                                            }
+                                                        }).then(function(inst_detail){
+                                                        var desc = user.name+"( "+user.email+" ) made payment for Institute ( "+inst_detail.university_name+" ).";
+                                                        var activity = "Payment";
+                                                        var applicationId = created.id;
+                                                        functions.activitylog(user.id, activity, desc, applicationId);
+                                                            inst_detail.update({
+                                                                app_id : created.id
+                                                            }).then(function(inst_updated){
+                                                                models.Hrd_details.findAll({
+                                                                    where :{
+                                                                        user_id : user[0].id
+                                                                    }
+                                                                }).then(function (hrdApp_id){
+                                                                    if(hrdApp_id.length > 0){
+                                                                        models.Hrd_details.update({
+                                                                            app_id : created.id
+                                
+                                                                        }, {
+                                                                            where: {
+                                                                                user_id : user[0].id
+                                                                            }
+                                                                        }).then(function (data) {
+                                                                        
+                                                                        })
+                                                                        
+                                                                    }
+                                                                 
+                                                                                
+                                                                    // else{
+                                                                        models.Cart.destroy({
+                                                                            where:{
+                                                                                institute_id : inst_updated.id,   
+                                                                            }
+                                                                        }).then(function(cart_deleted){
 
-                                                setTimeout(()=>{
-                                                    sendEmailStudent(user[0].id,user[0].email,userName,created.id);
-                                                    if(user[0].educationalDetails == true)
-                                                        // sendEmailInstitute(user[0].id,userName,created.id);
-                                                    if(user[0].instructionalField == true)
-                                                    sendEmailInstituteInstructional(user[0].id,userName,created.id);
-                                                },2000)
-                                                res.redirect("https://guattestation.studentscenter.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
+                                                                        });
+                                                                    // }
+                                                            })
+                                                            });
+                                                        });
+                                                    });
+                                                    setTimeout(()=>{
+                                                        if(user[0].educationalDetails == true)
+                                                            sendEmailInstitute(user[0].id,userName,created.id);
+                                                        if(user[0].instructionalField == true)
+                                                            sendEmailInstituteInstructional(user[0].id,userName,created.id);
+                                                        if(user[0].curriculum == true)
+                                                            sendEmailInstituteCurriculum(user[0].id,userName,created.id);
+                                                        if(user[0].gradToPer == true)
+                                                            sendEmailInstitiuteGradeTOPercentLetter(user[0].id,userName,created.id)
+                                                        if(user[0].affiliation == true)
+                                                            sendEmailInstitiuteAffiliationLetter(user[0].id,userName,created.id)
+                                                        if(user[0].CompetencyLetter == true)
+                                                        sendEmailInstituteCompetency(user[0].id,userName,created.id)
 
-                                               }
+                                                 
+                                                            sendEmailStudent(user[0].id,user[0].email,userName,created.id);
+                                                        
+                                                    },2000)
+        
+                                                    if(outercounter == cart.length){
+                                                    //
+                                                        res.redirect("http://mu.etranscript.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
+                                                        // res.json({
                             
-                                        //   });
+                                                        // })
+                                                    }
                                                 }
                                             });
                                         }
-                                    },8000)
+                                    },5000)
                                     })
-
+                                  
                                 });
                             });
                         }
-                    })
+                    })  
                 })
-       
+            });
         });
     }else{
-        models.Orders.findOne({
+        models.Orders.find({
             where:
             {
-                id : obj.order_id,
-                source : source
+                id : obj.order_id
             }
         }).then(function(ord){
             if(obj.order_status == 'Failure'){
                 ord.update({
                     status : '-1'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Timeout'){
                 ord.update({
                     status : '2'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Aborted'){
                 ord.update({
                     status : '3'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Invalid'){
                 ord.update({
                     status : '4'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else{
                 ord.update({
                     status : '5'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }
         });
     }
 
-    function sendEmailInstituteInstructional(user_id,user_name,app_id){
-        var collegeData = [];
+    function sendEmailInstitute(user_id,user_name,app_id){
+        var userTranscripts = [];
         var userMarkLists = [];
-        models.InstructionalDetails.findAll({
+        models.User_Transcript.findAll({
             where :{
-                userId : user_id
+                user_id : user_id
             }
-        }).then(function(instructional){
-            models.userMarkList.findAll({
-                where : {
-                    user_id : user_id,source : 'guattestation'
+        }).then(function(user_transcripts){
+            user_transcripts.forEach(transcript=>{
+                var app_idArr = transcript.app_id.split(',');
+                app_idArr.forEach(appl_id=>{
+                    if(appl_id == app_id){
+                        userTranscripts.push(transcript);
+                    }
+                })
+            })
+            var collegeData = [];
+            userTranscripts.forEach(transcript=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    user_transcript : [],
+                    user_markList : [],
+                    app_id : app_id
                 }
-            }).then(function(userMarkListsData){
-              models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMark_Lists){
+                models.College.find({
+                    where:{
+                        id : transcript.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+ user_id + "/" + urlencode(transcript.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == transcript.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+user_id + "/" + urlencode(transcript.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+user_id + "/" + urlencode(transcript.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+               models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(userMark_Lists){      
                 userMark_Lists.forEach(transcript=>{
                     var app_idArr = transcript.app_id.split(',');
                     app_idArr.forEach(appl_id=>{
@@ -455,7 +567,313 @@ router.post('/success-redirect-url',function(req,res){
                             userMarkLists.push(transcript);
                         }
                     })
+                })      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        user_transcript : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        //flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                                }
+                            }
+                        }
+                    });
                 })
+                setTimeout(function(){
+                    request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailShweta', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.User_Transcript.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.User_Transcript.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+    function sendEmailInstituteCompetency(user_id,user_name,app_id){
+        var userTranscripts = [];
+        var userMarkLists = [];
+        models.CompetencyLetter.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(user_transcripts){
+            user_transcripts.forEach(transcript=>{
+                var app_idArr = transcript.app_id.split(',');
+                app_idArr.forEach(appl_id=>{
+                    if(appl_id == app_id){
+                        userTranscripts.push(transcript);
+                    }
+                })
+            })
+            var collegeData = [];
+            userTranscripts.forEach(transcript=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    user_transcript : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : transcript.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/CompetencyLetter/'+ user_id + "/" + urlencode(transcript.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == transcript.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/CompetencyLetter/'+user_id + "/" + urlencode(transcript.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/CompetencyLetter/'+user_id + "/" + urlencode(transcript.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+               models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(userMark_Lists){      
+                userMark_Lists.forEach(transcript=>{
+                    var app_idArr = transcript.app_id.split(','); 
+                    app_idArr.forEach(appl_id=>{
+                        if(appl_id == app_id){
+                            userMarkLists.push(transcript);
+                        }
+                    })
+                })      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        user_transcript : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        //flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                                }
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+                    request.post(constant.BASE_URL_SENDGRID + 'CompetencyLetterVerification', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    },
+                     function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.CompetencyLetter.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.CompetencyLetter.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+    function sendEmailInstituteInstructional(user_id,user_name,app_id){
+        var collegeData = [];
+        var userMarkLists = [];
+        models.InstructionalDetails.find({
+            where :{
+                userId : user_id
+            }
+        }).then(function(instructional){
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){
+              models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMark_Lists){      
+                userMark_Lists.forEach(transcript=>{
+                    var app_idArr = transcript.app_id.split(',');
+                    app_idArr.forEach(appl_id=>{
+                        if(appl_id == app_id){
+                            userMarkLists.push(transcript);
+                        }
+                    })
+                })      
                 userMarkLists.forEach(markList=>{
                     var singleCollege = {
                         user_id : '',
@@ -468,7 +886,7 @@ router.post('/success-redirect-url',function(req,res){
                         alternateEmail : '',
                         app_id : app_id
                     }
-                    models.College.findOne({
+                    models.College.find({
                         where:{
                             id : markList.collegeId
                         }
@@ -480,17 +898,17 @@ router.post('/success-redirect-url',function(req,res){
                             singleCollege.studentName = instructional.studentName;
                             singleCollege.college_id = college.id;
                             singleCollege.courseName = instructional.courseName;
-                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                             collegeData.push(singleCollege);
                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                 collegeData.push(singleCollege);
                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                                     collegeData.push(singleCollege);
-                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                     collegeData.push(singleCollege);
 
                             }
@@ -500,17 +918,17 @@ router.post('/success-redirect-url',function(req,res){
                                 if(collegeData[i].college_id == markList.collegeId){
                                     //console.log("----1111----");
                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                    collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                                     flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
                                     break;
                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                         flag = true;
-                                        break;
+                                        break; 
                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                                         flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
-                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                         flag = true;
                                         break;
 
@@ -526,17 +944,17 @@ router.post('/success-redirect-url',function(req,res){
                                 singleCollege.collegeEmail = college.emailId;
                                 singleCollege.alternateEmail = college.alternateEmailId;
                                 if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                                     collegeData.push(singleCollege);
                                 }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                     collegeData.push(singleCollege);
                                 }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
                                     collegeData.push(singleCollege);
-                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                     collegeData.push(singleCollege);
-
+                                    
                                 }
                             }
                         }
@@ -546,8 +964,7 @@ router.post('/success-redirect-url',function(req,res){
                     console.log("collegeData == " + JSON.stringify(collegeData));
                     request.post(constant.BASE_URL_SENDGRID + 'instructionalFieldVerificationEmail', {
                         json: {
-                            collegeData : collegeData,
-                            source : 'gu'
+                            collegeData : collegeData
                         }
                     }, function (error, response, body) {
                         if(body.notSent.length > 0){
@@ -557,22 +974,520 @@ router.post('/success-redirect-url',function(req,res){
                         }
                         body.data.forEach(msgId=>{
                             models.InstructionalDetails.updateSingleEmailStatus(user_id,msgId.msg_id,'sent');
-                        })
+                        })      
                     })
                 },1000);
-
+                
             });
-
+                
             })
         })
     }
+
+    function sendEmailInstitiuteAffiliationLetter(user_id,user_name,app_id){
+        var collegeData = [];
+        var userMarkLists = [];
+        models.InstructionalDetails.find({
+            where :{
+                userId : user_id
+            }
+        }).then(function(instructional){
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){
+              models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMark_Lists){      
+                userMark_Lists.forEach(transcript=>{
+                    var app_idArr = transcript.app_id.split(',');
+                    app_idArr.forEach(appl_id=>{
+                        if(appl_id == app_id){
+                            userMarkLists.push(transcript);
+                        }
+                    })
+                })      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        courseName : '',
+                        user_markList : [],
+                        alternateEmail : '',
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = instructional.studentName;
+                            singleCollege.college_id = college.id;
+                            singleCollege.courseName = instructional.courseName;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                            collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                    break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;
+                                        break; 
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;
+                                        break;
+
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = instructional.studentName;
+                                singleCollege.courseName = instructional.courseName;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                    
+                                }
+                            }
+                        }
+                    });
+                })
+                setTimeout(()=>{
+                    console.log("collegeData == " + JSON.stringify(collegeData));
+                    request.post(constant.BASE_URL_SENDGRID + 'affiliationVerificationEmail', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.InstructionalDetails.updateSingleEmailStatus(user_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.InstructionalDetails.updateSingleEmailStatus(user_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+                
+            });
+                
+            })
+        })
+    }
+
+
+    function sendEmailInstituteCurriculum(user_id,user_name,app_id){
+        var collegeData = [];
+        var userCurriculums = [];
+        var userMarkLists = [];
+        models.User_Curriculum.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(user_Curriculums){
+            user_Curriculums.forEach(transcript=>{
+                var app_idArr = transcript.app_id.split(',');
+                app_idArr.forEach(appl_id=>{
+                    if(appl_id == app_id){
+                        userCurriculums.push(transcript);
+                    }
+                })
+            })
+            userCurriculums.forEach(curriculum=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    alternateEmail : '',
+                    user_curriculum : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : curriculum.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+ user_id + "/" + urlencode(curriculum.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == curriculum.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+user_id + "/" + urlencode(curriculum.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+user_id + "/" + urlencode(curriculum.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+                models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMark_Lists){      
+                    userMark_Lists.forEach(transcript=>{
+                        var app_idArr = transcript.app_id.split(',');
+                        app_idArr.forEach(appl_id=>{
+                            if(appl_id == app_id){
+                                userMarkLists.push(transcript);
+                            }
+                        })
+                    })      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        user_curriculum : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                    collegeData.push(singleCollege);
+                                }
+
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+                    console.log("collegeData == " + JSON.stringify(collegeData));
+                    request.post(constant.BASE_URL_SENDGRID + 'curriculumVerificationEmail', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.User_Curriculum.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.User_Curriculum.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+
+    function sendEmailInstitiuteGradeTOPercentLetter(user_id,user_name,app_id){
+        var letters = [];
+        var userMarkLists = [];
+        models.GradeToPercentageLetter.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(grade_letters){
+            grade_letters.forEach(transcript=>{
+                var app_idArr = transcript.app_id.split(',');
+                app_idArr.forEach(appl_id=>{
+                    if(appl_id == app_id){
+                        letters.push(transcript);
+                    }
+                })
+            })
+            var collegeData = [];
+            letters.forEach(letter=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    letter : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : letter.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+ user_id + "/" + urlencode(letter.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == letters.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+user_id + "/" + urlencode(letter.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+user_id + "/" + urlencode(letter.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+               models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(userMark_Lists){  
+                userMark_Lists.forEach(transcript=>{
+                    var app_idArr = transcript.app_id.split(',');
+                    app_idArr.forEach(appl_id=>{
+                        if(appl_id == app_id){
+                            userMarkLists.push(transcript);
+                        }
+                    })
+                })         
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        letter : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        //flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                                }
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+                    request.post(constant.BASE_URL_SENDGRID + 'gradeLetterVerificationEmail', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.GradeToPercentageLetter.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.GradeToPercentageLetter.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+
     function sendEmailStudent(user_id,user_email,user_name,app_id){
         var collegeData = [];
-        models.Applied_For_Details.findAll({
+        models.Applied_For_Details.find({
             where :{
                 user_id : user_id,
-                app_id : app_id,
-                source : 'guattestation'
+                app_id : app_id
             }
         }).then(function(student){
             models.userMarkList.getdistinctClg(user_id).then(function(userMarklists){
@@ -613,7 +1528,7 @@ router.post('/success-redirect-url',function(req,res){
                         }
                     }
                 })
-
+           
                 if(student.educationalDetails == true){
                     models.User_Transcript.getDistinctCollege(user_id).then(function(userTranscripts){
                         userTranscripts.forEach(userTranscript=>{
@@ -698,86 +1613,546 @@ router.post('/success-redirect-url',function(req,res){
                     })
                 }
                 setTimeout(()=>{
-                    request.post(constant.BASE_URL_SENDGRID + 'applicationGeneratedNotification_gu', {
+                    request.post(constant.BASE_URL_SENDGRID + 'applicationGeneratedNotification', {
                         json: {
                             collegeData : collegeData,
                             userEmail : user_email,
-                            userName : user_name,
-                            source : 'gu'
+                            userName : user_name
                         }
                     }, function (error, response, body) {})
                 },1000)
             })
         })
     }
-	async function updateAppId(user_id,educationalDetails,instructionalField,app_id){
-        var appliedforddetails = await functions.setAppId(app_id,user_id,'AppliedForDetails');
-        if(appliedforddetails){
-            var getApplied = await functions.getApplied(user_id,app_id);
-            var usermarklist = await functions.setAppId(app_id,user_id ,'UserMarklist');
-            if(getApplied.instructionalField == 1){
-                    var instructional = await functions.setAppId(app_id,user_id ,'Instructional');
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-            }else{
-                if(getApplied.attestedfor.includes('marksheet') || getApplied.attestedfor.includes('newmark')){
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-               }
-               if(getApplied.attestedfor.includes('degree')){
-                    var degree = await functions.setAppId(app_id,user_id ,'Degree');
-               }
-               if(getApplied.attestedfor.includes('transcript')){
-                    var transcript = await functions.setAppId(app_id,user_id ,'Transcript');
-               }
-            }
 
-            var purpose = await functions.setAppId(app_id,user_id ,'purpose');
-        }
-        var getEmail_doc =  await functions.getEmailedDocs_insert();
-           if(getEmail_doc != ''){
-            var emailed_docs = await functions.setAppId_email_docs(app_id)
-           }
+	function updateAppId(user_id, educationalDetails,instructionalField,curriculum,gradToPer,app_id,affiliation,CompetencyLetter,LetterforNameChange){
+		models.Applied_For_Details.find({
+			where :{
+				user_id : user_id,
+				app_id : {
+					[Op.eq] : null
+				}
+			}
+		}).then(function(appliedForDetails){
+			appliedForDetails.update({
+				app_id : app_id
+			}).then(function(updated){
+				models.userMarkList.find({
+					where : {
+						user_id : user_id
+					}
+				}).then(function(userMarkLists){
+					if(userMarkLists.previous_data == true){
+						if(educationalDetails == true){
+							models.User_Transcript.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(UserTranscriptsData){  
+							//   console.log("UserTranscriptsData===>"+JSON.stringify(UserTranscriptsData));
+								if(UserTranscriptsData.length > 0){
+									UserTranscriptsData.forEach((transcript)=>{
+										var appID ;
+										if(transcript.app_id == null || transcript.app_id == ''){
+											appID = app_id
+											models.User_Transcript.update(
+												{   app_id  : appID},
+												{   where   :  { id : transcript.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = transcript.app_id+","+app_id
+											models.User_Transcript.update(
+												{   app_id  : appID},
+												{   where   :  { id : transcript.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+										
+									})
+								}
+							
+							})
+						}
+						
+						if(curriculum == true){
+							models.User_Curriculum.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(User_CurriculumsData){  
+							//   console.log("User_CurriculumsData===>"+JSON.stringify(User_CurriculumsData));
+								if(User_CurriculumsData.length > 0){
+									User_CurriculumsData.forEach((curriculum)=>{
+										var appID ;
+										if(curriculum.app_id == null || curriculum.app_id == ''){
+											appID = app_id;
+											models.User_Curriculum.update(
+												{   app_id  : appID},
+												{   where   :  { id : curriculum.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = curriculum.app_id+","+app_id;
+											models.User_Curriculum.update(
+												{   app_id  : appID},
+												{   where   :  { id : curriculum.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+										
+									})
+								}
+							})
+						}
+			
+						if(instructionalField == true){
+							models.InstructionalDetails.findAll({
+								where : {
+									userId : user_id
+								}
+							}).then(function(InstructionalDetailsData){  
+							//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(InstructionalDetailsData.length > 0){
+									InstructionalDetailsData.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.InstructionalDetails.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.InstructionalDetails.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+									
+									})
+								}
+							})
+						}
+
+                        if(affiliation == true){
+							models.Affililation_Letter.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(AffiliationData){  
+							//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(AffiliationData.length > 0){
+									AffiliationData.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.Affililation_Letter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.Affililation_Letter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+									
+									})
+								}
+							})
+						}
+			
+						if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.GradeToPercentageLetter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.GradeToPercentageLetter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+										}
+									
+									})
+								}
+							})
+						}
+			
+						models.userMarkList.findAll({
+							where : {
+								user_id : user_id
+							}
+						}).then(function(userMarkListsData){  
+						//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+							if(userMarkListsData.length > 0){
+								userMarkListsData.forEach((marklist)=>{
+									var appID ;
+									if(marklist.app_id == null || marklist.app_id == ''){
+										appID = app_id
+										models.userMarkList.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}else {
+										appID = marklist.app_id+","+app_id
+										models.userMarkList.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}
+								
+								})
+							}
+						})
+						models.UserMarklist_Upload.findAll({
+							where : {
+								user_id : user_id
+							}
+						}).then(function(userMarkListUploadsData){  
+						//     console.log("userMarkListUploadsData===>"+JSON.stringify(userMarkListUploadsData));
+							if(userMarkListUploadsData.length > 0){
+								userMarkListUploadsData.forEach((marklist)=>{
+									var appID ;
+									if(marklist.app_id == null || marklist.app_id == ''){
+										appID = app_id
+										models.UserMarklist_Upload.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}else {
+										appID = marklist.app_id+","+app_id
+										models.UserMarklist_Upload.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}
+									
+								})
+							}
+						})
+					}else{
+						if(educationalDetails == true){
+							models.User_Transcript.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(UserTranscriptsData){  
+							//    console.log("UserTranscriptsData===>"+JSON.stringify(UserTranscriptsData));
+								if(UserTranscriptsData.length > 0){
+									UserTranscriptsData.forEach((transcript)=>{
+										models.User_Transcript.update(
+										{   app_id  : app_id},
+										{   where   :  { id : transcript.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+						
+						if(curriculum == true){
+							models.User_Curriculum.findAll({
+								where : {
+									user_id : user_id, 
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(User_CurriculumsData){  
+							//   console.log("User_CurriculumsData===>"+JSON.stringify(User_CurriculumsData));
+								if(User_CurriculumsData.length > 0){
+									User_CurriculumsData.forEach((curriculum)=>{
+									models.User_Curriculum.update(
+										{   app_id  : app_id},
+										{   where   :  { id : curriculum.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+						if(instructionalField == true){
+							models.InstructionalDetails.findAll({
+								where : {
+									userId : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(InstructionalDetailsData){  
+								if(InstructionalDetailsData.length > 0){
+									InstructionalDetailsData.forEach((data)=>{
+										models.InstructionalDetails.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+
+                        if(affiliation == true){
+							models.Affililation_Letter.findAll({
+								where : {
+									userId : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(affiliationData){  
+								if(affiliationData.length > 0){
+									affiliationData.forEach((data)=>{
+										models.Affililation_Letter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+						if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										models.GradeToPercentageLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+                        if(CompetencyLetter == true){
+							models.competency_letter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(CompetencyLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(CompetencyLetter.length > 0){
+									CompetencyLetter.forEach((data)=>{
+										models.CompetencyLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+
+                        if(LetterforNameChange == true){
+							models.Letterfor_NameChange.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(LetterforNameChange){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(LetterforNameChange.length > 0){
+									LetterforNameChange.forEach((data)=>{
+										models.Letterfor_NameChange.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+                        if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										models.GradeToPercentageLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+
+
+
+						models.userMarkList.findAll({
+							where : {
+								user_id : user_id,
+								app_id : {
+									[Op.eq] : null
+								}
+							}
+						}).then(function(userMarkListsData){  
+						//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+							if(userMarkListsData.length > 0){
+								userMarkListsData.forEach((marklist)=>{
+									models.userMarkList.update(
+									{   app_id  : app_id},
+									{   where   :  { id : marklist.id}
+									}).then((err,updated)=>{
+										if(err){
+											console.error(err);
+										}
+									})
+								})
+							}
+						})
+						models.UserMarklist_Upload.findAll({
+							where : {
+								user_id : user_id,
+								app_id : {
+									[Op.eq] : null
+								}
+							}
+						}).then(function(userMarkListUploadsData){  
+						//     console.log("userMarkListUploadsData===>"+JSON.stringify(userMarkListUploadsData));
+							if(userMarkListUploadsData.length > 0){
+								userMarkListUploadsData.forEach((marklist)=>{
+									models.UserMarklist_Upload.update(
+									{   app_id  : app_id},
+									{   where   :  { id : marklist.id}
+									}).then((err,updated)=>{
+										if(err){
+											console.error(err);
+										}
+									})
+								})
+							}
+						}) 
+					}
+					
+				})
+			})
+		})
     }
 });
-
-router.post('/setApp_id',async function(req,res){
-    console.log('setApp_id ')
-    var app_id = req.body.app_id
-    var user_id = req.body.user_id
-    var appliedforddetails = await functions.setAppId(app_id,user_id,'AppliedForDetails');
-        if(appliedforddetails){
-            var getApplied = await functions.getApplied(user_id,app_id);
-            var usermarklist = await functions.setAppId(app_id,user_id ,'UserMarklist');
-            if(getApplied.instructionalField == 1){
-                    var instructional = await functions.setAppId(app_id,user_id ,'Instructional');
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-            }else{
-                if(getApplied.attestedfor.includes('marksheet') || getApplied.attestedfor.includes('newmark')){
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-               }
-               if(getApplied.attestedfor.includes('degree')){
-                    var degree = await functions.setAppId(app_id,user_id ,'Degree');
-               }
-               if(getApplied.attestedfor.includes('transcript')){
-                    var transcript = await functions.setAppId(app_id,user_id ,'Transcript');
-               }
-            }
-
-            var purpose = await functions.setAppId(app_id,user_id ,'purpose');
-        }
-})
-
-router.post('/previous_data',async function(req,res){
-    console.log('/api/payment/previous_data/api/payment/previous_data')
-    var user_id ='4036'
-    var appliedfor = await functions.FetchPreviousData_applied_notPaid(user_id);
-    console.log('appliedforappliedfor' + JSON.stringify(appliedfor.previous_data))
-    console.log('appliedforappliedfor' + JSON.stringify(appliedfor.previous_data.Type))
-})
 
 router.post('/getQuickInvoice',function(req,res){
     console.log('getQuickInvoice',req.body.data)
     var data=req.body.data
-
+    
     var customerValues= {
         "customer_name": data.customer_name,
         "customer_email_id" :data.customer_email_id,
@@ -813,8 +2188,8 @@ router.post('/getQuickInvoice',function(req,res){
         //     var pay_id = {
         //         "pay_id": application.pay_Id,
         //     }
-        // this.pay_id = ccav.encrypt(JSON.stringify(pay_id),workingKey);
-
+        // this.pay_id = ccav.encrypt(JSON.stringify(pay_id),workingKey);  
+    
             if(json.invoice_status == 0){
                 res.json({
                     status : 200,
@@ -824,12 +2199,12 @@ router.post('/getQuickInvoice',function(req,res){
                 res.json({
                     status : 400
                 })
-
+               
             }
-
-    }
+        
+    }   
     );
-},6000)
+},6000) 
 
 })
 
@@ -838,8 +2213,7 @@ router.get('/getinvoicedetails',function(req,res){
     console.log('/getinvoicedetails',req.query.details);
     models.Application.find({
         where  :{
-            id : req.query.details,
-            source_from  : 'guattestation'
+            id : req.query.details
         }
     }).then(function (userdetails){
         console.log('userdetails',userdetails);
@@ -859,14 +2233,14 @@ router.get('/getinvoicedetails',function(req,res){
                     status : 400,
                 })
             }
-
+            
         })
     })
 })
 
 router.post('/cancel-redirect-url',function(req,res){
     var ccavEncResponse='',
-    ccavResponse='',
+    ccavResponse='',    
     ccavPOST = '';
 
     var bodyJson=JSON.parse(JSON.stringify(req.body));
@@ -877,7 +2251,7 @@ router.post('/cancel-redirect-url',function(req,res){
         data=data+attr+'='+encodeURIComponent(bodyJson[attr]);
     }
 
-
+    
 
     ccavEncResponse += data;
     ccavPOST =  qs.parse(ccavEncResponse);
@@ -890,13 +2264,7 @@ router.post('/cancel-redirect-url',function(req,res){
     console.log("obj.order_status----->"+obj.order_status);
     models.Orders.find({
         where:{
-            id : obj.order_id,
-            [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+            id : obj.order_id
         }
     }).then(function(ord){
         models.User.find({
@@ -913,23 +2281,16 @@ router.post('/cancel-redirect-url',function(req,res){
 
         })
     })
-   res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstCancel");
+   res.redirect("http://mu.etranscript.in/app/#/pages/FirstCancel");
 });
 
 
 router.post('/PaymentDetails',middlewares.getUserInfo,function(req,res){
   //
-  console.log('PaymentDetails');
    var view_data = {};
    models.Feedback.find({
        where:{
-           user_id : req.User.id,
-           [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+           user_id : req.User.id
        }
    }).then(function(feedback){
        if(feedback){
@@ -937,27 +2298,22 @@ router.post('/PaymentDetails',middlewares.getUserInfo,function(req,res){
        }else{
            view_data.feedback = false;
        }
-       models.Orders.findOne({
+       models.Orders.find({
            where:
            {
-               id : req.body.order_id,
-               [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+               id : req.body.order_id
            }
        }).then(function(order){
            if(order){
-               models.Transaction.findOne({
+              //
+               models.Transaction.find({
                    where:
                    {
                        order_id : order.id
                    }
                }).then(function(transaction){
                    if(transaction){
-
+                      
                            view_data.transaction_id = transaction.merchant_param5;
                            view_data.payment_amount = transaction.amount;
                            view_data.payment_status = transaction.order_status;
@@ -968,7 +2324,7 @@ router.post('/PaymentDetails',middlewares.getUserInfo,function(req,res){
                                status:200,
                                data : view_data
                            })
-
+                    
                    }
                })
            }
@@ -977,7 +2333,6 @@ router.post('/PaymentDetails',middlewares.getUserInfo,function(req,res){
 });
 
 router.post('/OnlinePaymentChallan', middlewares.getUserInfo, function(req, res) {
-    console.log("OnlinePaymentChallanOnlinePaymentChallan");
     //
      var user_id = req.body.user_id;
      var payment_amount = req.body.payment_amount;
@@ -997,38 +2352,32 @@ router.post('/OnlinePaymentChallan', middlewares.getUserInfo, function(req, res)
      //     gst_amount = 518;
      //     total_amount = 8308;
      // }
-     models.Orders.findOne({
+     models.Orders.find({
          where :{
              application_id : req.body.application_id,
              order_id : 1,
-             status : '1',
-             [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+             status : '1'
          }
      }).then(function(orders){
          if(orders){
-             models.Transaction.findOne({
+             models.Transaction.find({
                  where:
                  {
                      merchant_param5 : transaction_id
                  }
              }).then(function(trans){
-                 self_PDF.online_payment_challan(user_id, application_id, payment_amount, transaction_id, date_time, status_payment, fee_amount, gst_amount, total_amount, orders.id, req.User.email,function(err){
+                 self_PDF.online_payment_challan(user_id, application_id, payment_amount, transaction_id, date_time, status_payment, fee_amount, gst_amount, total_amount, orders.id, req.User.email,function(err){    
                      if(err) {
               //
                          res.send({ status: 400,data :err})
                      }else{
                          setTimeout(function(){
                              //TODO add to constants
-                             res.send({ status: 200,data: constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+application_id+"_Attestation_Payment_Challan.pdf"});
+                             res.send({ status: 200,data: constant.FILE_LOCATION+"public/upload/transcript/"+user_id+"/"+application_id+"_Attestation_Payment_Challan.pdf"});
                          },3000);
                      }
                  });
-             })
+             })                      
          }
      })
  });
@@ -1036,42 +2385,23 @@ router.post('/OnlinePaymentChallan', middlewares.getUserInfo, function(req, res)
 router.get('/downloadOld',middlewares.getUserInfo, function (req, res) {
      var file_name= req.query.file_name;
      var userId = req.User.id;
-
+ 
      var stringReplaced = String.raw``+file_name.split('\\').join('/')
 
-
+ 
      var n = stringReplaced.includes("/");
      if(n == true){
          file_name = stringReplaced.split("/").pop();
      }
      //TODO
-     const downloadData = constant.FILE_LOCATION +'public/upload/documents/'+userId+'/'+ file_name;
+     const downloadData = constant.FILE_LOCATION +'public/upload/transcript/'+userId+'/'+ file_name;
      res.download(downloadData);
 });
 
 router.get('/download', function (req, res) {
     var file_name = req.query.file_name;
     var userId = req.user.id;
-    const downloadData = constant.FILE_LOCATION + "public/upload/documents/" + userId + "/" + file_name;
-    console.log("downloadData"+downloadData)
-    res.download(downloadData);
-});
-
-router.get('/download_applicationForm', function (req, res) {
-    // https://guattestation.studentscenter.in/api/images/GU-AttestationManual.pdf
-    // constant.FILE_LOCATION + "public/images/GU-AttestationManual.pdf"
-    // var file_name = constant.FILE_LOCATION + "public/images/GU-AttestationManual.pdf"
-    var file_name = req.query.file_name
-    const downloadData = file_name;
-    console.log("downloadData"+downloadData)
-    res.download(downloadData);
-});
-router.get('/download_', function (req, res) {
-    // https://guattestation.studentscenter.in/api/images/GU-AttestationManual.pdf'guattestation
-    // constant.FILE_LOCATION + "public/images/GU-AttestationManual.pdf"
-    var file_name = constant.FILE_LOCATION + "public/images/GU-AttestationManual.pdf"
-    // var file_name = req.query.file_name
-    const downloadData = file_name;
+    const downloadData = constant.FILE_LOCATION + "public/upload/transcript/" + userId + "/" + file_name;
     console.log("downloadData"+downloadData)
     res.download(downloadData);
 });
@@ -1083,13 +2413,7 @@ router.get('/getAllPayments',middlewares.getUserInfo, function (req, res) {
        where:
        {
            user_id : userId,
-           status : '1',
-           [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+           status : '1'
        }
    }).then(function(orders){
        if(orders){
@@ -1118,14 +2442,14 @@ router.get('/getAllPayments',middlewares.getUserInfo, function (req, res) {
                        message: 'Payment Details Retrive Successfully',
                        data: data
                     });
-
+               
                }
            });
        }
 
    })
 });
-
+ 
 router.get('/getApplWisePayments',middlewares.getUserInfo, function (req, res) {
     var userId = req.User.id;
     var appl_id  = req.query.appl_id;
@@ -1137,13 +2461,7 @@ router.get('/getApplWisePayments',middlewares.getUserInfo, function (req, res) {
             {
                 user_id : userId,
                 status : '1',
-                application_id : appl_id,
-                [Op.or]:[{
-										source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+                application_id : appl_id
             }
         }).then(function(orders){
             if(orders){
@@ -1172,7 +2490,7 @@ router.get('/getApplWisePayments',middlewares.getUserInfo, function (req, res) {
                             message: 'Payment Details Retrive Successfully',
                             data: data
                          });
-
+                    
                     }
                 });
             }
@@ -1197,7 +2515,7 @@ router.get('/getApplWisePayments',middlewares.getUserInfo, function (req, res) {
                 message: 'Payment Details Retrive Successfully',
                 data: data
                 });
-        });
+        });    
     }
  });
 
@@ -1235,13 +2553,13 @@ router.get('/getPaymentDetails',function(req,res){
 
                                     var order_fee_perc_value = status_pay.order_fee_perc_value;
                                     // console.log('order_fee_perc_value========'+order_fee_perc_value)
-
+                    
                                     var order_tax = status_pay.order_tax;
                                     // console.log('order_tax========'+order_tax)
 
                                     var order_fee_flat = status_pay.order_fee_flat;
                                     // console.log('order_fee_flat========'+order_fee_flat)
-
+                    
                                     var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
                                     console.log('ccavenue_share========'+ccavenue_share)
                                     data.push({
@@ -1259,12 +2577,12 @@ router.get('/getPaymentDetails',function(req,res){
                         )
 
                     }
-
+                    
                 });
 
-
-
-                setTimeout(function(){
+ 
+ 
+                setTimeout(function(){ 
                     console.log("data.length=====>"+data.length);
                     var sort_data = data.sort(function(a, b){return (b.order_id) - (a.order_id)});
                     res.json({
@@ -1286,7 +2604,7 @@ router.get('/getPaymentDetails',function(req,res){
             //          // cc_share : (parseFloat(application.amount) - (parseFloat(application.b) + parseFloat(application.a))).toFixed(2)
             //      });
             //  });
-            //  setTimeout(function(){
+            //  setTimeout(function(){ 
             //      res.json({
             //          status: 200,
             //          message: '1st payment tab data loaded',
@@ -1317,7 +2635,7 @@ router.get('/getPaymentDetails',function(req,res){
                         change_split_payout_status : change_split_status
                     });
                 });
-                setTimeout(function(){
+                setTimeout(function(){ 
                     res.json({
                         status: 200,
                         message: '1st Refund payment tab data loaded',
@@ -1353,13 +2671,13 @@ router.get('/getPaymentDetails',function(req,res){
 
                                 var order_fee_perc_value = status_pay.order_fee_perc_value;
                                 // console.log('order_fee_perc_value========'+order_fee_perc_value)
-
+                
                                 var order_tax = status_pay.order_tax;
                                 // console.log('order_tax========'+order_tax)
 
                                 var order_fee_flat = status_pay.order_fee_flat;
                                 // console.log('order_fee_flat========'+order_fee_flat)
-
+                
                                 var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
                                 // console.log('ccavenue_share========'+ccavenue_share)
                                 data.push({
@@ -1375,12 +2693,12 @@ router.get('/getPaymentDetails',function(req,res){
                             }
                         }
                     )
-
+                    
                 });
 
-
-
-                setTimeout(function(){
+ 
+ 
+                setTimeout(function(){ 
                     //console.log("data.length=====>"+data.length);
                     var sort_data = data.sort(function(a, b){return (b.order_id) - (a.order_id)});
                     res.json({
@@ -1409,18 +2727,18 @@ router.get('/getPaymentDetails',function(req,res){
     //                     function (error, response, body) {
     //                         var statustracker_obj = qs.parse(response.body);
     //                         var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-
+                            
     //                         var status_pay = JSON.parse(dec_status);
     //                         // console.log('status_pay========'+JSON.stringify(status_pay))
     //                         var order_fee_perc_value = status_pay.order_fee_perc_value;
     //                         // console.log('order_fee_perc_value========'+order_fee_perc_value)
-
+            
     //                         var order_tax = status_pay.order_tax;
     //                         // console.log('order_tax========'+order_tax)
 
     //var order_fee_flat = status_pay.order_fee_flat;
     // console.log('order_fee_flat========'+order_fee_flat)
-
+            
     //                         var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
     //                         // console.log('ccavenue_share========'+ccavenue_share)
     //                             data.push({
@@ -1436,12 +2754,12 @@ router.get('/getPaymentDetails',function(req,res){
 
     //                     }
     //                 )
-
+                    
     //             });
 
-
-
-    //             setTimeout(function(){
+ 
+ 
+    //             setTimeout(function(){ 
     //                 res.json({
     //                     status: 200,
     //                     message: '2ndSplit payment tab data loaded',
@@ -1449,7 +2767,7 @@ router.get('/getPaymentDetails',function(req,res){
     //                 });
     //             }, 10000);
     //         }
-
+            
     //     })
     // }else{
     // }
@@ -1462,10 +2780,10 @@ models.Transaction.getUnSplit().then(function(applications) {
 
     applications.forEach(function(application) {
 
-
+    
     console.log("application > "+JSON.stringify(application))
     console.log("application.tracking_id > "+application.tracking_id);
-
+    
     //console.log();
     // var statusTrackerData = {
     //     "reference_no": application.tracking_id,
@@ -1482,7 +2800,7 @@ models.Transaction.getUnSplit().then(function(applications) {
 
     request.post(request_url,
         function (error, response, body) {
-           // setTimeout(function(){
+           // setTimeout(function(){ 
 
             //console.log("response.body====>"+response.body);
             var statustracker_obj = qs.parse(response.body);
@@ -1532,7 +2850,7 @@ models.Transaction.getUnSplit().then(function(applications) {
                 'subAccId':'EDU'
             });
         }
-
+    
         if(uni_share != 0){
             data.push({
                 'splitAmount':uni_share,
@@ -1540,17 +2858,17 @@ models.Transaction.getUnSplit().then(function(applications) {
             });
         }
         var splitPaymentData = {
-            'reference_no': reference_no,
+            'reference_no': reference_no, 
             'split_tdr_charge_type':'M',
             'merComm': ccavenue_share,
             'split_data_list': data
-
+            
         }
-
+    
         //var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),splitworkingKey);
-
+    
         var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),workingKey);
-
+    
         request.post(
             // "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+splitaccessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2",
             "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+accessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2",
@@ -1558,15 +2876,15 @@ models.Transaction.getUnSplit().then(function(applications) {
                 var split_obj = qs.parse(response.body);
                 console.log('split_obj.error_code========'+JSON.stringify(split_obj))
                 console.log('split_obj.status========'+split_obj.status)
-                if(split_obj.status == '1'){
+                if(split_obj.status == '1'){	
                     models.Transaction.find({
                         where:
                         {
-                            tracking_id : reference_no
-                        }
+                            tracking_id : reference_no 
+                        }	
                     }).then(function(splitTrans){
                         if(splitTrans){
-
+     
                             splitTrans.update({
                                 split_status : '-1'
                             }).then(function(splitTrans_updated){
@@ -1575,13 +2893,13 @@ models.Transaction.getUnSplit().then(function(applications) {
                                 });
                             })
                         }else{
-
+     
                         }
                     });
                 }else{
                     //var dec_split = ccav.decrypt(split_obj.enc_response,splitworkingKey);
                     var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-
+     
                     var pay = JSON.parse(dec_split);
                     console.log('pay========'+JSON.stringify(pay))
                     var val = pay.Create_Split_Payout_Result;
@@ -1591,7 +2909,7 @@ models.Transaction.getUnSplit().then(function(applications) {
                     models.Transaction.find({
                         where:
                         {
-                            tracking_id : reference_no
+                            tracking_id : reference_no 
                         }
                     }).then(function(split_trans){
                         if(split_trans){
@@ -1606,7 +2924,7 @@ models.Transaction.getUnSplit().then(function(applications) {
                                     });
                                 })
                             }else if(split_status == '0'){
-
+     
                                 split_trans.update({
                                     a : edu_share,
                                     b : uni_share,
@@ -1615,13 +2933,7 @@ models.Transaction.getUnSplit().then(function(applications) {
                                 }).then(function(split_trans_updated){
                                     models.Orders.find({
                                         where :{
-                                            id : split_trans.order_id,
-                                            [Op.or]:[{
-                                                source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+                                            id : split_trans.order_id
                                         }
                                     }).then(function(order){
                                         var data = split_trans.order_id+' Payment Split done for '+split_trans.merchant_param2 + ' by '+req.User.name;
@@ -1629,11 +2941,11 @@ models.Transaction.getUnSplit().then(function(applications) {
                                         res.json({
                                             status : 200
                                         });
-                                    });
+                                    });	
                                 })
                             }
                         }else{
-
+     
                         }
                     });
                 }
@@ -1669,11 +2981,11 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 		});
 // 	}
 // 	var splitPaymentData = {
-// 		'reference_no': reference_no,
+// 		'reference_no': reference_no, 
 // 		'split_tdr_charge_type':'M',
 // 		'merComm': ccavenue_share,
 // 		'split_data_list': data
-
+		
 // 	}
 
 // 	//var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),splitworkingKey);
@@ -1687,15 +2999,15 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 			var split_obj = qs.parse(response.body);
 // 			console.log('split_obj.error_code========'+JSON.stringify(split_obj))
 // 			console.log('split_obj.status========'+split_obj.status)
-// 			if(split_obj.status == '1'){
+// 			if(split_obj.status == '1'){	
 // 				models.Transaction.find({
 // 					where:
 // 					{
-// 						tracking_id : reference_no
-// 					}
+// 						tracking_id : reference_no 
+// 					}	
 // 				}).then(function(splitTrans){
 // 					if(splitTrans){
-
+ 
 // 						splitTrans.update({
 // 							split_status : '-1'
 // 						}).then(function(splitTrans_updated){
@@ -1704,13 +3016,13 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 							});
 // 						})
 // 					}else{
-
+ 
 // 					}
 // 				});
 // 			}else{
 // 				//var dec_split = ccav.decrypt(split_obj.enc_response,splitworkingKey);
 // 				var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-
+ 
 // 				var pay = JSON.parse(dec_split);
 // 				console.log('pay========'+JSON.stringify(pay))
 // 				var val = pay.Create_Split_Payout_Result;
@@ -1742,11 +3054,11 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 		});
 // 	}
 // 	var splitPaymentData = {
-// 		'reference_no': reference_no,
+// 		'reference_no': reference_no, 
 // 		'split_tdr_charge_type':'M',
 // 		'merComm': ccavenue_share,
 // 		'split_data_list': data
-
+		
 // 	}
 
 // 	//var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),splitworkingKey);
@@ -1760,15 +3072,15 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 			var split_obj = qs.parse(response.body);
 // 			console.log('split_obj.error_code========'+JSON.stringify(split_obj))
 // 			console.log('split_obj.status========'+split_obj.status)
-// 			if(split_obj.status == '1'){
+// 			if(split_obj.status == '1'){	
 // 				models.Transaction.find({
 // 					where:
 // 					{
-// 						tracking_id : reference_no
-// 					}
+// 						tracking_id : reference_no 
+// 					}	
 // 				}).then(function(splitTrans){
 // 					if(splitTrans){
-
+ 
 // 						splitTrans.update({
 // 							split_status : '-1'
 // 						}).then(function(splitTrans_updated){
@@ -1777,13 +3089,13 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 							});
 // 						})
 // 					}else{
-
+ 
 // 					}
 // 				});
 // 			}else{
 // 				//var dec_split = ccav.decrypt(split_obj.enc_response,splitworkingKey);
 // 				var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-
+ 
 // 				var pay = JSON.parse(dec_split);
 // 				console.log('pay========'+JSON.stringify(pay))
 // 				var val = pay.Create_Split_Payout_Result;
@@ -1793,7 +3105,7 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 				models.Transaction.find({
 // 					where:
 // 					{
-// 						tracking_id : reference_no
+// 						tracking_id : reference_no 
 // 					}
 // 				}).then(function(split_trans){
 // 					if(split_trans){
@@ -1808,7 +3120,7 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 								});
 // 							})
 // 						}else if(split_status == '0'){
-
+ 
 // 							split_trans.update({
 // 								a : edu_share,
 // 								b : uni_share,
@@ -1825,16 +3137,16 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 									res.json({
 // 										status : 200
 // 									});
-// 								});
+// 								});	
 // 							})
 // 						}
 // 					}else{
-
+ 
 // 					}
 // 				});
 // 			}
 // 	});
-// 						tracking_id : reference_no
+// 						tracking_id : reference_no 
 // 					}
 // 				}).then(function(split_trans){
 // 					if(split_trans){
@@ -1849,7 +3161,7 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 								});
 // 							})
 // 						}else if(split_status == '0'){
-
+ 
 // 							split_trans.update({
 // 								a : edu_share,
 // 								b : uni_share,
@@ -1866,11 +3178,11 @@ models.Transaction.getUnSplit().then(function(applications) {
 // 									res.json({
 // 										status : 200
 // 									});
-// 								});
+// 								});	
 // 							})
 // 						}
 // 					}else{
-
+ 
 // 					}
 // 				});
 // 			}
@@ -1903,11 +3215,11 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 		});
 	}
 	var splitPaymentData = {
-		'reference_no': reference_no,
+		'reference_no': reference_no, 
 		'split_tdr_charge_type':'M',
 		'merComm': ccavenue_share,
 		'split_data_list': data
-
+		
 	}
 
 	//var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),splitworkingKey);
@@ -1921,15 +3233,15 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 			var split_obj = qs.parse(response.body);
 			console.log('split_obj.error_code========'+JSON.stringify(split_obj))
 			console.log('split_obj.status========'+split_obj.status)
-			if(split_obj.status == '1'){
+			if(split_obj.status == '1'){	
 				models.Transaction.find({
 					where:
 					{
-						tracking_id : reference_no
-					}
+						tracking_id : reference_no 
+					}	
 				}).then(function(splitTrans){
 					if(splitTrans){
-
+ 
 						splitTrans.update({
 							split_status : '-1'
 						}).then(function(splitTrans_updated){
@@ -1938,13 +3250,13 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 							});
 						})
 					}else{
-
+ 
 					}
 				});
 			}else{
 				//var dec_split = ccav.decrypt(split_obj.enc_response,splitworkingKey);
 				var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-
+ 
 				var pay = JSON.parse(dec_split);
 				console.log('pay========'+JSON.stringify(pay))
 				var val = pay.Create_Split_Payout_Result;
@@ -1954,7 +3266,7 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 				models.Transaction.find({
 					where:
 					{
-						tracking_id : reference_no
+						tracking_id : reference_no 
 					}
 				}).then(function(split_trans){
 					if(split_trans){
@@ -1969,7 +3281,7 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 								});
 							})
 						}else if(split_status == '0'){
-
+ 
 							split_trans.update({
 								a : edu_share,
 								b : uni_share,
@@ -1978,13 +3290,7 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 							}).then(function(split_trans_updated){
 								models.Orders.find({
 									where :{
-										id : split_trans.order_id,
-                                        [Op.or]:[{
-                                            source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+										id : split_trans.order_id
 									}
 								}).then(function(order){
 									var data = split_trans.order_id+' Payment Split done for '+split_trans.merchant_param2 + ' by '+req.User.name;
@@ -1992,11 +3298,11 @@ router.post('/proceedSplit',middlewares.getUserInfo,function(req,res){
 									res.json({
 										status : 200
 									});
-								});
+								});	
 							})
 						}
 					}else{
-
+ 
 					}
 				});
 			}
@@ -2025,11 +3331,11 @@ router.post('/proceedRefund',function(req,res){
             'refundRefNo': req.body.order_id +'cc'
         });
     }
-
+    
     setTimeout(function(){
-
+ 
         var splitRefund = {
-            'reference_no': req.body.reference_no, //109832664053,//
+            'reference_no': req.body.reference_no, //109832664053,// 
             'split_data_list': data
         }
 
@@ -2042,7 +3348,7 @@ router.post('/proceedRefund',function(req,res){
                 console.log("split_obj.status-------->"+split_obj.status);
                 console.log('split_obj.error_code========'+JSON.stringify(split_obj))
                 if(split_obj.status == '1'){
-
+ 
                     models.Transaction.find({
                         where:
                         {
@@ -2050,7 +3356,7 @@ router.post('/proceedRefund',function(req,res){
                         }
                     }).then(function(splitTrans){
                         if(splitTrans){
-
+ 
                             splitTrans.update({
                                 refund_status : '-1'
                             }).then(function(splitTrans_updated){
@@ -2059,15 +3365,15 @@ router.post('/proceedRefund',function(req,res){
                                 });
                             })
                         }else{
-
+ 
                         }
                     });
-                }else{
+                }else{  
                     var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
                     var pay = JSON.parse(dec_split);
-
+ 
                     var val = pay.split_refund_result;
-
+ 
                     var refund_status = val.refund_status;
                     console.log("refund_status---------->"+refund_status);
                     models.Transaction.find({
@@ -2086,7 +3392,7 @@ router.post('/proceedRefund',function(req,res){
                                     });
                                 })
                             }else if(refund_status == '0'){
-
+ 
                                 split_trans.update({
                                     refund_status : '1',
                                     cc_refund_refer : req.body.order_id +'cc', //'349329284cc',//
@@ -2098,15 +3404,15 @@ router.post('/proceedRefund',function(req,res){
                                         status : 200
                                     });
                                 })
-
+                                
                             }
                         }else{
-
+ 
                         }
                     });
                 }
 
-
+                
             }
         );
     }, 500);
@@ -2143,13 +3449,13 @@ router.get('/splitExcel', function(req, res) {
 
                        var order_fee_perc_value = status_pay.order_fee_perc_value;
                        // console.log('order_fee_perc_value========'+order_fee_perc_value)
-
+       
                        var order_tax = status_pay.order_tax;
                        // console.log('order_tax========'+order_tax)
 
                        var order_fee_flat = status_pay.order_fee_flat;
                        // console.log('order_fee_flat========'+order_fee_flat)
-
+       
                        var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
                        // console.log('ccavenue_share========'+ccavenue_share)
                            data.push({
@@ -2165,7 +3471,7 @@ router.get('/splitExcel', function(req, res) {
 
                    }
                )
-
+               
            });
 
 
@@ -2188,14 +3494,16 @@ router.get('/splitExcel', function(req, res) {
 
 router.get('/downloadExcel', middlewares.getUserInfo,function (req, res) {
     var location= req.query.pdf;
-    const downloadData = location;
+    const downloadData = location; 
     res.download(downloadData);
 });
+
+
 
 router.get('/orderlookup',function(req,res){
     var outercounter = 0;
     var ccavEncResponse='',
-        ccavResponse='',
+        ccavResponse='',    
         ccavPOST = '';
     var count = 0;
     var data =[];
@@ -2208,22 +3516,34 @@ router.get('/orderlookup',function(req,res){
 
     var current_date = moment().format('LT');
     var split_value = current_date.split(":");
-    
-    /* FOR DATABASE QUERY */
-    var yesterday1     = moment().subtract(1, 'days').startOf('day');
-    yesterdayNew  =  yesterday1.format('YYYY-MM-DD HH:mm:ss');
-    var today1  = moment().endOf('day');
-    todayNew = today1.format('YYYY-MM-DD HH:mm:ss');
+    if(split_value[0] == 3){
+        console.log('coming in 3')
+        /* FOR DATABASE QUERY */
+        var yesterday1     = moment().subtract(1, 'days').startOf('day');
+        yesterdayNew  =  yesterday1.format('YYYY-MM-DD') + ' 13:00:00';
+        var today1  = moment().endOf('day');
+        todayNew = today1.format('YYYY-MM-DD') + ' 13:00:00';
 
-    /* FOR CC REQUEST */
-    var date = new Date();
-    var today =  (date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear()).toString();
-    yesterday =  '07-02-2023';//yesterday1.format('DD-MM-YYYY').toString();
+        /* FOR CC REQUEST */
+        var date = new Date();
+        var today =  (date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear()).toString();
+        yesterday =  yesterday1.format('DD-MM-YYYY').toString();
+    }else{
+        /* FOR DATABASE QUERY */
+        var yesterday1     = moment().subtract(1, 'days').startOf('day');
+        yesterdayNew  =  yesterday1.format('YYYY-MM-DD HH:mm:ss');
+        var today1  = moment().endOf('day');
+        todayNew = today1.format('YYYY-MM-DD HH:mm:ss');
 
-    // models.Orders.getOrderID(yesterdayNew,todayNew).then(function(orders){
-    //     console.log("orders.length---->"+orders.length);
-    //     if(orders){
-    //         orders.forEach(function(order){
+        /* FOR CC REQUEST */
+        var date = new Date();
+        var today =  (date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear()).toString();
+        yesterday =  yesterday1.format('DD-MM-YYYY').toString();
+    }
+    models.Orders.getOrderID(yesterdayNew,todayNew).then(function(orders){
+        console.log("orders.length---->"+orders.length);
+        if(orders){
+            orders.forEach(function(order){
                 var statusTrackerData = {
                     //'reference_no': '108699413641',
                     //'reference_no' : '',
@@ -2235,7 +3555,7 @@ router.get('/orderlookup',function(req,res){
                     'order_min_amount' : '',
                     'order_max_amount' : '',
                     'order_name' : '',
-                    'order_no' : '6432', //+order.id,
+                    'order_no' : ''+order.id,
                     'order_payment_type' : '',
                     'order_status' : 'Shipped',
                     'order_type' : '',
@@ -2251,193 +3571,1806 @@ router.get('/orderlookup',function(req,res){
                             var statustracker_obj = qs.parse(response.body);
                             if(statustracker_obj.status == '0'){
                                 var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                                console.log("dec_status---->"+JSON.stringify(dec_status));
+                                // console.log("dec_status---->"+JSON.stringify(dec_status));
 
                                 var status_pay = JSON.parse(dec_status);
 
                                 if(status_pay.error_code != 51419 && status_pay.total_records > 0 ){
                                     //DATA FOUND
-                                    console.log("1")
-                                    models.User.getUserDetailsByemail(status_pay.order_Status_List[0].merchant_param2 ).then(users =>{
-                                        console.log('users.idusers.id' + JSON.stringify(users));
-	                                    models.User.findOne({
-	                                        where : {
-	                                            id : users.id
-	                                        }
-	                                    }).then(function(user){
-                                            console.log("2")
-	                                        models.Transaction.findOne({
-	                                            where : {
-	                                                order_id : status_pay.order_Status_List[0].order_no //order.id
-	                                            }
-	                                        }).then(function(transaction){
-	                                            if(transaction){
-                                                    console.log("3")
-	                                                //transaction already exist but not updated in order table
-	                                                models.Orders.findOne({
-	                                                    where:{
-	                                                        id : status_pay.order_Status_List[0].order_no,
-	                                                        source:'guattestation',
-	                                                    }
-	                                                }).then(function(order_update){
-	                                                    if(order_update.status != '1'){
-	                                                        //not updated
-	                                                        console.log("not updated")
-	                                                        //mailOrder(order.id, user.name, user.email,'order updated',order_update.amount,transaction.tracking_id)
-	                                                        order_update.update({
-	                                                            status : '1',
-	                                                            timestamp : functions.get_current_datetime(),
-	                                                        })
-	                                                    }else{
-	                                                        //already updated
-	                                                        console.log("not updated")
-	                                                    }
-	                                                })
-	                                            }else{
-	                                                //transaction not exist
-                                                    console.log("4")
-                                                    var source = status_pay.order_Status_List[0].merchant_param3;
-	                                                models.Transaction.create({
-	                                                    order_id : status_pay.order_Status_List[0].order_no,//order.id,
-	                                                    tracking_id : status_pay.order_Status_List[0].reference_no,
-	                                                    bank_ref_no : status_pay.order_Status_List[0].order_bank_ref_no,
-	                                                    order_status : status_pay.order_Status_List[0].order_status ? 'Success' : status_pay.order_Status_List[0].order_status,
-	                                                    payment_mode : 'online',
-	                                                    currency : 'INR',
-	                                                    amount : status_pay.order_Status_List[0].order_amt,
-	                                                    billing_name : user.name,
-	                                                    billing_address : user.address1,
-	                                                    billing_city : user.city,
-	                                                    billing_state : user.state,
-	                                                    billing_zip : user.postal_code,
-	                                                    //billing_country : user.country_birth,
-	                                                    billing_tel : user.mobile,
-	                                                    billing_email : user.email,
-	                                                    merchant_param1 : status_pay.order_Status_List[0].merchant_param1,
-	                                                    merchant_param2 : status_pay.order_Status_List[0].merchant_param2,
-	                                                    merchant_param3 : status_pay.order_Status_List[0].merchant_param3,
-	                                                    merchant_param4 : status_pay.order_Status_List[0].merchant_param4,
-	                                                    merchant_param5 : status_pay.order_Status_List[0].merchant_param5,
-	                                                    split_status : '-1',
-	                                                    source : source
-	                                                }).then(async function(transaction_created){
-                                                        console.log("5")
-	                                                    if(transaction_created){
-                                                            console.log("7")
-                                                            var type;
-                                                            var institutionData;
-                                                            var deliverType;
-                                                            institutionData = await functions.getInstitution(user.id);
-                                                            institutionData.forEach(function (inst){
-                                                                type = inst.deliveryType + type;
-                                                            })
-                                                            if(type.includes('digital') && type.includes('physcial')){
-                                                                deliverType = 'digital,sealed'
+                                    
+                                    models.User.getUserDetailsByemail(obj.merchant_param2 ).then(users =>{
+                                    models.User.find({
+                                        where : {
+                                            id : order.user_id
+                                        }
+                                    }).then(function(user){
+                                        models.Transaction.find({
+                                            where : {
+                                                order_id : status_pay.order_Status_List[0].order_no //order.id
+                                            }
+                                        }).then(function(transaction){
+                                            if(transaction){
+                                                //transaction already exist but not updated in order table
+                                                models.Orders.find({
+                                                    where:{
+                                                        id : order.id
+                                                    }
+                                                }).then(function(order_update){
+                                                    if(order_update.status != '1'){
+                                                        //not updated
+                                                        console.log("not updated")
+                                                        mailOrder(order.id, user.name, user.email,'order updated',order_update.amount,transaction.tracking_id)
+                                                        order_update.update({
+                                                            status : '1',
+                                                            timestamp : functions.get_current_datetime(),
+                                                        })
+                                                    }else{
+                                                        //already updated
+                                                        console.log("not updated")
+                                                    }
+                                                })
+                                            }else{
+                                                //transaction not exist
+                                                models.Transaction.create({
+                                                    order_id : order.id,
+                                                    tracking_id : status_pay.order_Status_List[0].reference_no,
+                                                    bank_ref_no : status_pay.order_Status_List[0].order_bank_ref_no,
+                                                    order_status : status_pay.order_Status_List[0].order_status ? 'Success' : status_pay.order_Status_List[0].order_status,
+                                                    payment_mode : 'online',
+                                                    currency : 'INR',
+                                                    amount : status_pay.order_Status_List[0].order_amt,
+                                                    billing_name : user.name,
+                                                    billing_address : user.address1,
+                                                    billing_city : user.city,
+                                                    billing_state : user.state,
+                                                    billing_zip : user.postal_code,
+                                                    billing_country : user.country_birth,
+                                                    billing_tel : user.mobile,
+                                                    billing_email : user.email,
+                                                    merchant_param1 : status_pay.order_Status_List[0].merchant_param1,
+                                                    merchant_param2 : status_pay.order_Status_List[0].merchant_param2,
+                                                    merchant_param3 : status_pay.order_Status_List[0].merchant_param3,
+                                                    merchant_param4 : status_pay.order_Status_List[0].merchant_param4,
+                                                    merchant_param5 : status_pay.order_Status_List[0].merchant_param5,
+                                                    split_status : '-1'
+                                                }).then(function(transaction_created){
+                                                    if(transaction_created){
+                                                        mailOrder(order.id, user.name, user.email,'transaction created',transaction_created.amount,transaction_created.tracking_id)
+                                                        models.Orders.find({
+                                                            where:{
+                                                                id : transaction_created.order_id
                                                             }
-                                                            if(type.includes('digital')){
-                                                                deliverType = 'digital'
+                                                        }).then(function(order_update){
+                                                            if(order_update){
+                                                                order_update.update({
+                                                                    status : '1',
+                                                                        timestamp : functions.get_current_datetime(),
+                                                                })
                                                             }
-                                                            if(type.includes('physcial')){
-                                                                deliverType = 'sealed'
+                                                        })
+                                                        models.Cart.findAll({
+                                                            where:
+                                                            {
+                                                                user_id : user.id
                                                             }
-                                                            total_amount = status_pay.order_Status_List[0].order_amt;
+                                                        }).then(function(cart){
+                                                            //total_amount = 1000 * cart.length;
+                                                            total_amount = order.amount;
                                                             models.Application.create({
                                                                 tracker : 'apply',
                                                                 status : 'new',
                                                                 total_amount : total_amount,
-                                                                user_id : user.id,
-                                                                source_from  : 'guattestation',
-                                                                deliverType  : deliverType
+                                                                user_id : user.id
                                                             }).then(function(created){
                                                                 if(created){
-                                                                    console.log("8")
-                                                                    models.Orders.findOne({
+                                                                    models.Orders.find({
                                                                         where:
                                                                         {
-                                                                            id : status_pay.order_Status_List[0].order_no,
-                                                                            source:'guattestation',
+                                                                            id : order.id
                                                                         }
                                                                     }).then(function(order){
-                                                                        console.log("9")
                                                                         order.update({
                                                                             application_id : created.id,
-                                                                            status : '1',
-                                                                            timestamp : functions.get_current_datetime(),
                                                                         }).then(function(order_updated){
-                                                                            console.log("10")
-                                                                            models.User_Course_Enrollment_Detail_Attestation.getListLastData().then(async function(last){
-                                                                                var last_id = last[0].enrollment_no;
-                                                                                var randomEnroNo;
-                                                                                randomEnroNo = parseInt(last_id)+01;
-                                                                                let ucedcreate=await functions.ucedcreated(created.id,user.id,randomEnroNo,source);
-                                                                                let inwardno=await functions.createinward(created.id,user.id,'A/');
-                                                                                console.log("11")
-                                                                                if(ucedcreate && inwardno){
-                                                                                    console.log("12")
-                                                                                    var userName = user.name + ' ' + user.surname;
-                                                                                    updateAppId(user.id, user.educationalDetails,user.instructionalField,created.id);
+                                                                            cart.forEach(function(single_cart){
+                                                                                outercounter ++ ;
+                                                                                var userName = user.name + ' ' + user.surname;
+                                                                                updateAppId(users[0].id, users[0].educationalDetails,users[0].instructionalField,users[0].curriculum,users[0].gradToPer,created.id,users[0].affiliation,users[0].CompetencyLetter,users[0].LetterforNameChange);
+                                                                                if(users[0].educationalDetails == true)
+                                                                                    sendEmailInstitute(users[0].id,userName,created.id);
+                                                                                if(users[0].instructionalField == true)
+                                                                                    sendEmailInstituteInstructional(users[0].id,userName,created.id);
+                                                                                if(users[0].curriculum == true)
+                                                                                    sendEmailInstituteCurriculum(users[0].id,userName,created.id);
+                                                                                if(users[0].gradToPer == true)
+                                                                                    sendEmailInstitiuteGradeTOPercentLetter(users[0].id,userName,created.id); 
+                                                                                if(user[0].affiliation == true)
+                                                                                    sendEmailInstitiuteAffiliationLetter(user[0].id,userName,created.id)
+                                                                                if(users[0].CompetencyLetter == true)
+                                                                                     sendEmailInstituteCompetency(users[0].id,userName,created.id)
+
+                                                                            sendEmailStudent(users[0].id,users[0].email,userName,created.id);
+
+
+                                                                                models.Institution_details.find({
+                                                                                    where:
+                                                                                    {
+                                                                                        id : single_cart.institute_id
+                                                                                    }
+                                                                                }).then(function(inst_detail){
                                                                                     var desc = user.name+"( "+user.email+" ) made payment for Institute ( "+inst_detail.university_name+" ).";
-                                                                                    var activity = "Payment";
+                                                                                    var activity = "Cron Payment";
                                                                                     var applicationId = created.id;
                                                                                     functions.activitylog(user.id, activity, desc, applicationId);
-                                                                                }
-                                                    
+                                                                                    inst_detail.update({
+                                                                                        app_id : created.id
+                                                                                    }).then(function(inst_updated){
+                                                                                        models.Hrd_details.findAll({
+                                                                                            where : {
+                                                                                                user_id : user.id
+                                                                                            }
+                                                                                        }).then(function (hrd_App_id){
+                                                                                        
+                                                                                                if(hrd_App_id.length > 0){
+                                                                                                    models.Hrd_details.update({
+                                                                                                        app_id : created.id
+                                                            
+                                                                                                    }, {
+                                                                                                        where: {
+                                                                                                            user_id : user[0].id
+                                                                                                        }
+                                                                                                    }).then(function (data) {
+                                                                                                    
+                                                                                                    })
+                                                                                                    
+                                                                                                }
+                                                                                            
+                                                                                            // else{
+                                                                                                models.Cart.destroy({
+                                                                                                    where:{
+                                                                                                        institute_id : inst_updated.id,   
+                                                                                                    }
+                                                                                                }).then(function(cart_deleted){
+                                                                                                    //
+                                                                                                });
+                                                                                            // }
+                                                                                        })
+                                                                                     
+                                                                                    });
+                                                                                });
                                                                             });
                                                                         });
                                                                     });
                                                                 }
-                                                            })
-	                                                    }else{
-                                                            console.log("6")
-	                                                    }
-	                                                })
-	                                            }
-	                                        })
-	                                    })
-	                                })
+                                                            })  
+                                                        });
+
+                                                        
+                                                    }else{
+
+                                                    }
+                                                }) 
+                                            }
+                                        })
+                                    })
+                                })
                                 }else{
                                     //NO SHIPPED DATA FOUND
+                                }
+
+                                if(count == orders.length){
+                                    setTimeout(function(){
+                                        if(data.length > 0){
+                                            var xls = json2xls(data);
+                                            var file_location = constant.FILE_LOCATION + "public/upload/payment_details_in_excel/ApiCallTransactionDetails.xlsx";
+                                            fs.writeFileSync(file_location, xls, 'binary');
+                                            var file_name = "ApiCallTransactionDetails.xlsx";
+                                            setTimeout(function(){
+                                                
+                            
+                                                base64.encode(constant.FILE_LOCATION+"public/upload/payment_details_in_excel/ApiCallTransactionDetails.xlsx", function(err, base64String) {
+                                                    const msg = {
+                                                        to: 'pooja@edulab.in',
+                                                        from: 'info@etranscript.in',
+                                                        subject: 'Fail - Attestation record',
+                                                        text:  '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+                                                        html: 
+                                                        '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+                                                        attachments: [
+                                                            {
+                                                                content: base64String,
+                                                                filename: file_name,
+                                                                type: 'application/xlsx',
+                                                                disposition: 'attachment',
+                                                                contentId: 'mytext'
+                                                            },
+                                                        ],
+                                                        
+                                                    };
+                                                    const msgShweta = {
+                                                        to: 'shweta@edulab.in',
+                                                        from: 'info@etranscript.in',
+                                                        subject: 'Fail - Attestation record',
+                                                        text:  '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+                                                        html: 
+                                                        '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+                                                        attachments: [
+                                                            {
+                                                                content: base64String,
+                                                                filename: file_name,
+                                                                type: 'application/xlsx',
+                                                                disposition: 'attachment',
+                                                                contentId: 'mytext'
+                                                            },
+                                                        ],
+                                                        
+                                                    };
+                                                    //sgMail.send(msg);
+                                                    // sgMail.send(msgShweta);
+                                                });
+                                                                                
+                                            },5000);
+                                        }else{
+                                            const msgShweta = {
+                                                to: 'shweta@edulab.in',
+                                                from: 'info@etranscript.in',
+                                                subject: 'Fail - Attestation NO record',
+                                                text:  '<br>NO Records found for Api Call Transaction Details \n\n',
+                                                html: 
+                                                '<br>NO Records found for Api Call Transaction Details \n\n',
+                                            };
+                                            // sgMail.send(msgShweta);
+                                        }
+                                    },5000)
                                 }
                             }
                         }
                 );
 
-    //         });
-    //     }else{
-    //         //no order found
-    //     }
-    // })
+            }); 
+        }else{
+            //no order found
+        }
+    })
 
     //For Mail which order_id updated in transaction table.
-    async function updateAppId(user_id,educationalDetails,instructionalField,app_id){
-        console.log("13")
-        var appliedforddetails = await functions.setAppId(app_id,user_id,'AppliedForDetails');
-        if(appliedforddetails){
-            console.log("14")
-            var getApplied = await functions.getApplied(user_id,app_id);
-            var usermarklist = await functions.setAppId(app_id,user_id ,'UserMarklist');
-            if(getApplied.instructionalField == 1){
-                console.log("15")
-                    var instructional = await functions.setAppId(app_id,user_id ,'Instructional');
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-            }else{
-                console.log("16")
-                if(getApplied.attestedfor.includes('marksheet') || getApplied.attestedfor.includes('newmark')){
-                    var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-               }
-               if(getApplied.attestedfor.includes('degree')){
-                    var degree = await functions.setAppId(app_id,user_id ,'Degree');
-               }
-               if(getApplied.attestedfor.includes('transcript')){
-                    var transcript = await functions.setAppId(app_id,user_id ,'Transcript');
-               }
-            }
+    function mailOrder(order_id, stu_name, stu_email, action, amount, tracking_id){
+        data.push({
+            stu_name : stu_name,
+            stu_email : stu_email,
+            order_id : order_id,
+            cc_reference_no : tracking_id,
+            amount : amount,
+            action : action
+        })
+    }
 
-            var purpose = await functions.setAppId(app_id,user_id ,'purpose');
-        }
+    function sendEmailInstitute(user_id,user_name,app_id){
+        models.User_Transcript.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(userTranscripts){
+            var collegeData = [];
+            userTranscripts.forEach(transcript=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    user_transcript : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : transcript.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+ user_id + "/" + urlencode(transcript.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == transcript.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+user_id + "/" + urlencode(transcript.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+user_id + "/" + urlencode(transcript.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+               models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(userMarkLists){      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        user_transcript : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        //flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                                }
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+                    request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailShweta', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.User_Transcript.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.User_Transcript.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+
+    function sendEmailInstituteInstructional(user_id,user_name, app_id){
+        var collegeData = [];
+        models.InstructionalDetails.find({
+			where :{
+				userId : user_id
+			}
+		}).then(function(instructional){
+			models.userMarkList.find({
+				where : {
+					user_id : user_id
+				}
+			}).then(function(userMarkListsData){
+              models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){      
+				userMarkLists.forEach(markList=>{
+					var singleCollege = {
+						user_id : '',
+						collegeName : '',
+						studentName : '',
+						college_id : '',
+						collegeEmail : '',
+						courseName : '',
+						user_markList : [],
+						alternateEmail : '',
+                        app_id : app_id
+					}
+					models.College.find({
+						where:{
+							id : markList.collegeId
+						}
+					}).then(function(college){
+						if(collegeData.length < 1){
+							singleCollege.user_id = user_id;
+							singleCollege.collegeName = college.name;
+							singleCollege.collegeEmail = college.emailId;
+							singleCollege.studentName = instructional.studentName;
+							singleCollege.college_id = college.id;
+							singleCollege.courseName = instructional.courseName;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+							singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                            collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+
+                            }
+						}else{
+							var flag = false;
+							for(var i = 0; i<collegeData.length; i++){
+								if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+									collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+									flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                    break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;
+                                        break; 
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+									    flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;
+                                        break;
+
+                                    }
+								}
+							}
+							if(flag == false){
+								singleCollege.user_id = user_id;
+								singleCollege.collegeName = college.name;
+								singleCollege.studentName = instructional.studentName;
+								singleCollege.courseName = instructional.courseName;
+								singleCollege.college_id = college.id;
+								singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                    
+                                }
+							}
+						}
+					});
+				})
+				setTimeout(()=>{
+					console.log("collegeData == " + JSON.stringify(collegeData));
+					request.post(constant.BASE_URL_SENDGRID + 'instructionalFieldVerificationEmail', {
+						json: {
+							collegeData : collegeData
+						}
+					}, function (error, response, body) {
+						if(body.notSent.length > 0){
+							body.noteSent.forEach(data=>{
+								models.InstructionalDetails.updateSingleEmailStatus(user_id,null,'not sent');
+							})
+						}
+						body.data.forEach(msgId=>{
+							models.InstructionalDetails.updateSingleEmailStatus(user_id,msgId.msg_id,'sent');
+						})      
+					})
+                },1000);
+                
+            });
+				
+			})
+		})
+    }
+
+    function sendEmailInstituteCurriculum(user_id,user_name,app_id){
+        var collegeData = [];
+        models.User_Curriculum.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(userCurriculums){
+            userCurriculums.forEach(curriculum=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+					collegeEmail : '',
+					alternateEmail : '',
+                    user_curriculum : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : curriculum.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+ user_id + "/" + urlencode(curriculum.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == curriculum.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+user_id + "/" + urlencode(curriculum.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.user_curriculum.push({'fileName':curriculum.file_name,'curriculum':'upload/curriculum/'+user_id + "/" + urlencode(curriculum.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+                models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(userMarkLists){      
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        user_curriculum : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                    collegeData.push(singleCollege);
+                                }
+
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+					console.log("collegeData == " + JSON.stringify(collegeData));
+                    request.post(constant.BASE_URL_SENDGRID + 'curriculumVerificationEmail', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.User_Curriculum.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.User_Curriculum.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+
+    function sendEmailInstitiuteGradeTOPercentLetter(user_id,user_name,app_id){
+        var letters = [];
+        var userMarkLists = [];
+        models.GradeToPercentageLetter.findAll({
+            where :{
+                user_id : user_id
+            }
+        }).then(function(grade_letters){
+            grade_letters.forEach(transcript=>{
+                var app_idArr = transcript.app_id.split(',');
+                app_idArr.forEach(appl_id=>{
+                    if(appl_id == app_id){
+                        letters.push(transcript);
+                    }
+                })
+            })
+            var collegeData = [];
+            letters.forEach(letter=>{
+                var singleCollege = {
+                    user_id : '',
+                    collegeName : '',
+                    studentName : '',
+                    college_id : '',
+                    collegeEmail : '',
+                    letter : [],
+                    user_markList : [],
+                    app_id : app_id
+                }
+                models.College.find({
+                    where:{
+                        id : letter.collegeId
+                    }
+                }).then(function(college){
+                    if(collegeData.length < 1){
+                        singleCollege.user_id = user_id;
+                        singleCollege.collegeName = college.name;
+                        singleCollege.collegeEmail = college.emailId;
+                        singleCollege.studentName = user_name;
+                        singleCollege.college_id = college.id;
+                        singleCollege.alternateEmail = college.alternateEmailId; 
+                        singleCollege.letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+ user_id + "/" + urlencode(letter.file_name)});
+                        collegeData.push(singleCollege);
+                    }else{
+                        var transcriptFlag = false;
+                        for(var i = 0; i<collegeData.length; i++){
+                            if(collegeData[i].college_id == letters.collegeId){
+                                //console.log("----1111----");
+                                collegeData[i].letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+user_id + "/" + urlencode(letter.file_name)});
+                                transcriptFlag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                break;
+                            }
+                        }
+                        if(transcriptFlag == false){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.alternateEmail = college.alternateEmailId;
+                            singleCollege.letter.push({'fileName':letter.file_name,'letter':'upload/gradeToPercentLetter/'+user_id + "/" + urlencode(letter.file_name)});
+                            collegeData.push(singleCollege);
+                        }
+                    }
+                })
+            });
+            models.userMarkList.find({
+                where : {
+                    user_id : user_id
+                }
+            }).then(function(userMarkListsData){  
+               models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(userMark_Lists){  
+                userMark_Lists.forEach(transcript=>{
+                    var app_idArr = transcript.app_id.split(',');
+                    app_idArr.forEach(appl_id=>{
+                        if(appl_id == app_id){
+                            userMarkLists.push(transcript);
+                        }
+                    })
+                })         
+                userMarkLists.forEach(markList=>{
+                    var singleCollege = {
+                        user_id : '',
+                        collegeName : '',
+                        studentName : '',
+                        college_id : '',
+                        collegeEmail : '',
+                        letter : [],
+                        user_markList : [],
+                        app_id : app_id
+                    }
+                    models.College.find({
+                        where:{
+                            id : markList.collegeId
+                        }
+                    }).then(function(college){
+                        if(collegeData.length < 1){
+                            singleCollege.user_id = user_id;
+                            singleCollege.collegeName = college.name;
+                            singleCollege.collegeEmail = college.emailId;
+                            singleCollege.studentName = user_name;
+                            singleCollege.college_id = college.id;
+                            singleCollege.alternateEmail = college.alternateEmailId; 
+                            if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                            }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                collegeData.push(singleCollege);
+                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                collegeData.push(singleCollege);
+                            }
+                        }else{
+                            var flag = false;
+                            for(var i = 0; i<collegeData.length; i++){
+                                if(collegeData[i].college_id == markList.collegeId){
+                                    //console.log("----1111----");
+                                    if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                        //flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+    
+                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                        flag = true;//console.log("CollegeData 1 == " + JSON.stringify(collegeData));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(flag == false){
+                                singleCollege.user_id = user_id;
+                                singleCollege.collegeName = college.name;
+                                singleCollege.studentName = user_name;
+                                singleCollege.college_id = college.id;
+                                singleCollege.collegeEmail = college.emailId;
+                                singleCollege.alternateEmail = college.alternateEmailId;
+                                if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+                                }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
+                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.file_name)});
+                                    collegeData.push(singleCollege);
+                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                    collegeData.push(singleCollege);
+    
+                                }
+                            }
+                        }
+                    });
+                })
+                setTimeout(function(){
+                    request.post(constant.BASE_URL_SENDGRID + 'gradeLetterVerificationEmail', {
+                        json: {
+                            collegeData : collegeData
+                        }
+                    }, function (error, response, body) {
+                        if(body.notSent.length > 0){
+                            body.noteSent.forEach(data=>{
+                                models.GradeToPercentageLetter.updateSingleCollegeEmailStatus(user_id,data.college_id,null,'not sent');
+                            })
+                        }
+                        body.data.forEach(msgId=>{
+                            models.GradeToPercentageLetter.updateSingleCollegeEmailStatus(user_id,msgId.college_id,msgId.msg_id,'sent');
+                        })      
+                    })
+                },1000);
+            });
+            })
+        })
+    }
+    
+    function sendEmailStudent(user_id,user_email,user_name,app_id){
+        var collegeData = [];
+        models.Applied_For_Details.find({
+            where :{
+                user_id : user_id,
+                app_id : app_id
+            }
+        }).then(function(student){
+            models.userMarkList.getdistinctClg(user_id).then(function(userMarklists){
+                userMarklists.forEach(userMarklist =>{
+                    var clgFlag = false;
+                    if(collegeData.length == 0){
+                        models.College.find({
+                            where:{
+                                id : userMarklist.collegeId
+                            }
+                        }).then(function(college){
+                            collegeData.push({
+                                id : college.id,
+                                name : college.name,
+                                email : college.emailId,
+                                alternateEmail : college.alternateEmailId
+                            })
+                        })
+                    }else{
+                        collegeData.forEach(clg=>{
+                            if(clg.id == userMarklist.collegeId){
+                                clgFlag = true;
+                            }
+                        });
+                        if(clgFlag == false){
+                            models.College.find({
+                                where:{
+                                    id : userMarklist.collegeId
+                                }
+                            }).then(function(college){
+                                collegeData.push({
+                                    id : college.id,
+                                    name : college.name,
+                                    email : college.emailId,
+                                    alternateEmail : college.alternateEmailId
+                                })
+                            })
+                        }
+                    }
+                })
+           
+                if(student.educationalDetails == true){
+                    models.User_Transcript.getDistinctCollege(user_id).then(function(userTranscripts){
+                        userTranscripts.forEach(userTranscript=>{
+                            clgFlag = false;
+                            if(userTranscript.collegeId != 0){
+                                collegeData.forEach(clg=>{
+                                    if(userTranscript.collegeId == clg.id ){
+                                        clgFlag = true;
+                                    }
+                                })
+                                if(clgFlag == false){
+                                    console.log("id : "+ userTranscript.collegeId)
+                                    models.College.find({
+                                        where:{
+                                            id : userTranscript.collegeId
+                                        }
+                                    }).then(function(college){
+                                        collegeData.push({
+                                            id : college.id,
+                                            name : college.name,
+                                            email : college.emailId,
+                                            alternateEmail : college.alternateEmailId
+                                        })
+                                    })
+                                }
+                            }
+                        })
+                    })
+                }
+    
+                if(student.curriculum == true){
+                    models.User_Curriculum.getDistinctCollege(user_id).then(function(userCurriculums){
+                        userCurriculums.forEach(userCurriculum=>{
+                            clgFlag = false;
+                            collegeData.forEach(clg=>{
+                                if(userCurriculum.collegeId == clg.id){
+                                    clgFlag = true;
+                                }
+                            })
+                            if(clgFlag == false){
+                                models.College.find({
+                                    where:{
+                                        id : userCurriculum.collegeId
+                                    }
+                                }).then(function(college){
+                                    collegeData.push({
+                                        id : college.id,
+                                        name : college.name,
+                                        email : college.emailId,
+                                        alternateEmail : college.alternateEmailId
+                                    })
+                                })
+                            }
+                        })
+                    })
+                }
+    
+                if(student.gradToPer == true){
+                    models.GradeToPercentageLetter.getDistinctCollege(user_id).then(function(userCurriculums){
+                        userCurriculums.forEach(userCurriculum=>{
+                            clgFlag = false;
+                            collegeData.forEach(clg=>{
+                                if(userCurriculum.collegeId == clg.id){
+                                    clgFlag = true;
+                                }
+                            })
+                            if(clgFlag == false){
+                                models.College.find({
+                                    where:{
+                                        id : userCurriculum.collegeId
+                                    }
+                                }).then(function(college){
+                                    collegeData.push({
+                                        id : college.id,
+                                        name : college.name,
+                                        email : college.emailId,
+                                        alternateEmail : college.alternateEmailId
+                                    })
+                                })
+                            }
+                        })
+                    })
+                }
+                setTimeout(()=>{
+                    request.post(constant.BASE_URL_SENDGRID + 'applicationGeneratedNotification', {
+                        json: {
+                            collegeData : collegeData,
+                            userEmail : user_email,
+                            userName : user_name
+                        }
+                    }, function (error, response, body) {})
+                },1000)
+            })
+        })
+    }
+
+    function updateAppId(user_id, educationalDetails,instructionalField,curriculum,gradToPer,app_id,affiliation,CompetencyLetter,LetterforNameChange){
+		models.Applied_For_Details.find({
+			where :{
+				user_id : user_id,
+				app_id : {
+					[Op.eq] : null
+				}
+			}
+		}).then(function(appliedForDetails){
+			appliedForDetails.update({
+				app_id : app_id
+			}).then(function(updated){
+				models.userMarkList.find({
+					where : {
+						user_id : user_id
+					}
+				}).then(function(userMarkLists){
+					if(userMarkLists.previous_data == true){
+						if(educationalDetails == true){
+							models.User_Transcript.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(UserTranscriptsData){  
+							//   console.log("UserTranscriptsData===>"+JSON.stringify(UserTranscriptsData));
+								if(UserTranscriptsData.length > 0){
+									UserTranscriptsData.forEach((transcript)=>{
+										var appID ;
+										if(transcript.app_id == null || transcript.app_id == ''){
+											appID = app_id
+											models.User_Transcript.update(
+												{   app_id  : appID},
+												{   where   :  { id : transcript.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = transcript.app_id+","+app_id
+											models.User_Transcript.update(
+												{   app_id  : appID},
+												{   where   :  { id : transcript.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+										
+									})
+								}
+							
+							})
+						}
+						
+						if(curriculum == true){
+							models.User_Curriculum.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(User_CurriculumsData){  
+							//   console.log("User_CurriculumsData===>"+JSON.stringify(User_CurriculumsData));
+								if(User_CurriculumsData.length > 0){
+									User_CurriculumsData.forEach((curriculum)=>{
+										var appID ;
+										if(curriculum.app_id == null || curriculum.app_id == ''){
+											appID = app_id;
+											models.User_Curriculum.update(
+												{   app_id  : appID},
+												{   where   :  { id : curriculum.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = curriculum.app_id+","+app_id;
+											models.User_Curriculum.update(
+												{   app_id  : appID},
+												{   where   :  { id : curriculum.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+										
+									})
+								}
+							})
+						}
+			
+						if(instructionalField == true){
+							models.InstructionalDetails.findAll({
+								where : {
+									userId : user_id
+								}
+							}).then(function(InstructionalDetailsData){  
+							//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(InstructionalDetailsData.length > 0){
+									InstructionalDetailsData.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.InstructionalDetails.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.InstructionalDetails.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+									
+									})
+								}
+							})
+						}
+
+                        if(affiliation == true){
+							models.Affililation_Letter.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(AffiliationData){  
+							//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(AffiliationData.length > 0){
+									AffiliationData.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.Affililation_Letter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.Affililation_Letter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}
+									
+									})
+								}
+							})
+						}
+			
+						if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										var appID ;
+										if(data.app_id == null || data.app_id == ''){
+											appID = app_id
+											models.GradeToPercentageLetter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+												}).then((err,updated)=>{
+													if(err){
+														console.error(err);
+													}
+												})
+										}else {
+											appID = data.app_id+","+app_id
+											models.GradeToPercentageLetter.update(
+												{   app_id  : appID},
+												{   where   :  { id : data.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+										}
+									
+									})
+								}
+							})
+						}
+			
+						models.userMarkList.findAll({
+							where : {
+								user_id : user_id
+							}
+						}).then(function(userMarkListsData){  
+						//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+							if(userMarkListsData.length > 0){
+								userMarkListsData.forEach((marklist)=>{
+									var appID ;
+									if(marklist.app_id == null || marklist.app_id == ''){
+										appID = app_id
+										models.userMarkList.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}else {
+										appID = marklist.app_id+","+app_id
+										models.userMarkList.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}
+								
+								})
+							}
+						})
+						models.UserMarklist_Upload.findAll({
+							where : {
+								user_id : user_id
+							}
+						}).then(function(userMarkListUploadsData){  
+						//     console.log("userMarkListUploadsData===>"+JSON.stringify(userMarkListUploadsData));
+							if(userMarkListUploadsData.length > 0){
+								userMarkListUploadsData.forEach((marklist)=>{
+									var appID ;
+									if(marklist.app_id == null || marklist.app_id == ''){
+										appID = app_id
+										models.UserMarklist_Upload.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}else {
+										appID = marklist.app_id+","+app_id
+										models.UserMarklist_Upload.update(
+											{   app_id  : appID},
+											{   where   :  { id : marklist.id}
+											}).then((err,updated)=>{
+												if(err){
+													console.error(err);
+												}
+											})
+									}
+									
+								})
+							}
+						})
+					}else{
+						if(educationalDetails == true){
+							models.User_Transcript.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(UserTranscriptsData){  
+							//   console.log("UserTranscriptsData===>"+JSON.stringify(UserTranscriptsData));
+								if(UserTranscriptsData.length > 0){
+									UserTranscriptsData.forEach((transcript)=>{
+										models.User_Transcript.update(
+										{   app_id  : app_id},
+										{   where   :  { id : transcript.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+						
+						if(curriculum == true){
+							models.User_Curriculum.findAll({
+								where : {
+									user_id : user_id, 
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(User_CurriculumsData){  
+							//   console.log("User_CurriculumsData===>"+JSON.stringify(User_CurriculumsData));
+								if(User_CurriculumsData.length > 0){
+									User_CurriculumsData.forEach((curriculum)=>{
+									models.User_Curriculum.update(
+										{   app_id  : app_id},
+										{   where   :  { id : curriculum.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+						if(instructionalField == true){
+							models.InstructionalDetails.findAll({
+								where : {
+									userId : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(InstructionalDetailsData){  
+								if(InstructionalDetailsData.length > 0){
+									InstructionalDetailsData.forEach((data)=>{
+										models.InstructionalDetails.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+
+                        if(affiliation == true){
+							models.Affililation_Letter.findAll({
+								where : {
+									userId : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(affiliationData){  
+								if(affiliationData.length > 0){
+									affiliationData.forEach((data)=>{
+										models.Affililation_Letter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+						if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										models.GradeToPercentageLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+                        if(CompetencyLetter == true){
+							models.competency_letter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(CompetencyLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(CompetencyLetter.length > 0){
+									CompetencyLetter.forEach((data)=>{
+										models.CompetencyLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+
+                        if(LetterforNameChange == true){
+							models.Letterfor_NameChange.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(LetterforNameChange){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(LetterforNameChange.length > 0){
+									LetterforNameChange.forEach((data)=>{
+										models.LetterforNameChange.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+			
+                        if(gradToPer == true){
+							models.GradeToPercentageLetter.findAll({
+								where : {
+									user_id : user_id,
+									app_id : {
+										[Op.eq] : null
+									}
+								}
+							}).then(function(GradeToPercentageLetter){  
+								//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+								if(GradeToPercentageLetter.length > 0){
+									GradeToPercentageLetter.forEach((data)=>{
+										models.GradeToPercentageLetter.update(
+										{   app_id  : app_id},
+										{   where   :  { id : data.id}
+										}).then((err,updated)=>{
+											if(err){
+												console.error(err);
+											}
+										})
+									})
+								}
+							})
+						}
+						models.userMarkList.findAll({
+							where : {
+								user_id : user_id,
+								app_id : {
+									[Op.eq] : null
+								}
+							}
+						}).then(function(userMarkListsData){  
+						//  console.log("userMarkListsData===>"+JSON.stringify(userMarkListsData));
+							if(userMarkListsData.length > 0){
+								userMarkListsData.forEach((marklist)=>{
+									models.userMarkList.update(
+									{   app_id  : app_id},
+									{   where   :  { id : marklist.id}
+									}).then((err,updated)=>{
+										if(err){
+											console.error(err);
+										}
+									})
+								})
+							}
+						})
+						models.UserMarklist_Upload.findAll({
+							where : {
+								user_id : user_id,
+								app_id : {
+									[Op.eq] : null
+								}
+							}
+						}).then(function(userMarkListUploadsData){  
+						//     console.log("userMarkListUploadsData===>"+JSON.stringify(userMarkListUploadsData));
+							if(userMarkListUploadsData.length > 0){
+								userMarkListUploadsData.forEach((marklist)=>{
+									models.UserMarklist_Upload.update(
+									{   app_id  : app_id},
+									{   where   :  { id : marklist.id}
+									}).then((err,updated)=>{
+										if(err){
+											console.error(err);
+										}
+									})
+								})
+							}
+						}) 
+					}
+					
+				})
+			})
+		})
     }
 
 });
+
+// router.get('/orderlookup',function(req,res){
+//     var ccavEncResponse='',
+//         ccavResponse='',    
+//         ccavPOST = '';
+//     var count = 0;
+//     var data =[];
+//     var sendgrid  = require('sendgrid')(constant.SENDGRID_API_KEY);
+//     const sgMail = require('@sendgrid/mail');
+//     sgMail.setApiKey(constant.SENDGRID_API_KEY);
+
+//     /* FOR DATABASE QUERY */
+//     var yesterday1     = moment().subtract(1, 'days').startOf('day');
+//     var yesterdayNew  = yesterday1.format('YYYY-MM-DD HH:mm:ss');
+//     var today1  = moment().endOf('day');
+//     var todayNew = today1.format('YYYY-MM-DD HH:mm:ss');
+
+//     /* FOR CC REQUEST */
+//     var date = new Date();
+//     var today =  (date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear()).toString() ;
+//     // date.setDate(date.getDate()-1);
+//     var yesterday =  yesterday1.format('DD-MM-YYYY').toString();
+
+//     models.Orders.getOrderID(yesterdayNew,todayNew).then(function(orders){
+//         console.log("orders.length---->"+orders.length);
+//         if(orders){
+//             orders.forEach(function(order){
+//                 var statusTrackerData = {
+//                     //'reference_no': '108699413641',
+//                     //'reference_no' : '',
+//                     'from_date' : ''+yesterday,// '16-06-2019' ,
+//                     //'to_date' : ''+today,
+//                     'order_currency' :'INR',
+//                     'order_email' : '',
+//                     'order_fraud_status' : '',
+//                     'order_min_amount' : '',
+//                     'order_max_amount' : '',
+//                     'order_name' : '',
+//                     'order_no' : ''+order.id,
+//                     'order_payment_type' : '',
+//                     'order_status' : 'Shipped',
+//                     'order_type' : '',
+//                     'order_bill_tel' : '',
+//                     'page_number' : '1'
+//                 }
+//                 var status_encRequest = ccav.encrypt(JSON.stringify(statusTrackerData),workingKey);
+
+//                 request.post(
+//                     "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+status_encRequest+"&access_code="+accessCode+"&command=orderLookup&request_type=JSON&response_type=JSON&version=1.1",
+//                         function (error, response, body) {
+//                             count++;
+//                             var statustracker_obj = qs.parse(response.body);
+
+//                             var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
+//                             console.log("dec_status---->"+JSON.stringify(dec_status));
+
+//                             var status_pay = JSON.parse(dec_status);
+
+//                             if(status_pay.error_code != 51419 && status_pay.total_records > 0 ){
+//                                 //DATA FOUND
+//                                 models.User.find({
+//                                     where : {
+//                                         id : order.user_id
+//                                     }
+//                                 }).then(function(user){
+//                                     models.Transaction.find({
+//                                         where : {
+//                                             order_id : status_pay.order_Status_List[0].order_no //order.id
+//                                         }
+//                                     }).then(function(transaction){
+//                                         if(transaction){
+//                                             //transaction already exist but not updated in order table
+//                                             models.Orders.find({
+//                                                 where:{
+//                                                     id : order.id
+//                                                 }
+//                                             }).then(function(order_update){
+//                                                 if(order_update.status != '1'){
+//                                                     //not updated
+//                                                     console.log("not updated")
+//                                                     mailOrder(order.id, user.name, user.email,'order updated',order_update.amount,transaction.tracking_id)
+//                                                     order_update.update({
+//                                                         status : '1',
+//                                                         timestamp : functions.get_current_datetime(),
+//                                                     })
+//                                                 }else{
+//                                                     //already updated
+//                                                     console.log("not updated")
+//                                                 }
+//                                             })
+//                                         }else{
+//                                             //transaction not exist
+//                                             models.Transaction.create({
+//                                                 order_id : order.id,
+//                                                 tracking_id : status_pay.order_Status_List[0].reference_no,
+//                                                 bank_ref_no : status_pay.order_Status_List[0].order_bank_ref_no,
+//                                                 order_status : status_pay.order_Status_List[0].order_status ? 'Success' : status_pay.order_Status_List[0].order_status,
+//                                                 payment_mode : 'online',
+//                                                 currency : 'INR',
+//                                                 amount : status_pay.order_Status_List[0].order_amt,
+//                                                 billing_name : user.name,
+//                                                 billing_address : user.address1,
+//                                                 billing_city : user.city,
+//                                                 billing_state : user.state,
+//                                                 billing_zip : user.postal_code,
+//                                                 billing_country : user.country_birth,
+//                                                 billing_tel : user.mobile,
+//                                                 billing_email : user.email,
+//                                                 merchant_param1 : status_pay.order_Status_List[0].merchant_param1,
+//                                                 merchant_param2 : status_pay.order_Status_List[0].merchant_param2,
+//                                                 merchant_param3 : status_pay.order_Status_List[0].merchant_param3,
+//                                                 merchant_param4 : status_pay.order_Status_List[0].merchant_param4,
+//                                                 merchant_param5 : status_pay.order_Status_List[0].merchant_param5,
+//                                                 split_status : '-1'
+//                                             }).then(function(transaction_created){
+//                                                 if(transaction_created){
+//                                                     mailOrder(order.id, user.name, user.email,'transaction created',transaction_created.amount,transaction_created.tracking_id)
+//                                                     models.Orders.find({
+//                                                         where:{
+//                                                             id : transaction_created.order_id
+//                                                         }
+//                                                     }).then(function(order_update){
+//                                                         if(order_update){
+//                                                             order_update.update({
+//                                                                 status : '1',
+//                                                                     timestamp : functions.get_current_datetime(),
+//                                                             })
+//                                                         }
+//                                                     })
+//                                                 }else{
+
+//                                                 }
+//                                             }) 
+//                                         }
+//                                     })
+//                                 })
+//                             }else{
+//                                 //NO SHIPPED DATA FOUND
+//                             }
+
+//                             if(count == orders.length){
+//                                 setTimeout(function(){
+//                                     if(data.length > 0){
+//                                         var xls = json2xls(data);
+//                                         var file_location = constant.FILE_LOCATION + "public/upload/payment_details_in_excel/ApiCallTransactionDetails.xlsx";
+//                                         fs.writeFileSync(file_location, xls, 'binary');
+//                                         var file_name = "ApiCallTransactionDetails.xlsx";
+//                                         setTimeout(function(){
+                                            
+                        
+//                                             base64.encode(constant.FILE_LOCATION+"public/upload/payment_details_in_excel/ApiCallTransactionDetails.xlsx", function(err, base64String) {
+//                                                 const msg = {
+//                                                     to: 'pooja@edulab.in',
+//                                                     from: 'info@etranscript.in',
+//                                                     subject: 'Fail - Attestation record',
+//                                                     text:  '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+//                                                     html: 
+//                                                     '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+//                                                     attachments: [
+//                                                         {
+//                                                             content: base64String,
+//                                                             filename: file_name,
+//                                                             type: 'application/xlsx',
+//                                                             disposition: 'attachment',
+//                                                             contentId: 'mytext'
+//                                                         },
+//                                                     ],
+                                                    
+//                                                 };
+//                                                 const msgShweta = {
+//                                                     to: 'shweta@edulab.in',
+//                                                     from: 'info@etranscript.in',
+//                                                     subject: 'Fail - Attestation record',
+//                                                     text:  '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+//                                                     html: 
+//                                                     '<br>Kindly check attached excel sheet for Api Call Transaction Details \n\n',
+//                                                     attachments: [
+//                                                         {
+//                                                             content: base64String,
+//                                                             filename: file_name,
+//                                                             type: 'application/xlsx',
+//                                                             disposition: 'attachment',
+//                                                             contentId: 'mytext'
+//                                                         },
+//                                                     ],
+                                                    
+//                                                 };
+//                                                 sgMail.send(msg);
+//                                                 sgMail.send(msgShweta);
+//                                             });
+                                                                            
+//                                         },5000);
+//                                     }else{
+//                                     	const msgShweta = {
+// 			                                to: 'shweta@edulab.in',
+// 			                                from: 'info@etranscript.in',
+// 			                                subject: 'Fail - Attestation NO record',
+// 			                                text:  '<br>NO Records found for Api Call Transaction Details \n\n',
+// 			                                html: 
+// 			                                '<br>NO Records found for Api Call Transaction Details \n\n',
+// 			                            };
+// 			                            sgMail.send(msgShweta);
+//                                     }
+//                                 },5000)
+//                             }
+//                         }
+//                 );
+
+//             }); 
+//         }else{
+//             //no order found
+//         }
+//     })
+
+//     //For Mail which order_id updated in transaction table.
+//     function mailOrder(order_id, stu_name, stu_email, action, amount, tracking_id){
+//         data.push({
+//             stu_name : stu_name,
+//             stu_email : stu_email,
+//             order_id : order_id,
+//             cc_reference_no : tracking_id,
+//             amount : amount,
+//             action : action
+//         })
+//     }
+
+// });
+
 
 router.get('/remainingpayment',function(req,res){
     var paymentData = {
@@ -2446,7 +5379,7 @@ router.get('/remainingpayment',function(req,res){
         currency: 'INR',
         amount: 536.00,
         redirect_url: "http://etranscript.in:5000/api/payment/success-link-redirect-url",
-        cancel_url: "http://etranscript.in:5000/api/payment/cancel-redirect-url",
+        cancel_url: "http://etranscript.in:5000/api/payment/cancel-redirect-url", 
         language: 'EN',
         billing_name: 'Kinjal',//req.User.name,
         billing_address: null,//req.User.address1,
@@ -2488,7 +5421,7 @@ router.post('/success-link-redirect-url',function(req,res){
     console.log("Success URL");
 
     var ccavEncResponse='',
-    ccavResponse='',
+    ccavResponse='',    
     ccavPOST = '';
     var total_amount;
     var outercounter = 0;
@@ -2501,7 +5434,7 @@ router.post('/success-link-redirect-url',function(req,res){
         data=data+attr+'='+encodeURIComponent(bodyJson[attr]);
     }
 
-
+    
 
     ccavEncResponse += data;
     ccavPOST =  qs.parse(ccavEncResponse);
@@ -2516,20 +5449,14 @@ router.post('/success-link-redirect-url',function(req,res){
     if(obj.order_status == "Success"){
         models.User.find({
             where : {
-                email : obj.merchant_param2
+                email : obj.merchant_param2 
             }
         }).then(function(user){
             total_amount = obj.mer_amount;
             models.Orders.find({
                 where:
                 {
-                    id : obj.order_id,
-                    [Op.or]:[{
-                        source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+                    id : obj.order_id
                 }
             }).then(function(order){
                 order.update({
@@ -2563,7 +5490,7 @@ router.post('/success-link-redirect-url',function(req,res){
                             var activity = "Payment Link";
                             var applicationId = order_updated.application_id;
                             functions.activitylog(user.id, activity, desc, applicationId);
-                            res.redirect("https://guattestation.studentscenter.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
+                            res.redirect("http://mu.etranscript.in/app/#/pages/PaymentSuccess?order_id="+obj.order_id);
                         }
                     });
                 });
@@ -2573,44 +5500,38 @@ router.post('/success-link-redirect-url',function(req,res){
         models.Orders.find({
             where:
             {
-                id : obj.order_id,
-                [Op.or]:[{
-                    source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+                id : obj.order_id
             }
         }).then(function(ord){
             if(obj.order_status == 'Failure'){
                 ord.update({
                     status : '-1'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Timeout'){
                 ord.update({
                     status : '2'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Aborted'){
                 ord.update({
                     status : '3'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else if(obj.order_status == 'Invalid'){
                 ord.update({
                     status : '4'
                 }).then(function(updated){
-                    res.redirect("https://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }else{
                 ord.update({
                     status : '5'
                 }).then(function(updated){
-                    //res.redirect("http://guattestation.studentscenter.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
+                    //res.redirect("http://mu.etranscript.in/app/#/pages/FirstFailure?order_status="+obj.order_status);
                 })
             }
         });
@@ -2619,7 +5540,7 @@ router.post('/success-link-redirect-url',function(req,res){
 
 router.get('/changeSplitStatus',function(req,res){
     var changeSplitStatus = {
-        'reference_no':109858203787,
+        'reference_no':109858203787, 
         'order_no': 427913434
     }
     var split_encRequest = ccav.encrypt(JSON.stringify(changeSplitStatus),workingKey);
@@ -2660,12 +5581,12 @@ router.post('/changeSplitPayoutStatus',function(req,res){
                             status : 400,
                             message : 'Error occured'
                         });
-                    }else{
+                    }else{  
                         var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
                         var pay = JSON.parse(dec_split);
-
+     
                         var val = pay.split_refund_result;
-
+     
                         // var refund_status = val.refund_status;
                         // console.log("refund_status---------->"+refund_status);
                         models.Transaction.find({
@@ -2714,7 +5635,7 @@ router.post('/changeSplitPayoutStatus',function(req,res){
 
 router.get('/invoicelookup',function(req,res){
     var ccavEncResponse='',
-        ccavResponse='',
+        ccavResponse='',    
         ccavPOST = '';
     var count = 0;
     var data =[];
@@ -2763,7 +5684,7 @@ router.get('/invoicelookup',function(req,res){
                         console.log("INVOICE--->"+count)
                         //mailOrderInvoice(invoice_data.order_no, invoice_data.order_bill_name, invoice_data.order_bill_email,'Invoice Updated to N',invoice_data.order_amt,invoice_data.reference_no)
                         var changeSplitStatus = {
-                            'reference_no': ''+invoice_data.reference_no,
+                            'reference_no': ''+invoice_data.reference_no, 
                             'order_no': ''+invoice_data.order_no
                         }
                         var split_encRequest = ccav.encrypt(JSON.stringify(changeSplitStatus),workingKey);
@@ -2793,7 +5714,7 @@ router.get('/invoicelookup',function(req,res){
                                             from: 'info@etranscript.in',
                                             subject: 'Invoice Updated record',
                                             text:  '<br>Kindly check attached excel sheet for Api Call Invoice Details \n\n',
-                                            html:
+                                            html: 
                                             '<br>Kindly check attached excel sheet for Api Call Invoice Details \n\n',
                                             attachments: [
                                                 {
@@ -2804,11 +5725,11 @@ router.get('/invoicelookup',function(req,res){
                                                     contentId: 'mytext'
                                                 },
                                             ],
-
+                                            
                                         };
                                         sgMail.send(msgShweta);
                                     });
-
+                                                                    
                                 },5000);
                             }else{
                                 const msgShweta = {
@@ -2816,7 +5737,7 @@ router.get('/invoicelookup',function(req,res){
                                     from: 'info@etranscript.in',
                                     subject: 'Invoice Updated record',
                                     text:  '<br>NO Records found for Api Call Invoice Details \n\n',
-                                    html:
+                                    html: 
                                     '<br>NO Records found for Api Call Invoice Details \n\n',
                                 };
                                 sgMail.send(msgShweta);
@@ -2854,7 +5775,7 @@ router.get('/invoicelookupCron',function(req,res){
             from: 'info@etranscript.in',
             subject: 'mu.eTrans manual invoices',
             text:  '<br>Invoices were generated from the CCAvenue dashboard. Here is the excel for those transactions of mu.eTrans that have been auto-settled into EDU. \n\n',
-            html:
+            html: 
             '<br>Invoices were generated from the CCAvenue dashboard. Here is the excel for those transactions of mu.eTrans that have been auto-settled into EDU. \n\n',
             attachments: [
                 {
@@ -2865,7 +5786,7 @@ router.get('/invoicelookupCron',function(req,res){
                     contentId: 'mytext'
                 },
             ],
-
+            
         };
         sgMail.send(msgPooja);
     });
@@ -2874,7 +5795,7 @@ router.get('/invoicelookupCron',function(req,res){
 
 router.get('/invoicelookupExcel',function(req,res){
     var ccavEncResponse='',
-        ccavResponse='',
+        ccavResponse='',    
         ccavPOST = '';
     var count = 0;
     var data =[];
@@ -2919,7 +5840,7 @@ router.get('/invoicelookupExcel',function(req,res){
                     if(invoice_data.order_split_payout == 'Y'){
                         console.log("INVOICE--->"+count)
                         var changeSplitStatus = {
-                            'reference_no': ''+invoice_data.reference_no,
+                            'reference_no': ''+invoice_data.reference_no, 
                             'order_no': ''+invoice_data.order_no
                         }
                         mailOrderInvoice(invoice_data.order_no, invoice_data.reference_no, invoice_data.order_bill_email, invoice_data.order_amt)
@@ -2939,7 +5860,7 @@ router.get('/invoicelookupExcel',function(req,res){
                                             from: 'info@etranscript.in',
                                             subject: 'Invoice Updated record',
                                             text:  '<br>Kindly check attached excel sheet for Api Call Invoice Details \n\n',
-                                            html:
+                                            html: 
                                             '<br>Kindly check attached excel sheet for Api Call Invoice Details \n\n',
                                             attachments: [
                                                 {
@@ -2950,11 +5871,11 @@ router.get('/invoicelookupExcel',function(req,res){
                                                     contentId: 'mytext'
                                                 },
                                             ],
-
+                                            
                                         };
                                         sgMail.send(msgShweta);
                                     });
-
+                                                                    
                                 },5000);
                             }else{
                                 const msgShweta = {
@@ -2962,7 +5883,7 @@ router.get('/invoicelookupExcel',function(req,res){
                                     from: 'info@etranscript.in',
                                     subject: 'Invoice Updated record',
                                     text:  '<br>NO Records found for Api Call Invoice Details \n\n',
-                                    html:
+                                    html: 
                                     '<br>NO Records found for Api Call Invoice Details \n\n',
                                 };
                                 sgMail.send(msgShweta);
@@ -2987,7 +5908,7 @@ router.get('/invoicelookupExcel',function(req,res){
 
 router.get('/multipleOrderlookup',function(req,res){
     var ccavEncResponse='',
-        ccavResponse='',
+        ccavResponse='',    
         ccavPOST = '';
     var count = 0;
     var data =[];
@@ -2999,7 +5920,7 @@ router.get('/multipleOrderlookup',function(req,res){
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(constant.SENDGRID_API_KEY);
 
-
+    
     var statusTrackerData = {
         'from_date' : ''+yesterday,
         //'to_date' : ''+today,
@@ -3049,7 +5970,7 @@ router.get('/multipleOrderlookup',function(req,res){
                             }else{
                                 //transaction not exist
                                 //console.log("Transaction not exist-------->Transaction not exist");
-
+                                
                                     var statusTrackerData = {
                                         'reference_no': ''+invoice_data.reference_no,
                                         //'reference_no' : '',
@@ -3085,13 +6006,7 @@ router.get('/multipleOrderlookup',function(req,res){
                                                     //DATA FOUND
                                                     models.Orders.find({
                                                         where :{
-                                                            id : status_pay.order_Status_List[0].order_no,
-                                                            [Op.or]:[{
-                                                                source:'guattestation',
-									 },
-									 {
-										source:'gumoi',
-									 }]
+                                                            id : status_pay.order_Status_List[0].order_no
                                                         }
                                                     }).then(function(orders){
                                                         if(orders){
@@ -3131,7 +6046,7 @@ router.get('/multipleOrderlookup',function(req,res){
                                                                     }else{
 
                                                                     }
-                                                                })
+                                                                }) 
                                                             })
                                                         }
                                                     })
@@ -3160,7 +6075,7 @@ router.get('/multipleOrderlookup',function(req,res){
                                             from: 'info@etranscript.in',
                                             subject: 'Multiple Transaction Details',
                                             text:  '<br>Kindly check attached excel sheet for Multiple Transaction Details \n\n',
-                                            html:
+                                            html: 
                                             '<br>Kindly check attached excel sheet for Api Call Multiple Transaction Details \n\n',
                                             attachments: [
                                                 {
@@ -3171,11 +6086,11 @@ router.get('/multipleOrderlookup',function(req,res){
                                                     contentId: 'mytext'
                                                 },
                                             ],
-
+                                            
                                         };
                                         sgMail.send(msgShweta);
                                     });
-
+                                                                    
                                 },5000);
                             }else{
                                 console.log("data.length----2222222--------->"+data.length);
@@ -3184,7 +6099,7 @@ router.get('/multipleOrderlookup',function(req,res){
                                     from: 'info@etranscript.in',
                                     subject: 'Multiple Transaction Details',
                                     text:  '<br>NO Records found for Api Call Multliple transaction Details \n\n',
-                                    html:
+                                    html: 
                                     '<br>NO Records found for Api Call Multliple transaction Details \n\n',
                                 };
                                 sgMail.send(msgShweta);
@@ -3213,7 +6128,7 @@ router.get('/multipleOrderlookup',function(req,res){
 //  EXCEL CODE
 //router.get('/multipleOrderlookup',function(req,res){
 //     var ccavEncResponse='',
-//         ccavResponse='',
+//         ccavResponse='',    
 //         ccavPOST = '';
 //     var count = 0;
 //     var data =[];
@@ -3296,7 +6211,7 @@ router.get('/multipleOrderlookup',function(req,res){
 //                                     //             from: 'info@etranscript.in',
 //                                     //             subject: 'Multiple Transaction Details',
 //                                     //             text:  '<br>Kindly check attached excel sheet for Multiple Transaction Details \n\n',
-//                                     //             html:
+//                                     //             html: 
 //                                     //             '<br>Kindly check attached excel sheet for Api Call Multiple Transaction Details \n\n',
 //                                     //             attachments: [
 //                                     //                 {
@@ -3307,11 +6222,11 @@ router.get('/multipleOrderlookup',function(req,res){
 //                                     //                     contentId: 'mytext'
 //                                     //                 },
 //                                     //             ],
-
+                                                
 //                                     //         };
 //                                     //         //sgMail.send(msgShweta);
 //                                     //     });
-
+                                                                        
 //                                     // },5000);
 //                                 }else{
 //                                     console.log("data.length----2222222--------->"+data.length);
@@ -3320,7 +6235,7 @@ router.get('/multipleOrderlookup',function(req,res){
 //                                         from: 'info@etranscript.in',
 //                                         subject: 'Multiple Transaction Details',
 //                                         text:  '<br>NO Records found for Api Call Multliple transaction Details \n\n',
-//                                         html:
+//                                         html: 
 //                                         '<br>NO Records found for Api Call Multliple transaction Details \n\n',
 //                                     };
 //                                     //sgMail.send(msgShweta);
@@ -3422,7 +6337,7 @@ router.get('/multipleOrderlookup',function(req,res){
 //                             }else{
 
 //                             }
-//                         })
+//                         }) 
 //                     })
 //                 }else{
 //                     //NO SHIPPED DATA FOUND
@@ -3449,7 +6364,7 @@ router.get('/invoice_generation',function(req,res){
 
     var yesterday_file_name = moment(yesterday1).format("YYYYMMDD");
     //console.log(yesterday_file_name);
-
+    
     models.Orders.invoice_generation(yesterdayNew,todayNew).then(function(orders){
         // console.log("orders.length---->"+orders.length);
         if(orders){
@@ -3489,13 +6404,13 @@ router.get('/invoice_generation',function(req,res){
                         name : order.name,
                         email : order.email,
                         mobile_country_code : order.mobile_country_code,
-                        mobile: order.mobile,
+                        mobile: order.mobile, 
                         address1 : order.address,
                         address2 : order.address,
                         area : '',
                         city : order.city,
                         state : '',
-                        country : '',
+                        country : '', 
                         postal_code : order.postal_code,
                         //student_category : '',
                         //date: order.created_at ? moment(new Date(order.created_at)).format('DD/MM/YYYY') : '',
@@ -3533,7 +6448,7 @@ router.get('/invoice_generation',function(req,res){
                                             contentId: 'mytext'
                                         },
                                     ],
-
+                                    
                                 };
                                 const msgPrakashSagar = {
                                     to: 'info@officeapplicationstrainer.com',
@@ -3550,7 +6465,7 @@ router.get('/invoice_generation',function(req,res){
                                             contentId: 'mytext'
                                         },
                                     ],
-
+                                    
                                 };
                                 const msgAccounts = {
                                     to: 'accounts@edulab.in',
@@ -3567,13 +6482,13 @@ router.get('/invoice_generation',function(req,res){
                                             contentId: 'mytext'
                                         },
                                     ],
-
+                                    
                                 };
                                 sgMail.send(msgShweta);
                                 //sgMail.send(msgPrakashSagar);
                                 //sgMail.send(msgAccounts);
                             })
-
+                        
                             res.json({
                                 status:200,
                                 data : filepath
@@ -3603,7 +6518,7 @@ router.get('/payment_details_one_month',function(req,res){
     var monthend = today1.format('YYYY-MM-DD HH:mm:ss');
     // console.log("monthstart------->"+monthstart);
     // console.log("monthend------->"+monthend);
-
+    
     models.Orders.one_month_payment_detail(monthstart,monthend).then(function(orders){
         // console.log("orders.length---->"+orders.length);
         if(orders){
@@ -3616,8 +6531,8 @@ router.get('/payment_details_one_month',function(req,res){
                     name : order.name,
                     email : order.email,
                     mobile_country_code : order.mobile_country_code,
-                    mobile: order.mobile,
-                    address : order.address,
+                    mobile: order.mobile, 
+                    address : order.address, 
                     city : order.city,
                     postal_code : order.postal_code,
                     date: order.created_at ? moment(new Date(order.created_at)).format('DD/MM/YYYY') : '',
@@ -3636,7 +6551,7 @@ router.get('/payment_details_one_month',function(req,res){
                             from: 'info@etranscript.in',
                             subject: 'mu.eTranscipt gst Payment list',
                             text:  '<br>Here are the student details of those who made payment in the past 1 month. \n\n',
-                            html:
+                            html: 
                             '<br>Here are the student details of those who made payment in the past 1 month. \n\n',
                             attachments: [
                                 {
@@ -3647,14 +6562,14 @@ router.get('/payment_details_one_month',function(req,res){
                                     contentId: 'mytext'
                                 },
                             ],
-
+                            
                         };
                         const msgAccounts = {
                             to: 'accounts@edulab.in',
                             from: 'info@etranscript.in',
                             subject: 'mu.eTranscipt gst Payment list',
                             text:  '<br>Here are the student details of those who made payment in the past 1 month. \n\n',
-                            html:
+                            html: 
                             '<br>Here are the student details of those who made payment in the past 1 month. \n\n',
                             attachments: [
                                 {
@@ -3665,12 +6580,12 @@ router.get('/payment_details_one_month',function(req,res){
                                     contentId: 'mytext'
                                 },
                             ],
-
+                            
                         };
                         sgMail.send(msgShweta);
                         sgMail.send(msgAccounts);
                     })
-
+                    
                     res.json({
                         status:200,
                         data : filepath
@@ -3686,7 +6601,7 @@ router.get('/payment_details_one_month',function(req,res){
 
 router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 	var errors = [];
-	var result;
+	var result;	
 	var image;
 	var excel_sheet_path={};
 	console.log("------------10------------");
@@ -3747,13 +6662,13 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 								var col = z.substring(0,tt);
 								var row = parseInt(z.substring(tt));
 								var value = worksheet[z].v;
-
+						
 								//store header names
 								if(row == 1 && value) {
 									headers[col] = value;
 									continue;
 								}
-
+						
 								if(!arrayOfObject[row]) arrayOfObject[row]={};
 								arrayOfObject[row][headers[col]] = value;
 							}
@@ -3763,9 +6678,9 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 							//console.log(arrayOfObject);
 						});
 						//console.log(XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]))
-
+						
 						models.Split_Sheets_Data.destroy({ truncate: { cascade: true } });
-						setTimeout(function(){
+						setTimeout(function(){ 
 						// 	//console.log("result===>"+JSON.stringify(result))
 							console.log("arrayOfObject---------------------> " + arrayOfObject.length);
 							async.eachSeries(arrayOfObject, function(arrayOfObjectss,callback) {
@@ -3798,7 +6713,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                                 'subAccId':'EDU'
                                                             });
                                                         }
-
+                                                        
                                                         if(split_data.uni_share != 0){
                                                             data.push({
                                                                 'splitAmount':split_data.uni_share,
@@ -3807,7 +6722,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                         }
 
                                                         var splitPaymentData = {
-                                                            'reference_no': split_data.reference_no,
+                                                            'reference_no': split_data.reference_no, 
                                                             'split_tdr_charge_type':'M',
                                                             'merComm': split_data.ccavenue_share,
                                                             'split_data_list': data
@@ -3820,12 +6735,12 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                                 var split_obj = qs.parse(response.body);
                                                                 console.log('split_obj.error_code========'+JSON.stringify(split_obj))
                                                                 console.log('split_obj.status========'+split_obj.status)
-                                                                if(split_obj.status == '1'){
+                                                                if(split_obj.status == '1'){	
                                                                     models.Transaction.find({
                                                                         where:
                                                                         {
-                                                                            tracking_id : split_data.reference_no
-                                                                        }
+                                                                            tracking_id : split_data.reference_no 
+                                                                        }	
                                                                     }).then(function(splitTrans){
                                                                     	models.Split_Sheets_Data.find({
                                                                     		where : {
@@ -3846,7 +6761,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 																				splitSheetTrans.update({
 		                                                                            updated_status : 'Error'
 		                                                                        }).then(function(splitSheetTransupdate){
-
+		                                                                        
 		                                                                        })
                                                                     		}
 
@@ -3855,7 +6770,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                                 }else{
                                                                     //var dec_split = ccav.decrypt(split_obj.enc_response,splitworkingKey);
                                                                     var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-
+                                                        
                                                                     var pay = JSON.parse(dec_split);
                                                                     console.log('pay========'+JSON.stringify(pay))
                                                                     var val = pay.Create_Split_Payout_Result;
@@ -3865,7 +6780,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                                     models.Transaction.find({
                                                                         where:
                                                                         {
-                                                                            tracking_id : split_data.reference_no
+                                                                            tracking_id : split_data.reference_no 
                                                                         }
                                                                     }).then(function(split_trans){
                                                                         if(split_trans){
@@ -3882,12 +6797,12 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 																						splitSheetTrans.update({
 				                                                                            updated_status : 'Error'
 				                                                                        }).then(function(splitSheetTransupdate){
-
+				                                                                        
 				                                                                        })
 			                                                                    	})
                                                                                 })
                                                                             }else if(split_status == '0'){
-
+                                                        
                                                                                 split_trans.update({
                                                                                     a : split_data.edu_share,
                                                                                     b : split_data.uni_share,
@@ -3902,13 +6817,13 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 																						splitSheetTrans.update({
 				                                                                            updated_status : 'Done'
 				                                                                        }).then(function(splitSheetTransupdate){
-
+				                                                                        
 				                                                                        })
 			                                                                    	})
                                                                                 })
                                                                             }
                                                                         }else{
-
+                                                        
                                                                         }
                                                                     });
                                                                 }
@@ -3923,7 +6838,7 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
                                                             splitSheetTrans.update({
                                                                 updated_status : 'Error'
                                                             }).then(function(splitSheetTransupdate){
-
+                                                            
                                                             })
                                                         })
                                                     }
@@ -3943,20 +6858,20 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 																"stu_email" : data.stu_email,
 																"updated_status" : data.updated_status,
 															});
-															callback();
+															callback();	
 														}, function(error, results) {
-
+																
 															setTimeout(function(){
 																var xls = json2xls(TotalAppdata);
 																var file_location = img_path+'/Updated_Split_Sheet.xlsx';
 																fs.writeFileSync(file_location, xls, 'binary');
 																var filepath= img_path+'/Updated_Split_Sheet.xlsx';
-
+																
 																res.json({
 																	status: 200,
 																	data: filepath
 																});
-
+																	
 															},5000);
 														});
 													}else{
@@ -3988,994 +6903,5 @@ router.post('/split_excel_sheets',upload.single('file'), function(req, res) {
 			data: ''
 		});
 	}
-});
-
-//Split Call for Attestatiom
-//router.get('/splitPaymentCron',function(req,res){
-cron.schedule('0 0 * * *', () => {
-    //var transaction_id = 112765953319 ;
-    models.Transaction.findAll({
-        where:{
-            split_status : '-1',
-            source : 'guattestation'
-            //tracking_id : transaction_id
-        }
-    }).then(function(trans){
-        if(trans.length > 0){
-            trans.forEach(function(tran){
-                var reference_no ;
-                var order_id ;
-                //var transaction_id ;
-                reference_no = tran.tracking_id;
-                order_id = tran.order_id;
-                //transaction_id = tran.merchant_param5;
-
-                var statusTrackerData = {
-                    "reference_no": reference_no,
-                    //"order_no": order_id
-                }
-                var status_encRequest = ccav.encrypt(JSON.stringify(statusTrackerData),workingKey);
-                models.Orders.findOne({
-                    where :{
-                        id : order_id,
-                        source : 'guattestation',
-                    }
-                }).then(function(ord){
-
-                    if(ord){
-                        console.log("order_id=====>"+order_id);
-                        var order_type;
-                        order_type = ord.order_id;
-
-                        request.post(
-                            "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+status_encRequest+"&access_code="+accessCode+"&command=orderStatusTracker&request_type=JSON&response_type=JSON&version=1.2",
-                                // { json: {enc_request:encRequest,accessCode:splitaccessCode,command:'createSplitPayout',request_type:'JSON',response_type:'JSON',version:'1.2'}},
-                                function (error, response, body) {
-                                    var statustracker_obj = qs.parse(response.body);
-                    
-                                    var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                    
-                                    var status_pay = JSON.parse(dec_status);
-                    
-                                    var order_fee_perc_value = status_pay.order_fee_perc_value;
-                                    console.log("order_fee_perc_value--->"+order_fee_perc_value)
-
-                                    var order_tax = status_pay.order_tax;
-                                    console.log("order_tax--->"+order_tax)
-                    
-                                    var order_fee_flat = status_pay.order_fee_flat;
-                                    console.log("order_fee_flat--->"+order_fee_flat)
-
-                                    var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
-                                    console.log("ccavenue_share--->"+ccavenue_share)
-                                    
-                                    //if(order_type == '1'){
-        
-                                        var university_split_share = 0;//236; 
-                                        console.log("university_split_share--->"+university_split_share)
-                                    
-                                        var edulab_split_share = ord.amount - ccavenue_share; //- university_split_share;
-                                        console.log("edulab_split_share--->"+edulab_split_share)
-                        
-                                        var splitPaymentData = {
-                                            'reference_no': reference_no, 
-                                            'split_tdr_charge_type':'M',
-                                            'merComm': ccavenue_share,
-                                            'split_data_list': [
-                                                {'splitAmount': edulab_split_share ,'subAccId':'EDU'}, //edulab
-                                                //{'splitAmount': university_split_share ,'subAccId':'GUJ261'} //GU university
-                                            ]
-                                        }
-                                        setTimeout(function(){ 
-                                            var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),workingKey);
-                        
-                                        request.post(
-                                            "https://login.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+accessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2",
-                                                // { json: {enc_request:encRequest,accessCode:accessCode,command:'createSplitPayout',request_type:'JSON',response_type:'JSON',version:'1.2'}},
-                                            function (error, response, body) {
-                                                // 
-                                                // 
-                                                var split_obj = qs.parse(response.body);
-                                                //console.log('split_obj============'+JSON.stringify(split_obj))
-                                                // 
-
-                                                var dec_status1 = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                    
-                                                var status_pay1 = JSON.parse(dec_status1);
-                                                //console.log("status_pay1===>"+JSON.stringify(status_pay1));
-
-                                                if(split_obj.status == '1'){
-                                                    console.log("************1******************")
-                                                    models.Transaction.findOne({
-                                                        where:
-                                                        {
-                                                            tracking_id : reference_no
-                                                        }
-                                                    }).then(function(splitTrans){
-                                                        if(splitTrans){
-        
-                                                            splitTrans.update({
-                                                                split_status : '-1'
-                                                            }).then(function(splitTrans_updated){
-                                
-                                                            })
-                                                        }else{
-        
-                                                        }
-                                                    });
-                                                }else{
-                                                    console.log("************0******************")
-                                                    var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-        
-                                                    var pay = JSON.parse(dec_split);
-                                                    console.log("status_pay1===>"+JSON.stringify(pay));
-        
-                                                    var val = pay.Create_Split_Payout_Result;
-        
-                                                    var split_status = val.status;
-        
-                                                    models.Transaction.findOne({
-                                                        where:
-                                                        {
-                                                            tracking_id : reference_no
-                                                        }
-                                                    }).then(function(split_trans){
-                                                        if(split_trans){
-                                                            console.log("split_trans=====>"+split_trans)
-                                                            if(split_status == '1'){
-                                                                if(val.error_desc == 'Split Payout is not applicable.' && val.error_code == '52012'){
-                                                                    split_trans.update({
-                                                                        split_status : '1'
-                                                                    }).then(function(split_trans_updated){
-                                    
-                                                                    })
-                                                                }else{
-                                                                    split_trans.update({
-                                                                        split_status : '-1'
-                                                                    }).then(function(split_trans_updated){
-                                    
-                                                                    })
-                                                                }
-                                                            }else if(split_status == '0'){
-                                                                console.log("<=======000split_status000=====>")
-                                                                if(order_type == '1'){
-
-                                                                    console.log("<=======**************=====>")
-                                                                    split_trans.update({
-                                                                        a : edulab_split_share,
-                                                                        b : university_split_share,
-                                                                        cc_share : ccavenue_share,
-                                                                        split_status : '1'
-                                                                    }).then(function(split_trans_updated){
-                                                                        console.log("Split Updated");
-
-                                                                        var desc = 'Order id ('+split_trans.order_id+') Payment Split done for user_id ('+ord.user_id + ')';
-                                                                        var activity = "Split Payment";
-                                                                        var applicationId = ord.application_id;
-
-                                                                        functions.activitylog(ord.user_id, activity, desc, applicationId,'guattestation');
-                                                                    })
-                                                                } 
-                                                            }
-                                                        }else{
-        
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }, 500);
-                                    //}
-                    
-                                }
-                        );
-
-                    }
-                })
-            });
-        }
-    });
-})
-    
-//Split Call for MOI
-cron.schedule('30 0 * * *', () => {
-    models.Transaction.findAll({
-        where:{
-            split_status : '-1',
-            source : 'gumoi',
-            //tracking_id : transaction_id
-        }
-    }).then(function(trans){
-        if(trans.length > 0){
-            trans.forEach(function(tran){
-                var reference_no ;
-                var order_id ;
-                //var transaction_id ;
-                reference_no = tran.tracking_id;
-                order_id = tran.order_id;
-                //transaction_id = tran.merchant_param5;
-
-                var statusTrackerData = {
-                    "reference_no": reference_no,
-                    //"order_no": order_id
-                }
-                var status_encRequest = ccav.encrypt(JSON.stringify(statusTrackerData),workingKey);
-                models.Orders.findOne({
-                    where :{
-                        id : order_id,
-                        source : 'gumoi',
-                    }
-                }).then(function(ord){
-
-                    if(ord){
-                        console.log("order_id=====>"+order_id);
-                        var order_type;
-                        order_type = ord.order_id;
-
-                        request.post(
-                            "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+status_encRequest+"&access_code="+accessCode+"&command=orderStatusTracker&request_type=JSON&response_type=JSON&version=1.2",
-                                // { json: {enc_request:encRequest,accessCode:splitaccessCode,command:'createSplitPayout',request_type:'JSON',response_type:'JSON',version:'1.2'}},
-                                function (error, response, body) {
-                                    var statustracker_obj = qs.parse(response.body);
-                    
-                                    var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                    
-                                    var status_pay = JSON.parse(dec_status);
-                    
-                                    var order_fee_perc_value = status_pay.order_fee_perc_value;
-                                    console.log("order_fee_perc_value--->"+order_fee_perc_value)
-
-                                    var order_tax = status_pay.order_tax;
-                                    console.log("order_tax--->"+order_tax)
-                    
-                                    var order_fee_flat = status_pay.order_fee_flat;
-                                    console.log("order_fee_flat--->"+order_fee_flat)
-
-                                    var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat;
-                                    console.log("ccavenue_share--->"+ccavenue_share)
-                                    
-                                    //if(order_type == '1'){
-        
-                                        // var university_split_share = 0;//236; 
-                                        // console.log("university_split_share--->"+university_split_share)
-
-                                        var university_split_share;// = 1000;
-                                        console.log("ord.amount--->"+ord.amount)
-                                        if(ord.amount == '436.00'){
-                                            university_split_share = 200;
-                                        }else if(ord.amount == '872.00'){
-                                            university_split_share = 400;
-                                        }
-
-                                        console.log("university_split_share--->"+university_split_share)
-                                    
-                                        var edulab_split_share = ord.amount - ccavenue_share - university_split_share;
-                                        console.log("edulab_split_share--->"+edulab_split_share)
-                        
-                                        var splitPaymentData = {
-                                            'reference_no': reference_no, 
-                                            'split_tdr_charge_type':'M',
-                                            'merComm': ccavenue_share,
-                                            'split_data_list': [
-                                                {'splitAmount': edulab_split_share ,'subAccId':'EDU'}, //edulab
-                                                {'splitAmount': university_split_share ,'subAccId':'GUJ261'} //GU university
-                                            ]
-                                        }
-                                        setTimeout(function(){ 
-                                            var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),workingKey);
-                        
-                                        request.post(
-                                            "https://login.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+accessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2",
-                                                // { json: {enc_request:encRequest,accessCode:accessCode,command:'createSplitPayout',request_type:'JSON',response_type:'JSON',version:'1.2'}},
-                                            function (error, response, body) {
-                                                // 
-                                                // 
-                                                var split_obj = qs.parse(response.body);
-                                                //console.log('split_obj============'+JSON.stringify(split_obj))
-                                                // 
-
-                                                var dec_status1 = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                    
-                                                var status_pay1 = JSON.parse(dec_status1);
-                                                //console.log("status_pay1===>"+JSON.stringify(status_pay1));
-
-                                                if(split_obj.status == '1'){
-                                                    console.log("************1******************")
-                                                    models.Transaction.findOne({
-                                                        where:
-                                                        {
-                                                            tracking_id : reference_no
-                                                        }
-                                                    }).then(function(splitTrans){
-                                                        if(splitTrans){
-        
-                                                            splitTrans.update({
-                                                                split_status : '-1'
-                                                            }).then(function(splitTrans_updated){
-                                
-                                                            })
-                                                        }else{
-        
-                                                        }
-                                                    });
-                                                }else{
-                                                    console.log("************0******************")
-                                                    var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-        
-                                                    var pay = JSON.parse(dec_split);
-                                                    console.log("status_pay1===>"+JSON.stringify(pay));
-        
-                                                    var val = pay.Create_Split_Payout_Result;
-        
-                                                    var split_status = val.status;
-        
-                                                    models.Transaction.findOne({
-                                                        where:
-                                                        {
-                                                            tracking_id : reference_no
-                                                        }
-                                                    }).then(function(split_trans){
-                                                        if(split_trans){
-                                                            console.log("split_trans=====>"+split_trans)
-                                                            if(split_status == '1'){
-                                                                if(val.error_desc == 'Split Payout is not applicable.' && val.error_code == '52012'){
-                                                                    split_trans.update({
-                                                                        split_status : '1'
-                                                                    }).then(function(split_trans_updated){
-                                    
-                                                                    })
-                                                                }else{
-                                                                    split_trans.update({
-                                                                        split_status : '-1'
-                                                                    }).then(function(split_trans_updated){
-                                    
-                                                                    })
-                                                                }
-                                                            }else if(split_status == '0'){
-                                                                console.log("<=======000split_status000=====>")
-                                                                if(order_type == '1'){
-
-                                                                    console.log("<=======**************=====>")
-                                                                    split_trans.update({
-                                                                        a : edulab_split_share,
-                                                                        b : university_split_share,
-                                                                        cc_share : ccavenue_share,
-                                                                        split_status : '1'
-                                                                    }).then(function(split_trans_updated){
-                                                                        console.log("Split Updated");
-
-                                                                        var desc = 'Order id ('+split_trans.order_id+') Payment Split done for user_id ('+ord.user_id + ')';
-                                                                        var activity = "Split Payment";
-                                                                        var applicationId = ord.application_id;
-
-                                                                        functions.activitylog(ord.user_id, activity, desc, applicationId,'gumoi');
-                                                                    })
-                                                                } 
-                                                            }
-                                                        }else{
-        
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }, 500);
-                                    //}
-                    
-                                }
-                        );
-
-                    }
-                })
-            });
-        }
-    });
-})
-
-router.get('/splitInvoicePaymentCron',function(req,res){
-    var trans = [112764890400, 112764983180, 112765239637, 112766356266]
-   
-   trans.forEach(function(tran){
-       var reference_no ;
-       var order_id ;
-       var transaction_id ;
-       reference_no = tran;
-       transaction_id = tran;
-
-
-
-       var statusTrackerData = {
-           "reference_no": reference_no,
-       }
-       var status_encRequest = ccav.encrypt(JSON.stringify(statusTrackerData),workingKey);
-       
-       request.post(
-           "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+status_encRequest+"&access_code="+accessCode+"&command=orderStatusTracker&request_type=JSON&response_type=JSON&version=1.2",
-               // { json: {enc_request:encRequest,accessCode:splitaccessCode,command:'createSplitPayout',request_type:'JSON',response_type:'JSON',version:'1.2'}},
-               function (error, response, body) {
-                   var statustracker_obj = qs.parse(response.body);
-   
-                   var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                   //console.log("dec_status---->"+JSON.stringify(dec_status));
-   
-                   var status_pay = JSON.parse(dec_status);
-   
-                   var order_fee_perc_value = status_pay.order_fee_perc_value;
-   
-                   var order_tax = status_pay.order_tax;
-   
-                   var order_fee_flat = status_pay.order_fee_flat;
-
-                   var ccavenue_share = order_fee_perc_value + order_tax + order_fee_flat; 
-                   console.log("ccavenue_share--------/>"+ccavenue_share)
-
-                   //console.log("status_pay.order_amt--------/>"+status_pay.order_amt)
-
-                   var edulab_split_share = status_pay.order_amt - ccavenue_share;
-                   console.log("edulab_split_share---->"+edulab_split_share);
-
-       
-                   var splitPaymentData = {
-                       'reference_no': reference_no, 
-                       'split_tdr_charge_type':'M',
-                       'merComm': ccavenue_share,
-                       'split_data_list': [
-                           {'splitAmount': edulab_split_share ,'subAccId':'EDU'}, //edulab
-                       ]
-                   }
-
-                   setTimeout(function(){ 
-                       var split_encRequest = ccav.encrypt(JSON.stringify(splitPaymentData),workingKey);
-               
-                       var split_request = "https://login.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+accessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2";
-   
-                       request.post(
-                           "https://login.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+split_encRequest+"&access_code="+accessCode+"&command=createSplitPayout&request_type=JSON&response_type=JSON&version=1.2",
-                           function (error, response, body) {
-                               var split_obj = qs.parse(response.body);
-                               //console.log('split_obj============'+JSON.stringify(split_obj))
-                               if(split_obj.status == '1'){
-                                   console.log("split_obj.status=====>Error")
-                               }else{
-                                   var dec_split = ccav.decrypt(split_obj.enc_response,workingKey);
-                                   console.log("dec_status---->"+reference_no+'--->'+JSON.stringify(dec_status));
-
-                                   var pay = JSON.parse(dec_split);
-
-                                   var val = pay.Create_Split_Payout_Result;
-                                   //console.log("val------>"+val);
-                                   console.log("JSON.stringify(val)------>"+JSON.stringify(val));
-
-                                   var split_status = val.status;
-
-                                   if(split_status == '1'){
-                                       console.log("split_obj.status=====>Error")           
-                                   }else if(split_status == '0'){
-                                       console.log("split_obj.status=====>Success")
-                                   }
-                               }
-                           });
-                   }, 500);
-                   
-               }
-       );
-   });   
-})
-
-router.get('/mergeDocuments', function (req, res) {
-    console.log('mergeDocuments');
-    var user_id = req.body.user_id;
-    var app_id = req.body.app_id;
-    var mergeAllUserDocuments = "";
-    models.User.findOne({
-        where : {
-            id : user_id
-        }
-    }).then(function(user){
-        models.UserMarklist_Upload.findAll({
-            where:{
-                user_id : user_id,
-                app_id : app_id,
-                source : 'guattestation'
-            }
-        }).then(function (printData) {
-            models.User_Transcript.findAll({
-                where : {
-                user_id : user_id,
-                app_id : app_id,source : 'guattestation' 
-                }
-            }).then(function (print_transcript){
-                let mergeDocumentsPromise = new Promise((resolve,reject)=>{
-    
-                    printData.forEach(student => {
-                        console.log('inside datatatatatat');
-                        // models.UserMarklist_Upload.getDocumentStatus(user_id, app_id).then(function(documentStatus){
-                        //     console.log("documentStatus"+ JSON.stringify(documentStatus));
-                        //     var status = '';
-                        //     if(documentStatus.length > 0){
-                               
-                        //     }
-                            var filePath = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/" + student.file_name;
-                            console.log('filePathfilePathfilePathfilePath' +filePath);
-                            if(fs.existsSync(filePath)){
-                                var outputDirectory='';
-                                var extension = student.file_name.split('.').pop();
-                                var fileName = path.parse(student.file_name).name;
-                                var folderName = fileName;
-                                var numOfpages;
-                                console.log("extension@@@@@" + extension);
-                                console.log("fileName" + fileName);
-                                if(extension == 'pdf'){
-                                    console.log("if pdfffffffffffffffffffffff");
-                                    let updateDocumentPromise = new Promise((resolve,reject)=>{
-                                            
-                                            console.log(folderName);
-                                            outputDirectory = constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+folderName+"/";
-                                            console.log("outputDirectory 2 == " + outputDirectory);
-                                            if(!fs.existsSync(outputDirectory)){
-                                                fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                            }
-                                            self_PDF.pdfToImageConversion(fileName,user_id,filePath,outputDirectory);
-                                            let dataBuffer = fs.readFileSync(filePath);
-                                                console.log("databuffer");
-                                                pdf(dataBuffer).then(function(data) {
-                                                console.log("no=====>"+data.numpages);  // number of pages
-                                                numOfpages = data.numpages;
-                                            });
-    
-                                            var fileString = "";
-                                            setTimeout(()=>{
-                                            outputDirectory = constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/signed_"+folderName+"/";
-                                            console.log("outputDirectory 2 == " + outputDirectory)
-                                            if(!fs.existsSync(outputDirectory)){
-                                                fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                            }
-    
-                                           // setTimeout(()=>{
-                                                for(var i = 1 ; i <= numOfpages; i++){
-                                                    var j = "";
-                                                    if(numOfpages >= 100){
-                                                        if(parseInt((i/100)) > 0){
-                                                            j = i
-                                                        }else if(parseInt((i/10)) > 0){
-                                                            j = "0" + i;
-                                                        }else{
-                                                            j = "00" + i;
-                                                        }
-                                                    }else  if(numOfpages >= 10){
-                                                        if(parseInt((i/10)) > 0){
-                                                            j = i;
-                                                        }else{
-                                                            j = "0" + i;
-                                                        }
-                                                    }else  if(numOfpages >= 1){
-                                                        j =  i;
-                                                    }
-                                                    console.log("j == " + j);
-                                                    filePath =  constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+ folderName +"/"+fileName+"-"+j+".jpg"; 
-                                                    console.log("filePath == " + filePath);
-                                                    file_name = fileName+"-"+j;
-                                                    self_PDF.addAadharAndApp_id(file_name, user_id, app_id, filePath, outputDirectory,user.aadharNumber,function(err){
-                                                        if(err){
-                                                            return res.json({
-                                                            status : 400,
-                                                            message : err
-                                                            })
-                                                        }else{
-                                                            fileString = fileString +' "'+ outputDirectory + fileName+"-"+j+'.pdf" '; 
-                                                            console.log("fileString == " + fileString);
-    
-                                                        }
-                                                    });
-                                                }
-                                            },3000);
-    
-                                                console.log(fileString)
-                                            setTimeout(()=>{resolve(fileString)},5000);
-                                        });
-    
-                                    updateDocumentPromise.then((values)=>{
-                                        console.log("values == @@@@@" + JSON.stringify(values))
-                                        outputDirectory = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/updatedDocuments/" ;
-                                        if(!fs.existsSync(outputDirectory)){
-                                            fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                        }
-                                        var outputFile = outputDirectory + fileName + '.pdf';
-                                        self_PDF.merge_uploaded(values, outputFile,  function(err){
-                                            if(err){
-                                                return res.json({
-                                                    status : 400,
-                                                    message : "Files cannot merge"
-                                                })
-                                            }else{
-                                                 mergeAllUserDocuments = mergeAllUserDocuments +' "'+ outputFile + '" '; 
-                                                // fs_extra.removeSync(FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+ folderName,{recursive : true,force:true});
-                                                // fs_extra.removeSync(FILE_LOCATION+"public/upload/documents/"+student.user_id+"/signed_"+ folderName,{recursive : true,force:true});
-                                            }
-                                        });
-                                    })
-                                }else{
-                                    console.log("No PDF");
-                                    outputDirectory = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/updatedDocuments/" ;
-                                    console.log("22222222");
-                                    if(!fs.existsSync(outputDirectory)){
-                                        fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                    }
-                                    self_PDF.addAadharAndApp_id(fileName, user_id, app_id, filePath, outputDirectory,user.aadharNumber, function(err){
-                                        if(err){
-                                            return res.json({
-                                                status : 400,
-                                                message : err
-                                            })
-                                        }else{
-                                             mergeAllUserDocuments = mergeAllUserDocuments +' "'+ outputDirectory + fileName + '.pdf" ';  
-                                        }
-                                    });
-                                }
-                            }
-                        // })
-                    });
-
-                    print_transcript.forEach(student => {
-                        // models.UserMarklist_Upload.getDocumentStatus(user_id, app_id).then(function(documentStatus){
-                        //     console.log("documentStatus"+ JSON.stringify(documentStatus));
-                        //     var status = '';
-                        //     if(documentStatus.length > 0){
-                               
-                        //     }
-                            var filePath = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/" + student.file_name;
-                            console.log('filePathfilePathfilePathfilePath' +filePath);
-                            if(fs.existsSync(filePath)){
-                                var outputDirectory='';
-                                var extension = student.file_name.split('.').pop();
-                                var fileName = path.parse(student.file_name).name;
-                                var folderName = fileName;
-                                var numOfpages;
-                                console.log("extension@@@@@" + extension);
-                                console.log("fileName" + fileName);
-                                if(extension == 'pdf'){
-                                    console.log("if pdfffffffffffffffffffffff");
-                                    let updateDocumentPromise = new Promise((resolve,reject)=>{
-                                            
-                                            console.log(folderName);
-                                            outputDirectory = constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+folderName+"/";
-                                            console.log("outputDirectory 2 == " + outputDirectory);
-                                            if(!fs.existsSync(outputDirectory)){
-                                                fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                            }
-                                            self_PDF.pdfToImageConversion(fileName,user_id,filePath,outputDirectory);
-                                            let dataBuffer = fs.readFileSync(filePath);
-                                                console.log("databuffer");
-                                                pdf(dataBuffer).then(function(data) {
-                                                console.log("no=====>"+data.numpages);  // number of pages
-                                                numOfpages = data.numpages;
-                                            });
-    
-                                            var fileString = "";
-                                            setTimeout(()=>{
-                                            outputDirectory = constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/signed_"+folderName+"/";
-                                            console.log("outputDirectory 2 == " + outputDirectory)
-                                            if(!fs.existsSync(outputDirectory)){
-                                                fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                            }
-    
-                                           // setTimeout(()=>{
-                                                for(var i = 1 ; i <= numOfpages; i++){
-                                                    var j = "";
-                                                    if(numOfpages >= 100){
-                                                        if(parseInt((i/100)) > 0){
-                                                            j = i
-                                                        }else if(parseInt((i/10)) > 0){
-                                                            j = "0" + i;
-                                                        }else{
-                                                            j = "00" + i;
-                                                        }
-                                                    }else  if(numOfpages >= 10){
-                                                        if(parseInt((i/10)) > 0){
-                                                            j = i;
-                                                        }else{
-                                                            j = "0" + i;
-                                                        }
-                                                    }else  if(numOfpages >= 1){
-                                                        j =  i;
-                                                    }
-                                                    console.log("j == " + j);
-                                                    filePath =  constant.FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+ folderName +"/"+fileName+"-"+j+".jpg"; 
-                                                    console.log("filePath == " + filePath);
-                                                    file_name = fileName+"-"+j;
-                                                    self_PDF.addAadharAndApp_id(file_name, user_id, app_id, filePath, outputDirectory,user.aadharNumber,function(err){
-                                                        if(err){
-                                                            return res.json({
-                                                            status : 400,
-                                                            message : err
-                                                            })
-                                                        }else{
-                                                            fileString = fileString +' "'+ outputDirectory + fileName+"-"+j+'.pdf" '; 
-                                                            console.log("fileString == " + fileString);
-    
-                                                        }
-                                                    });
-                                                }
-                                            },3000);
-    
-                                                console.log(fileString)
-                                            setTimeout(()=>{resolve(fileString)},5000);
-                                        });
-    
-                                    updateDocumentPromise.then((values)=>{
-                                        console.log("values == @@@@@" + JSON.stringify(values))
-                                        outputDirectory = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/updatedDocuments/" ;
-                                        if(!fs.existsSync(outputDirectory)){
-                                            fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                        }
-                                        var outputFile = outputDirectory + fileName + '.pdf';
-                                        self_PDF.merge_uploaded(values, outputFile,  function(err){
-                                            if(err){
-                                                return res.json({
-                                                    status : 400,
-                                                    message : "Files cannot merge"
-                                                })
-                                            }else{
-                                                 mergeAllUserDocuments = mergeAllUserDocuments +' "'+ outputFile + '" '; 
-                                                // fs_extra.removeSync(FILE_LOCATION+"public/upload/documents/"+student.user_id+"/"+ folderName,{recursive : true,force:true});
-                                                // fs_extra.removeSync(FILE_LOCATION+"public/upload/documents/"+student.user_id+"/signed_"+ folderName,{recursive : true,force:true});
-                                            }
-                                        });
-                                    })
-                                }else{
-                                    console.log("No PDF");
-                                    outputDirectory = constant.FILE_LOCATION + "public/upload/documents/" + student.user_id + "/updatedDocuments/" ;
-                                    console.log("22222222");
-                                    if(!fs.existsSync(outputDirectory)){
-                                        fs.mkdirSync(outputDirectory, { recursive: true });//fs.writeFileSync
-                                    }
-                                    self_PDF.addAadharAndApp_id(fileName, user_id, app_id, filePath, outputDirectory,user.aadharNumber, function(err){
-                                        if(err){
-                                            return res.json({
-                                                status : 400,
-                                                message : err
-                                            })
-                                        }else{
-                                             mergeAllUserDocuments = mergeAllUserDocuments +' "'+ outputDirectory + fileName + '.pdf" ';  
-                                        }
-                                    });
-                                }
-                            }
-                        // })
-                    });
-    
-                     setTimeout(()=>{resolve(mergeAllUserDocuments)},8000);
-                });
-        
-            
-
-            mergeDocumentsPromise.then((value)=>{
-                var outputMergefile = constant.FILE_LOCATION+"public/upload/documents/"+user_id + "/" +app_id +"_UploadedMerge.pdf";
-                self_PDF.merge_uploaded(mergeAllUserDocuments,outputMergefile,function(err){
-                    if(err){
-                        return res.json({
-                            status : 400
-                        })
-                    }else{
-                        // var todaysdate =  Moment(new Date()).format('DDMM');
-                        // var year = Moment(new Date()).format('YYYY');
-                        // var inwardNumber = 'V/' + todaysdate + ' of ' + year;
-                        // models.Application.update({inward : inwardNumber }, {where  : {id :  app_id}});
-                        res.json({
-                            status : 200,
-                            data : outputMergefile
-                        })
-                    }
-                })
-            })
-        })
-        })
-    })
-})
-
-router.get('/orderlookup_single',function(req,res){
-    console.log('orderlookup_single' + req.query.order_id)
-    var order_id = req.query.order_id;
-    var outercounter = 0;
-    var ccavEncResponse='',
-        ccavResponse='',    
-        ccavPOST = '';
-    var count = 0;
-    var data =[];
-    // var sendgrid  = require('sendgrid')(constant.SENDGRID_API_KEY);
-    // const sgMail = require('@sendgrid/mail');
-    // sgMail.setApiKey(constant.SENDGRID_API_KEY);
-
-    /* FOR DATABASE QUERY */
-    // var yesterday1     = moment().subtract(1, 'days').startOf('day');
-    // var yesterdayNew  = '2023-01-08 00:00:00'; //yesterday1.format('YYYY-MM-DD HH:mm:ss');
-    // var today1  = moment().endOf('day');
-    // var todayNew = today1.format('YYYY-MM-DD HH:mm:ss');
-
-    // /* FOR CC REQUEST */
-    // var date = new Date();
-    // var today =  (date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear()).toString() ;
-    // // date.setDate(date.getDate()-1);
-    // var yesterday = '19-01-2023';// yesterday1.format('DD-MM-YYYY').toString();
-
-    models.Orders.findOne({
-        where :{
-            id : order_id
-        }
-    }).then(function(order){
-        if(order){
-            //orders.forEach(function(order){
-                var statusTrackerData = {
-                    'reference_no': '',
-                    //'reference_no' : '',
-                   'from_date' : moment(new Date(order.created_at)).format('DD-MM-YYYY'),//'25-01-2023' ,
-                    // 'from_date' : order.created_ ,
-                    // 'to_date' : ''+today,
-                    'order_currency' :'INR',
-                    'order_email' : '',
-                    'order_fraud_status' : '',
-                    'order_min_amount' : '',
-                    'order_max_amount' : '',
-                    'order_name' : '',
-                    'order_no' : order.id,
-                    'order_payment_type' : '',
-                    'order_status' : 'Shipped',
-                    'order_type' : '',
-                    'order_bill_tel' : '',
-                    'page_number' : '1'
-                }
-                var status_encRequest = ccav.encrypt(JSON.stringify(statusTrackerData),workingKey);
-
-                request.post(
-                    "https://api.ccavenue.com/apis/servlet/DoWebTrans?enc_request="+status_encRequest+"&access_code="+accessCode+"&command=orderLookup&request_type=JSON&response_type=JSON&version=1.1",
-                        function (error, response, body) {
-                            count++;
-                            var statustracker_obj = qs.parse(response.body);
-
-                            var dec_status = ccav.decrypt(statustracker_obj.enc_response,workingKey);
-                            console.log("dec_status---->"+JSON.stringify(dec_status));
-
-                            var status_pay = JSON.parse(dec_status);
-
-                            if(status_pay.error_code != 51419 && status_pay.total_records > 0){
-                                //DATA FOUND
-                                models.User.findOne({
-                                    where : {
-                                        id : order.user_id
-                                    }
-                                }).then(function(user){
-                                    console.log("status_pay.order_Status_List[0].order_nostatus_pay.order_Status_List[0].order_no" + status_pay.order_Status_List[0].order_no);
-                                    models.Transaction.findOne({
-                                        where : {
-                                            order_id : status_pay.order_Status_List[0].order_no //order.id
-                                        }
-                                    }).then(async function(transaction){
-                                        console.log("transactiontransaction" + JSON.stringify(transaction));
-                                        if(transaction){
-                                            //transaction already exist but not updated in order table
-                                            console.log("Transaction exist")
-                                            var app_id  = await functions.getApplicationFromOrders(order.user_id);
-                                            models.Orders.findOne({
-                                                where:{
-                                                    id : order.id
-                                                }
-                                            }).then(function(order_update){
-                                                if(order_update.status != '1'){
-                                                    //not updated
-                                                    console.log("not updated")
-                                                    order_update.update({
-                                                        status : '1',
-                                                        timestamp : Moment(new Date()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
-                                                        application_id :  app_id
-                                                    })
-
-                                                    // setApplicationID(user.id,order_update.application_id);
-                                                    // applicationCreationMail(user.id,order_update.application_id);
-                                                    // createEnrollmentNumber(user.id,order_update.application_id, order_update.updated_at);
-                                                    models.Activitytracker.create({
-                                                        activity : "Payment",
-                                                        data : status_pay.order_Status_List[0].merchant_param2+" has been made payment for application "+order_update.application_id + ' for Attestation',
-                                                        application_id : order_update.application_id,
-                                                        source :'guattestation'
-                                                    });
-                                                }else{
-                                                    //already updated
-                                                    console.log("not updated")
-                                                }
-                                            })
-                                        }else{
-                                            //transaction not exist
-                                            console.log("Transaction entry not exist")
-                                            models.Transaction.create({
-                                                order_id : order.id,
-                                                tracking_id : status_pay.order_Status_List[0].reference_no,
-                                                bank_ref_no : status_pay.order_Status_List[0].order_bank_ref_no,
-                                                order_status : status_pay.order_Status_List[0].order_status ? 'Success' : status_pay.order_Status_List[0].order_status,
-                                                payment_mode : 'online',
-                                                currency : 'INR',
-                                                amount : status_pay.order_Status_List[0].order_amt,
-                                                billing_name : user.name,
-                                                billing_address : user.address ? user.address.replace(/[&\/\\#+()$~%'":*?<>{}]/g," ") : "",
-                                                billing_city : user.city ? user.city.replace(/[&\/\\#+()$~%'":*?<>{}]/g," ") : "",
-                                                billing_state : user.state,
-                                                billing_zip : user.postal_code,
-                                                billing_country : user.country_birth,
-                                                billing_tel : user.mobile,
-                                                billing_email : user.email,
-                                                merchant_param1 : status_pay.order_Status_List[0].merchant_param1,
-                                                merchant_param2 : status_pay.order_Status_List[0].merchant_param2,
-                                                merchant_param3 : status_pay.order_Status_List[0].merchant_param3,
-                                                merchant_param4 : status_pay.order_Status_List[0].merchant_param4,
-                                                merchant_param5 : status_pay.order_Status_List[0].merchant_param5,
-                                                split_status : '-1'
-                                            }).then(function(transaction_created){
-                                                if(transaction_created){
-                                                   console.log('transaction_created');
-                                                }else{
-
-                                                }
-                                            }) 
-                                        }
-                                    })
-                                })
-                            }else{
-                                console.log("NO data");
-                                //NO SHIPPED DATA FOUND
-                            }
-
-                            
-                        }
-                );
-
-            //}); 
-        }else{
-            //no order found
-        }
-    })
-});
-
-
-router.get('/setAppId',async function(req,res){
-    var app_id= 3333 ;
-    var user_id = 4958;
-    var appliedforddetails = await functions.setAppId(app_id,user_id,'AppliedForDetails');
-    if(appliedforddetails){
-        console.log("14")
-        var getApplied = await functions.getApplied(user_id,app_id);
-        var usermarklist = await functions.setAppId(app_id,user_id ,'UserMarklist');
-        if(getApplied.instructionalField == 1){
-            console.log("15")
-                var instructional = await functions.setAppId(app_id,user_id ,'Instructional');
-                var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-        }else{
-            console.log("16")
-            if(getApplied.attestedfor.includes('marksheet') || getApplied.attestedfor.includes('newmark')){
-                var marksheets = await functions.setAppId(app_id,user_id ,'Marksheets');
-           }
-           if(getApplied.attestedfor.includes('degree')){
-                var degree = await functions.setAppId(app_id,user_id ,'Degree');
-           }
-           if(getApplied.attestedfor.includes('transcript')){
-                var transcript = await functions.setAppId(app_id,user_id ,'Transcript');
-           }
-        }
-
-        var purpose = await functions.setAppId(app_id,user_id ,'purpose');
-    }
-});
-
-router.get('/deleteEmailedDocs',async function(req,res){
-    var app_id=  '2454';
-    models.Emailed_Docs.findOne({
-        where :{
-            app_id  : app_id
-        }
-    }).then(function (user){
-        console.log("user",user)
-        user.destroy().then(function (ussr){
-            res.json({
-                status : 200
-            })
-        })
-    })
-   
 });
 module.exports = router;

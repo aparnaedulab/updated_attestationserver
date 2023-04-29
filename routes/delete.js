@@ -19,13 +19,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
     var appl_id=req.body.appl_id;
     models.Application.find({
       where:{
-        id:appl_id,
-            [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
+        id:appl_id
       }
     }).then(data =>{
       var user_id=data.user_id;
@@ -65,7 +59,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
             models.User_Transcript.find({
               where:{
                 user_id:user_id,
-                name:doc,source : 'guattestation' 
+                name:doc
               }
             }).then(f_name=>{
               if(f_name != null){
@@ -87,7 +81,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                     (async function signedpdf(){
                       const userID = await user_id;
                       const file_name = await filename;
-                      const file_loc= constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+"con2img_"+path.parse(filename).name+"_1.png";
+                      const file_loc= constant.FILE_LOCATION+"public/upload/transcript/"+user_id+"/"+"con2img_"+path.parse(filename).name+"_1.png";
                       var x = await fn.signedpdf(filename,user_id,appl_id,file_loc,signstatus,doc_name);
                     
                       if(x === true){
@@ -105,12 +99,6 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                                   models.Application.update({tracker: 'signed'},{
                                       where: {
                                           id: appl_id,
-                                              [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
                                       }
                                   }).then(function (result) {
                                     if(result){ 
@@ -157,7 +145,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                   (async function signedpdf(){
                     const userID = await user_id;
                     const file_name = await filename;
-                    const file_loc= constant.FILE_LOCATION+"public/upload/documents/"+user_id+"/"+filename;
+                    const file_loc= constant.FILE_LOCATION+"public/upload/transcript/"+user_id+"/"+filename;
                     var x = await fn.signedpdf(filename,user_id,appl_id,file_loc,signstatus,doc_name);
                     var propdf;
                     var name_pdf;
@@ -179,12 +167,6 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                             }, {
                                 where: {
                                     id: appl_id,
-                                        [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
                                 }
                             }).then(function (result) {
                               if(result){
@@ -251,7 +233,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                 var email_arr=[];
                 models.Institution_details.findAll({
                   where:{
-                    app_id  : appl_id,source : 'guattestation'
+                    app_id  : appl_id
                   }
                 }).then((email_data)=>{
                       email_data.forEach(there=>{
@@ -275,8 +257,7 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                 mobile_country_code : option.mobile_country_code,
                 mobile : option.mobile,
                 email_add : result[0],
-                app_id: appl_id,
-                source : 'gu'
+                app_id: appl_id
               }
             }, function (error, response, body) {
             if (error || body.status == 400) {
@@ -292,12 +273,6 @@ router.post('/signpdf', middlewares.getUserInfo,function(req,res){
                     }, {
                         where: {
                             id: appl_id,
-                                [Op.or]:[{
-				source_from:'guattestation',
-			 },
-			 {
-				source_from:'gumoi',
-			 }]
                         }
                     }).then(function (result) {
                       if(result){ 

@@ -18,415 +18,6 @@ client.setApiKey(constant.SENDGRID_API_KEY);
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(constant.SENDGRID_API_KEY);
 var urlencode = require('urlencode');
-var fn = require(root_path+'/routes/signpdf/signfn');
-var self_PDF = require(root_path+'/utils/self_letters');
-
-
-cron.schedule('0 9,21 * * *', () => {
-//router.get('/autoMergeApp',function(req,res) {
-    var print_array = [];
-    var count = 0;
-
-    var date = new Date(); // current time
-    console.log("date=====>"+date);
-    var hours = date.getHours();
-    console.log("hours=====>"+hours);
-    if(hours == 09){
-        currentHoursMinutes = "09";
-    }else if(hours == 21){
-        currentHoursMinutes = "21";
-    }else{
-        currentHoursMinutes = hours;
-    }
-
-    var current_day = moment(new Date()).tz(constant.SYSTEM_TIMEZONE).format('YYYY-MM-DD');
-    var outputDirectory = constant.FILE_LOCATION + "public/upload/autoprint/" + current_day+'_'+currentHoursMinutes;
-    if (!fs.existsSync(outputDirectory)) {
-        fs.mkdirSync(outputDirectory);
-    }
-
-    var currentTime = moment().format('YYYY-MM-DD HH:mm:ss'); //now time
-    console.log("currentTime====>"+currentTime)
-
-    var today1  = moment().subtract(12, 'hours');
-    var startTime = today1.format('YYYY-MM-DD HH:mm:ss');
-    console.log("startTime====>"+startTime)
-
-    //Merge students pdf array starts//
-    var guconvocationstudent = " ";
-    var gupdcdatastudent = " ";
-    var guverificationstudent = " ";
-    var gumigrationstudent = " ";
-    var guattestationstudent = " ";
-    var guinternship = " ";
-    //Merge students pdf array ends//
-
-    //Not Exist pdf array starts//
-    var notExist = [];
-    //Not Exist pdf array ends//
-
-    models.Application.printapp(startTime,currentTime).then((results) => {
-        //results.forEach(function(result){
-        require('async').eachSeries(results, function(result, callback){
-        //    console.log("result.app_data===>"+result.app_data);
-        //    console.log("result.COUNT(*)===>"+result.count);
-        //    console.log("result.source_from===>"+result.source_from);
-            if(result.source_from == 'guinternship'){
-                    var count1 = 0;
-                    console.log("result.app_data.length====>"+result.app_data.length);
-                    result.app_data.forEach(function(app){
-                        count1++
-
-                        var filePath = constant.FILE_LOCATION+"public/upload/documents/"+app.user_id+"/"+app.app_id +"_Merge.pdf";
-                        if(fs.existsSync(filePath)){
-                            console.log("existssss");
-                            guinternshipstudent = guinternshipstudent+' "'+filePath+'" ';
-                        }else{
-                            console.log("not existssss 1");
-                            notExist.push(app.app_id)
-                        }
-
-                        if(result.app_data.length == count1){
-                            console.log("guconvocationstudent====>"+guinternshipstudent)
-                            if(guinternshipstudent != " "){
-                                console.log("------------- merge------------")
-                                fn.mergeAutoPrint(currentHoursMinutes, result.source_from, outputDirectory, guinternshipstudent, function(err){
-                                    if(err){
-                                        
-                                    }else{
-                                        callback();
-                                    }
-                                })
-                            }else{
-                                console.log("-------------not merge------------")
-                                callback();
-                            }
-                        }
-                    })
-            }
-
-            if(result.source_from == 'pdc'){
-                var count1 = 0;
-                console.log("result.app_data.length====>"+result.app_data.length);
-                result.app_data.forEach(function(app){
-                    count1++
-
-                    var filePath = constant.FILE_LOCATION+"public/upload/documents/"+app.user_id+"/"+app.app_id +"_Merge.pdf";
-                    if(fs.existsSync(filePath)){
-                        console.log("existssss");
-                        gupdcdatastudent = gupdcdatastudent+' "'+filePath+'" ';
-                    }else{
-                        console.log("not existssss 2");
-                        notExist.push(app.app_id)
-                    }
-
-                    if(result.app_data.length == count1){
-                        console.log("gupdcdatastudent====>"+gupdcdatastudent)
-                        if(gupdcdatastudent != " "){
-                            console.log("------------- merge------------")
-                            fn.mergeAutoPrint(currentHoursMinutes, result.source_from, outputDirectory, gupdcdatastudent, function(err){
-                                if(err){
-                                    
-                                }else{
-                                    callback();
-                                }
-                            })
-                        }else{
-                            console.log("-------------not merge------------")
-                            callback();
-                        }
-                    }
-                })
-            }
-
-            if(result.source_from == 'guverification'){
-                var count1 = 0;
-                console.log("result.app_data.length====>"+result.app_data.length);
-                result.app_data.forEach(function(app){
-                    count1++
-
-                    var filePath = constant.FILE_LOCATION+"public/upload/documents/"+app.user_id+"/"+app.app_id +"_Merge.pdf";
-                    if(fs.existsSync(filePath)){
-                        console.log("existssss");
-                        guverificationstudent = guverificationstudent+' "'+filePath+'" ';
-                    }else{
-                        console.log("not existssss 3");
-                        notExist.push(app.app_id)
-                    }
-
-                    if(result.app_data.length == count1){
-                        console.log("guverificationstudent====>"+guverificationstudent)
-                        if(guverificationstudent != " "){
-                            console.log("------------- merge------------")
-                            fn.mergeAutoPrint(currentHoursMinutes, result.source_from, outputDirectory, guverificationstudent, function(err){
-                                if(err){
-                                    
-                                }else{
-                                    callback();
-                                }
-                            })
-                        }else{
-                            console.log("-------------not merge------------")
-                            callback();
-                        }
-                    }
-                })
-            }
-
-            if(result.source_from == 'gumigration'){
-                var count1 = 0;
-                console.log("result.app_data.length====>"+result.app_data.length);
-                result.app_data.forEach(function(app){
-                    count1++
-
-                    var filePath = constant.FILE_LOCATION+"public/upload/documents/"+app.user_id+"/"+app.app_id +"_Merge.pdf";
-                    if(fs.existsSync(filePath)){
-                        console.log("existssss");
-                        gumigrationstudent = gumigrationstudent+' "'+filePath+'" ';
-                    }else{
-                        console.log("not existssss 4");
-                        notExist.push(app.app_id)
-                    }
-
-
-                    if(result.app_data.length == count1){
-                        console.log("gumigrationstudent====>"+gumigrationstudent)
-                        if(gumigrationstudent != " "){
-                            console.log("------------- merge------------")
-                            fn.mergeAutoPrint(currentHoursMinutes, result.source_from, outputDirectory, gumigrationstudent, function(err){
-                                if(err){
-                                    
-                                }else{
-                                    callback();
-                                }
-                            })
-                        }else{
-                            console.log("-------------not merge------------")
-                            callback();
-                        }
-                    }
-                })
-            }
-
-            if(result.source_from == 'guattestation' || result.source_from == 'gumoi'){
-                var count1 = 0;
-                console.log("result.app_data.length====>"+result.app_data.length);
-                result.app_data.forEach(function(app){
-                    count1++
-
-                    var filePath = constant.FILE_LOCATION+"public/upload/documents/"+app.user_id+"/"+app.app_id +"_Merge.pdf";
-                    if(fs.existsSync(filePath)){
-                        console.log("existssss");
-                        guattestationstudent = guattestationstudent+' "'+filePath+'" ';
-                    }else{
-                        console.log("not existssss 5");
-                        notExist.push(app.app_id)
-                    }
-
-                    if(result.app_data.length == count1){
-                        console.log("guattestationstudent====>"+guattestationstudent)
-                        if(guattestationstudent != " "){
-                            console.log("-------------merge------------")
-                            fn.mergeAutoPrint(currentHoursMinutes, result.source_from, outputDirectory, guattestationstudent, function(err){
-                                if(err){
-                                    
-                                }else{
-                                    callback();
-                                }
-                            })
-                        }else{
-                            console.log("-------------not merge------------")
-                            callback();
-                        }
-                    }
-                })
-            }
-        }, function(){
-            console.log("coming here after done");
-            console.log("notExist=====>"+notExist);
-
-            res.json({
-                status : 200,
-                data : notExist
-            })
-            //Send Email with application_id array
-            // request.post(constant.BASE_URL_SENDGRID + 'mergePdfNotExistMail', {
-            //     json: {	
-            //         app_id : notExist,
-            //         type : 'merge_Pdf_App_Not_Exist',
-            //     }	
-            // }, function (error, response, body) {	
-            //     if(body.status == 200){	
-            //         res.json({
-            //             status : 200
-            //         })
-            //     }else{
-            //         res.json({
-            //             status : 400
-            //         })
-            //     }
-            // })
-        })
-    }).catch((error) => {
-        console.log("error====>"+JSON.stringify(error));
-    });
-})
-
-router.get('/autoprint', function(req,res) {
-    var print_array = [];
-    var count = 0;
-    var currentTime;
-    var startTime;
-    var currentHoursMinutes;
-    var date = new Date(); // current time
-    var hours = date.getHours();
-    var notExist = [];
-
-    var current_day = moment(new Date()).tz(constant.SYSTEM_TIMEZONE).format('YYYY-MM-DD');
-    var previous_day = moment().subtract(1, 'days').format('YYYY-MM-DD');
-    var countall = 0;
-
-    if(hours == 09){
-        currentHoursMinutes = "09";
-        currentTime = current_day+' 09:00:00';
-        startTime = previous_day+' 21:00:00';
-    }else if(hours == 21){
-        currentHoursMinutes = "21";
-        currentTime = current_day+' 21:00:00';
-        startTime = current_day+' 09:00:00';
-    }else{
-        currentHoursMinutes = hours;
-        currentTime = moment().format('YYYY-MM-DD HH:mm:ss'); //now time
-        var today1  = moment().subtract(12, 'hours');
-        startTime = today1.format('YYYY-MM-DD HH:mm:ss');
-    }
-
-    var outputDirectory = constant.FILE_LOCATION + "public/upload/autoprint/" + current_day+'_'+currentHoursMinutes;
-    if (!fs.existsSync(outputDirectory)) {
-        fs.mkdirSync(outputDirectory);
-    }
-    
-    console.log("currentTime====>"+currentTime)
-    console.log("startTime====>"+startTime)
-
-    //Cover letter array starts//
-    var allstudentdata = [];
-    //Cover letter array ends//
-
-    //Merge array starts//
-    var guportalmerge = " ";
-    //Merge array ends//
-
-    allstudentdata.push(
-        [{ text: 'Portal Name', bold: true}, { text: 'Count', bold: true },{ text: 'Inword No', bold: true }]
-    )
-
-    models.Application.printapp(startTime,currentTime).then((results) => {
-        //results.forEach(function(result){
-        require('async').eachSeries(results, function(result, callback){
-        //    console.log("result.app_data===>"+result.app_data);
-        //    console.log("result.COUNT(*)===>"+result.count);
-        //    console.log("result.source_from===>"+result.source_from);
-            var guportal = [];
-            guportal.push(
-                [{ text: 'Application No', bold: true}, { text: 'Student Name', bold: true }]
-            )
-
-            var count1 = 0;
-            console.log("result.app_data.length====>"+result.app_data.length);
-            result.app_data.forEach(function(app){
-                var inword_no = result.app_data.app_inward_no;
-                guportal.push(       
-                    [{text:app.app_id},{text:app.usr_name +' '+app.usr_surname }]
-                )
-                count1++
-
-                if(result.app_data.length == count1){
-                    self_PDF.gucover(inword_no, outputDirectory, hours, result.source_from, guportal,function(err){
-                        if(err) {
-                        }else{
-                             callback();
-                        }
-                    })
-                }
-            })
-
-            countall++
-            allstudentdata.push(   
-                [{text:''+result.source_from},{text:''+result.count },{text:''+result.app_data.app_inward_no}],      
-            )
-
-            if(results.length == countall){
-                self_PDF.allstudentdata( outputDirectory, hours, 'all_portal', allstudentdata, function(err){
-                    if(err) {
-                    }else{
-                    }
-                })
-            }
-
-        }, function(){
-            console.log("coming here after done");
-            //console.log("notExist=====>"+notExist);
-            var outercount = 0;
-            var output_array = [];
-            setTimeout(() => {
-                results.forEach(function(result){
-                    var filePath = constant.FILE_LOCATION+"public/upload/autoprint/" + current_day+'_'+currentHoursMinutes +"/"+currentHoursMinutes+"_"+result.source_from+".pdf";
-                    var generated_pdf = constant.FILE_LOCATION+"public/upload/autoprint/" + current_day+'_'+currentHoursMinutes +"/"+currentHoursMinutes+"_"+result.source_from+"_cover"+".pdf";
-                    if(fs.existsSync(filePath)){
-                        console.log("existssss");
-                        guportalmerge = ' "'+generated_pdf+'" '+' "'+filePath+'" ';
-                        fn.mergeCoverAppPrint(currentHoursMinutes, result.source_from, outputDirectory, guportalmerge, function(err){
-                            if(err){
-                                sendresponse(err, "error", "")
-                            }else{
-                                console.log("Merge Done");
-                                var file_url = constant.BASE_URL+'/upload/autoprint/'+ current_day+'_'+currentHoursMinutes + '/' +currentHoursMinutes+"_"+result.source_from+'_merge.pdf';
-                                output_array.push(file_url)
-                                outercount++;
-
-                                console.log("output_array----->"+output_array)
-                                console.log("outercount----->"+outercount)
-                                console.log("results.length----->"+results.length)
-                                if(results.length == outercount){
-                                    console.log("outercountinside====>"+outercount)
-                                    var file_url = constant.BASE_URL+'/upload/autoprint/'+ current_day+'_'+currentHoursMinutes + '/' +currentHoursMinutes+'_all_portal_cover.pdf';
-                                    output_array.push(file_url)
-                                    sendresponse(output_array, "sucess", results)
-                                }else{
-                                    console.log("outercountinside error==>"+outercount)
-                                    sendresponse(err, "error","")
-                                }
-                            }
-                        })
-                    }else{
-                        outercount++;
-                        sendresponse("File not exist:" +filePath, "error", "")
-                    }
-                })
-            }, 5000);
-        })
-    }).catch((error) => {
-        console.log("error====>"+JSON.stringify(error));
-    });
-
-
-    function sendresponse(array, type, results){
-        console.log("array====>"+array);
-        if(type == "sucess"){
-            console.log("results.length--->"+results.length);
-            res.json({
-                status : 200,
-                data : array
-            })
-        }else if(type == "error"){
-            console.log("err=======>"+array);
-        }
-        
-    }
-
-
-})
 
 
 router.get('/collegeEmailStatusUpdate',function(req,res) {
@@ -455,7 +46,7 @@ router.get('/purposeEmailUpdate',function(req,res){
     var count = 0;
      var request = {};
      request.method = 'GET';
-     //request.url = '/v3/messages?limit=1000&query= subject like "%Sending attested Document From Gujarat University for application%"';
+     //request.url = '/v3/messages?limit=1000&query= subject like "%Sending attested Document From Mumbai University for application%"';
      request.url = '/v3/messages?limit=1000&query=from_email%3D%22attestation%40mu.ac.in%22'; //'/v3/messages?limit=1000&query= from_email="attestation@mu.ac.in"'
      client.request(request)
          .then(([response, body]) => {
@@ -469,7 +60,7 @@ router.get('/purposeEmailUpdate',function(req,res){
                 //     var splitData = splitAppId[0]
                    
                 //     if(splitAppId){
-                //         if(splitAppId[0] == "Sending attested Document From Gujarat University for"){
+                //         if(splitAppId[0] == "Sending attested Document From Mumbai University for"){
                 //         }else{
 
                 //         }
@@ -634,8 +225,7 @@ router.get('/statusEmailSendtoStudent',function(req,res){
         setTimeout(()=>{
             request.post(constant.BASE_URL_SENDGRID + 'statusEmailSendtoStudent', {
                 json: {
-                    studentData : studentData,
-                    source : 'gu'
+                    studentData : studentData
                 }
               });
             
@@ -688,8 +278,7 @@ router.get('/statusEmailSendtoStudent_other',function(req,res){
         setTimeout(()=>{
              request.post(constant.BASE_URL_SENDGRID + 'statusEmailSendtoStudent_other', {
                 json: {
-                    studentData : studentData,
-                    source : 'gu'
+                    studentData : studentData
                 }
               });
             
@@ -703,7 +292,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
             if(application.educationalDetails == true){
                 models.User_Transcript.findAll({
                     where :{
-                        user_id : application.user_id,source : 'guattestation' 
+                        user_id : application.user_id
                     }
                 }).then(function(user_Transcripts){
                     var collegeData = [];
@@ -745,13 +334,13 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                         singleCollege.studentName = application.studentName;
                                         singleCollege.college_id = college.id;
                                         singleCollege.alternateEmail = college.alternateEmailId; 
-                                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+ application.user_id + "/" + urlencode(transcript.file_name)});
+                                        singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+ application.user_id + "/" + urlencode(transcript.file_name)});
                                         collegeData.push(singleCollege);
                                     }else{
                                         var transcriptFlag = false;
                                         for(var i = 0; i<collegeData.length; i++){
                                             if(collegeData[i].college_id == transcript.collegeId){
-                                                collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+application.user_id + "/" + urlencode(transcript.file_name)});
+                                                collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+application.user_id + "/" + urlencode(transcript.file_name)});
                                                 transcriptFlag = true;
                                                 break;
                                             }
@@ -763,7 +352,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                             singleCollege.college_id = college.id;
                                             singleCollege.collegeEmail = college.emailId;
                                             singleCollege.alternateEmail = college.alternateEmailId;
-                                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+application.user_id + "/" + urlencode(transcript.file_name)});
+                                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+application.user_id + "/" + urlencode(transcript.file_name)});
                                             collegeData.push(singleCollege);
                                         }
                                     }
@@ -777,13 +366,13 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                             singleCollege.studentName = application.studentName;
                                             singleCollege.college_id = college.id;
                                             singleCollege.alternateEmail = college.alternateEmailId; 
-                                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+ application.user_id + "/" + urlencode(transcript.file_name)});
+                                            singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+ application.user_id + "/" + urlencode(transcript.file_name)});
                                             collegeData.push(singleCollege);
                                         }else{
                                             var transcriptFlag = false;
                                             for(var i = 0; i<collegeData.length; i++){
                                                 if(collegeData[i].college_id == transcript.collegeId){
-                                                    collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+application.user_id + "/" + urlencode(transcript.file_name)});
+                                                    collegeData[i].user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+application.user_id + "/" + urlencode(transcript.file_name)});
                                                     transcriptFlag = true;
                                                     break;
                                                 }
@@ -795,7 +384,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 singleCollege.college_id = college.id;
                                                 singleCollege.collegeEmail = college.emailId;
                                                 singleCollege.alternateEmail = college.alternateEmailId;
-                                                singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/documents/'+application.user_id + "/" + urlencode(transcript.file_name)});
+                                                singleCollege.user_transcript.push({'fileName':transcript.file_name,'transcript':'upload/transcript/'+application.user_id + "/" + urlencode(transcript.file_name)});
                                                 collegeData.push(singleCollege);
                                             }
                                         }
@@ -806,7 +395,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                     });
                     models.userMarkList.find({
                         where : {
-                            user_id : application.user_id,source : 'guattestation'
+                            user_id : application.user_id
                         }
                     }).then(function(userMarkListsData){  
                         models.UserMarklist_Upload.getMarksheetDataSendToInstitute(userMarkListsData.user_id).then(function(user_MarkLists){      
@@ -848,15 +437,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 singleCollege.college_id = college.id;
                                                 singleCollege.alternateEmail = college.alternateEmailId; 
                                                 if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }
                                             }else{
@@ -864,17 +453,17 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 for(var i = 0; i<collegeData.length; i++){
                                                     if(collegeData[i].college_id == markList.collegeId){
                                                         if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             flag = true;
                                                             break;
                                                         }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break;
                                                         }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break;
                                                         }
@@ -888,15 +477,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     singleCollege.collegeEmail = college.emailId;
                                                     singleCollege.alternateEmail = college.alternateEmailId;
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }
                                                 }
@@ -912,15 +501,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     singleCollege.college_id = college.id;
                                                     singleCollege.alternateEmail = college.alternateEmailId; 
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }
                                                 }else{
@@ -928,16 +517,16 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     for(var i = 0; i<collegeData.length; i++){
                                                         if(collegeData[i].college_id == markList.collegeId){
                                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                                 flag = true;
                                                                 break;
                                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                                 flag = true;
                                                                 break;
                                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
-                                                                 collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                                 collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                                 flag = true;
                                                                 break;
                                                             }
@@ -951,15 +540,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                         singleCollege.collegeEmail = college.emailId;
                                                         singleCollege.alternateEmail = college.alternateEmailId;
                                                         if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             collegeData.push(singleCollege);
                                                         }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             collegeData.push(singleCollege);
                                                         }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             collegeData.push(singleCollege);
-                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             collegeData.push(singleCollege);
                                                         }
                                                     }
@@ -973,8 +562,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                 if(collegeData.length > 0){
                                     request.post(constant.BASE_URL_SENDGRID + 'transcriptVerificationEmailShweta', {
                                         json: {
-                                            collegeData : collegeData,
-                                            source : 'gu'
+                                            collegeData : collegeData
                                         }
                                     }, function (error, response, body) {
                                         if(body.notSent.length > 0){
@@ -1002,7 +590,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
 		        }).then(function(instructional){
 			        models.userMarkList.find({
 				        where : {
-					        user_id : application.user_id,source : 'guattestation'
+					        user_id : application.user_id
 				        }
 			        }).then(function(userMarkListsData){
                         models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(user_MarkLists){      
@@ -1046,15 +634,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 singleCollege.courseName = instructional.courseName;
                                                 singleCollege.alternateEmail = college.alternateEmailId; 
                                                 if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }
                                             }else{
@@ -1062,17 +650,17 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 for(var i = 0; i<collegeData.length; i++){
                                                     if(collegeData[i].college_id == markList.collegeId){
                                                         if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             flag = true;
                                                             break;
                                                         }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break; 
                                                         }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             flag = true;
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break;
                                                         }
@@ -1087,15 +675,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     singleCollege.collegeEmail = college.emailId;
                                                     singleCollege.alternateEmail = college.alternateEmailId;
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }
                                                 }
@@ -1112,15 +700,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     singleCollege.courseName = instructional.courseName;
                                                     singleCollege.alternateEmail = college.alternateEmailId; 
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         collegeData.push(singleCollege);
                                                     }
                                                 }else{
@@ -1128,17 +716,17 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     for(var i = 0; i<collegeData.length; i++){
                                                         if(collegeData[i].college_id == markList.collegeId){
                                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                                 flag = true;
                                                                 break;
                                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                                 flag = true;
                                                                 break; 
                                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                                 flag = true;
-                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                                collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                                 flag = true;
                                                                 break;
                                                             }
@@ -1153,15 +741,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                         singleCollege.collegeEmail = college.emailId;
                                                         singleCollege.alternateEmail = college.alternateEmailId;
                                                         if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             collegeData.push(singleCollege);
                                                         }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             collegeData.push(singleCollege);
                                                         }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             collegeData.push(singleCollege);
-                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             collegeData.push(singleCollege);
                                                         }
                                                     }
@@ -1175,8 +763,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
 					            if(collegeData.length > 0){
                                     request.post(constant.BASE_URL_SENDGRID + 'instructionalFieldVerificationEmail', {
                                         json: {
-                                            collegeData : collegeData,
-                                            source : 'gu'
+                                            collegeData : collegeData
                                         }
                                     }, function (error, response, body) {
                                         if(body.notSent.length > 0){
@@ -1302,7 +889,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                     });
                     models.userMarkList.find({
                         where : {
-                            user_id : application.user_id,source : 'guattestation'
+                            user_id : application.user_id
                         }
                     }).then(function(userMarkListsData){  
                         models.UserMarklist_Upload.getMarksheetDataSendToCollege(userMarkListsData.user_id,userMarkListsData.collegeId).then(function(user_MarkLists){      
@@ -1345,15 +932,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                             singleCollege.college_id = college.id;
                                             singleCollege.alternateEmail = college.alternateEmailId; 
                                             if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                 collegeData.push(singleCollege);
                                             }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                 collegeData.push(singleCollege);
                                             }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                 collegeData.push(singleCollege);
-                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                 collegeData.push(singleCollege);
                                             }
                                         }else{
@@ -1361,17 +948,17 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                             for(var i = 0; i<collegeData.length; i++){
                                                 if(collegeData[i].college_id == markList.collegeId){
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         flag = true;
                                                         break;
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         flag = true;
                                                         break;
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         flag = true;
-                                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                        collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                         flag = true;
                                                         break;
                                                     }
@@ -1385,15 +972,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 singleCollege.collegeEmail = college.emailId;
                                                 singleCollege.alternateEmail = college.alternateEmailId;
                                                 if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
                                                     collegeData.push(singleCollege);
                                                 }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
                                                     collegeData.push(singleCollege);
                                                 }
                 
@@ -1410,15 +997,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 singleCollege.college_id = college.id;
                                                 singleCollege.alternateEmail = college.alternateEmailId; 
                                                 if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                     collegeData.push(singleCollege);
-                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                    singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                     collegeData.push(singleCollege);
                                                 }
                                             }else{
@@ -1426,17 +1013,17 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                 for(var i = 0; i<collegeData.length; i++){
                                                     if(collegeData[i].college_id == markList.collegeId){
                                                         if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             flag = true;
                                                             break;
                                                         }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break;
                                                         }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                             flag = true;
-                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
+                                                            collegeData[i].user_markList.push({'fileName':markList.usermarklist_file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name)});
                                                             flag = true;
                                                             break;
                                                         }
@@ -1450,15 +1037,15 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                                                     singleCollege.collegeEmail = college.emailId;
                                                     singleCollege.alternateEmail = college.alternateEmailId;
                                                     if((markList.file_name !='null' && markList.file_name!=null)&& (markList.usermarklist_file_name==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
                                                     }else if((markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null) && (markList.file_name ==null)){
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
                                                         collegeData.push(singleCollege);
                                                     }else if(markList.file_name !='null' && markList.file_name!=null && markList.usermarklist_file_name !='null' && markList.usermarklist_file_name !=null){
-                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.file_name)});
+                                                        singleCollege.user_markList.push({'fileName':markList.file_name,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.file_name)});
                                                         collegeData.push(singleCollege);
-                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/documents/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
+                                                        singleCollege.user_markList.push({'fileName':markList.usermarklist_file_name ,'markList':'upload/marklist/'+ application.user_id + "/" + urlencode(markList.usermarklist_file_name )});
                                                         collegeData.push(singleCollege);
                                                     }
                     
@@ -1474,8 +1061,7 @@ router.get('/pendingApplicationReminderMailToCollege',function(req,res){
                             if(collegeData.length > 0){
                                 request.post(constant.BASE_URL_SENDGRID + 'curriculumVerificationEmail', {
                                     json: {
-                                        collegeData : collegeData,
-                                        source : 'gu'
+                                        collegeData : collegeData
                                     }
                                 }, function (error, response, body) {
                                     if(body.notSent.length > 0){
@@ -1506,8 +1092,7 @@ router.get('/ReminderforOnholdApplicationToStudent',function(req,res){
                     name : application.student_name,
                     app_id : application.application_id,
                     mobile_country_code : application.mobile_country_code,
-                    mobile : application.mobile,
-                    source : 'gu'
+                    mobile : application.mobile
                 }
             });
         })
@@ -1522,7 +1107,7 @@ router.get('/improvementFeedback',function(req,res){
                 json: {
                     email : feedback.email,
                     name : feedback.name + ' ' + feedback.surname,
-                    source : 'gu'
+                    source : 'attestation'
                 }
             });
         })

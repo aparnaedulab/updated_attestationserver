@@ -736,7 +736,7 @@ router.get('/download',middlewares.getUserInfo,function(req,res){
     var file_name = req.query.file_name;
     var user_id = req.User.id;
     var filePath= req.query.file_path;
-  res.download(file_name);
+  res.download(filePath);
 })
 
 router.get('/getAttachment',function(req,res){
